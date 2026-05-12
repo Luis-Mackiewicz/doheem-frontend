@@ -157,4 +157,9 @@ Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
 ---
 
+## Fluxo de gestao de despesas
+
+---
+![Fluxo de Gestão de Despesas](./docs/fluxo-despesas.png)
+
 > Desenvolvido como parte de Trabalho de Conclusão de Curso — feito com 💙 para quem mora em república.
