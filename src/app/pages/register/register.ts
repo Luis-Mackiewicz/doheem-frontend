@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CardComponent } from '../components/card/card';
-import { ButtonComponent } from '../components/button/button';
+import { CardComponent } from '../../components/card/card';
+import { ButtonComponent } from '../../components/button/button';
 
 @Component({
   selector: 'app-register',

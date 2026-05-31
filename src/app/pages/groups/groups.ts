@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ButtonComponent } from '../components/button/button';
+import { ButtonComponent } from '../../components/button/button';
 
 interface Group {
   id: number;
@@ -47,6 +47,7 @@ const MOCK_GROUPS: Group[] = [
                 (input)="onSearch(searchInput.value)" />
             </div>
             <app-button variant="solid" type="button" label="+ Criar"></app-button>
+            <app-button variant="outline" type="button" label="Entrar"></app-button>
           </div>
 
           <div class="flex flex-col">
