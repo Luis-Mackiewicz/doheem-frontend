@@ -5,3 +5,6 @@
 5. Quero que o design seja glassmorphism
 6.Mantenha a consistência visual entre as telas
 7. no tailwindcss quando for fazer gradiente a sintaxe nova é bg-liner ao invés de bg-gradient
+8. Não faça commits sem me perguntar
+9. Prefira utilizar porcentagem e rem ao invés de pixel no tailwindcss
+10. Quando eu falar home estou me referindo a rota "/"
