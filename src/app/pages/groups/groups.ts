@@ -1,6 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ButtonComponent } from '../button/button';
+import { ButtonComponent } from '../components/button/button';
 
 interface Group {
   id: number;

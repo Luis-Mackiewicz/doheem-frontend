@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CardComponent } from '../card/card';
-import { ButtonComponent } from '../button/button';
+import { CardComponent } from '../components/card/card';
+import { ButtonComponent } from '../components/button/button';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
@@ -13,21 +13,15 @@ import { ButtonComponent } from '../button/button';
 
         <app-card>
           <a routerLink="/" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition">
-            ←
+            ← Voltar
           </a>
 
           <div class="flex gap-6 mb-8">
-            <a routerLink="/login" class="text-white/70 font-semibold text-lg hover:text-white transition">Login</a>
-            <span class="text-white/40 font-semibold text-lg">Registrar</span>
+            <span class="text-white/40 font-semibold text-lg">Login</span>
+            <a routerLink="/register" class="text-white/70 font-semibold text-lg hover:text-white transition">Registrar</a>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
-
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-              Nome
-              <input formControlName="name" type="text" placeholder="Seu nome"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
-            </label>
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
               Email
@@ -41,13 +35,7 @@ import { ButtonComponent } from '../button/button';
                 class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
             </label>
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-              Confirmar senha
-              <input formControlName="confirmPassword" type="password" placeholder="••••••••"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
-            </label>
-
-            <app-button type="submit" variant="solid" label="Criar conta"></app-button>
+            <app-button type="submit" variant="solid" label="Entrar"></app-button>
 
             <div class="flex items-center gap-3 my-1">
               <div class="flex-1 h-px bg-white/10"></div>
@@ -66,8 +54,8 @@ import { ButtonComponent } from '../button/button';
             </button>
 
             <p class="text-center text-white/50 text-sm mt-2">
-              Já tem conta?
-              <a routerLink="/login" class="text-white font-semibold hover:underline">Entrar</a>
+              Não tem conta?
+              <a routerLink="/register" class="text-white font-semibold hover:underline">Registrar</a>
             </p>
 
           </form>
@@ -77,20 +65,18 @@ import { ButtonComponent } from '../button/button';
     </section>
   `,
 })
-export class RegisterPage {
+export class LoginPage {
   protected form;
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required],
+      password: ['', Validators.required],
     });
   }
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    console.log('Register:', this.form.value);
+    console.log('Login:', this.form.value);
   }
 }
