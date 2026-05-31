@@ -26,7 +26,7 @@ import { ButtonComponent } from '../button/button';
 
           <div class="flex flex-wrap gap-4 mt-2">
             <app-button variant="solid" href="/login" label="Entrar"></app-button>
-            <app-button variant="outline" href="/register" label="Criar conta"></app-button>
+            <app-button variant="outline" href="/register" label="Registrar"></app-button>
           </div>
         </div>
 
