@@ -1,3 +1,8 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
 
-@import 'tailwindcss';
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-purple-medium: #7c3aed;
+  --color-purple-dark: #2e1065;
+}
