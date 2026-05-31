@@ -1,26 +1,30 @@
 import { Component, Input } from '@angular/core';
+import { NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 
 @Component({
   selector: 'app-button',
+  imports: [NgSwitch, NgSwitchCase, NgSwitchDefault],
   template: `
-    @if (type === 'link') {
-      <a [attr.href]="href"
+    <ng-container [ngSwitch]="type">
+      <a *ngSwitchCase="'link'"
+         [attr.href]="href"
          [class]="variant === 'solid'
            ? 'inline-flex items-center justify-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg'
            : 'inline-flex items-center justify-center gap-3 border border-white/30 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/10 transition backdrop-blur-sm'">
-        <ng-content />
+        {{ label }}
       </a>
-    } @else {
-      <button [type]="type"
+      <button *ngSwitchDefault
+              [type]="type"
               [class]="variant === 'solid'
-                ? 'inline-flex items-center justify-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg cursor-pointer'
-                : 'inline-flex items-center justify-center gap-3 border border-white/30 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/10 transition backdrop-blur-sm cursor-pointer'">
-        <ng-content />
+                ? 'inline-flex items-center justify-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg cursor-pointer w-full'
+                : 'inline-flex items-center justify-center gap-3 border border-white/30 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/10 transition backdrop-blur-sm cursor-pointer w-full'">
+        {{ label }}
       </button>
-    }
+    </ng-container>
   `,
 })
 export class ButtonComponent {
+  @Input() label = '';
   @Input() variant: 'solid' | 'outline' = 'solid';
   @Input() href = '#';
   @Input() type: 'link' | 'submit' | 'button' = 'link';
