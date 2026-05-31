@@ -3,6 +3,7 @@ import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
 import { GroupsPage } from './pages/groups/groups';
+import { PerfilPage } from './pages/perfil/perfil';
 import { GroupLayoutComponent } from './pages/group-layout/group-layout';
 import { DashboardPage } from './pages/dashboard/dashboard';
 import { FinanceiroPage } from './pages/financeiro/financeiro';
@@ -15,6 +16,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginPage },
   { path: 'register', component: RegisterPage },
   { path: 'groups', component: GroupsPage },
+  { path: 'perfil', component: PerfilPage },
   {
     path: 'groups/:id',
     component: GroupLayoutComponent,

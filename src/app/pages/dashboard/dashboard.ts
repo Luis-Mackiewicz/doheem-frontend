@@ -50,17 +50,17 @@ const MOCK_TASKS: TaskItem[] = [
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <p class="text-white/50 text-sm font-medium">Dívida total do grupo</p>
-          <p class="text-2xl font-bold text-white mt-1">R$ 1.345,00</p>
-          <p class="text-white/40 text-xs mt-1">Mês de Maio</p>
+          <p class="text-white/50 text-sm font-medium">Você deve</p>
+          <p class="text-2xl font-bold text-orange-400 mt-1">R$ 150,00</p>
         </div>
         <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
           <p class="text-white/50 text-sm font-medium">Você tem a receber</p>
           <p class="text-2xl font-bold text-green-400 mt-1">R$ 120,00</p>
         </div>
         <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <p class="text-white/50 text-sm font-medium">Você deve</p>
-          <p class="text-2xl font-bold text-orange-400 mt-1">R$ 150,00</p>
+          <p class="text-white/50 text-sm font-medium">Dívida total do grupo</p>
+          <p class="text-2xl font-bold text-white mt-1">R$ 1.345,00</p>
+          <p class="text-white/40 text-xs mt-1">Mês de Maio</p>
         </div>
       </div>
 
