@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './components/header/header';
 
 @Component({
@@ -8,4 +9,14 @@ import { HeaderComponent } from './components/header/header';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  protected showHeader = true;
+
+  constructor(router: Router) {
+    router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe(e => {
+      this.showHeader = !e.url.startsWith('/groups/');
+    });
+  }
+}

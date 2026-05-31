@@ -1,0 +1,23 @@
+import { Component } from '@angular/core';
+import { RouterOutlet, ActivatedRoute } from '@angular/router';
+import { SidebarComponent } from '../../components/sidebar/sidebar';
+
+@Component({
+  selector: 'app-group-layout',
+  imports: [RouterOutlet, SidebarComponent],
+  template: `
+    <div class="flex min-h-dvh bg-linear-to-br from-purple-dark to-purple-medium">
+      <app-sidebar [groupId]="groupId" />
+      <main class="flex-1 ml-64 p-6 md:p-8 lg:p-10">
+        <router-outlet />
+      </main>
+    </div>
+  `,
+})
+export class GroupLayoutComponent {
+  protected groupId: string;
+
+  constructor(route: ActivatedRoute) {
+    this.groupId = route.snapshot.paramMap.get('id') ?? '';
+  }
+}

@@ -52,7 +52,7 @@ const MOCK_GROUPS: Group[] = [
 
           <div class="flex flex-col">
             @for (group of filteredGroups(); track group.id) {
-              <div class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-white/10 last:border-b-0 hover:bg-white/5">
+              <a [routerLink]="'/groups/' + group.id + '/dashboard'" class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-white/10 last:border-b-0 hover:bg-white/5">
                 <div class="flex items-center gap-4 min-w-0">
                   <span class="text-2xl shrink-0">🏠</span>
                   <div class="min-w-0">
@@ -61,7 +61,7 @@ const MOCK_GROUPS: Group[] = [
                   </div>
                 </div>
                 <span class="text-white/30 text-lg shrink-0">›</span>
-              </div>
+              </a>
             } @empty {
               <p class="text-white/40 text-center py-12">Nenhum grupo encontrado</p>
             }
