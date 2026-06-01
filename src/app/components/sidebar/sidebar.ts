@@ -18,7 +18,7 @@ import { NotificationService } from '../../services/notification-service';
         [class.border-b]="true"
         [class.border-white/10]="theme.theme() === 'dark'"
         [class.border-theme]="theme.theme() === 'light'">
-        <img src="doheem_loogo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
+        <img src="doheem_logo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
         <span class="font-bold text-lg tracking-tight"
           [class.text-white]="theme.theme() === 'dark'"
           [class.text-primary]="theme.theme() === 'light'">Doheem</span>
@@ -107,7 +107,7 @@ import { NotificationService } from '../../services/notification-service';
         Voltar
       </a>
       <div class="flex items-center gap-2">
-        <img src="doheem_loogo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
+        <img src="doheem_logo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
         <span class="font-bold text-sm"
           [class.text-white]="theme.theme() === 'dark'"
           [class.text-primary]="theme.theme() === 'light'">Doheem</span>
