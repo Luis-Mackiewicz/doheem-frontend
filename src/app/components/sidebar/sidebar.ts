@@ -1,41 +1,85 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ModalMembrosComponent } from '../modal-members/modal-members';
+import { ThemeService } from '../../services/theme-service';
 
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, ModalMembrosComponent],
   template: `
-    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 bg-purple-dark/90 border-r border-white/10 flex-col z-40">
-      <div class="flex items-center gap-3 px-6 py-5 border-white/10">
+    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 transition-colors"
+      [class.bg-purple-dark/90]="theme.theme() === 'dark'"
+      [class.bg-card]="theme.theme() === 'light'"
+      [class.border-r]="true"
+      [class.border-white/10]="theme.theme() === 'dark'"
+      [class.border-theme]="theme.theme() === 'light'">
+      <div class="flex items-center gap-3 px-6 py-5"
+        [class.border-b]="true"
+        [class.border-white/10]="theme.theme() === 'dark'"
+        [class.border-theme]="theme.theme() === 'light'">
         <img src="doheem_loogo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
-        <span class="text-white font-bold text-lg tracking-tight">Doheem</span>
+        <span class="font-bold text-lg tracking-tight"
+          [class.text-white]="theme.theme() === 'dark'"
+          [class.text-primary]="theme.theme() === 'light'">Doheem</span>
       </div>
 
       <nav class="flex flex-col gap-1 p-3">
         @for (item of navItems; track item.path) {
-          <a [routerLink]="item.path" routerLinkActive="bg-white/10 text-white" [routerLinkActiveOptions]="{exact: item.exact}"
-             class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
+          <a [routerLink]="item.path"
+             [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
+             [class.text-white/60]="theme.theme() === 'dark'"
+             [class.text-secondary]="theme.theme() === 'light'"
+             [class.hover:text-white]="theme.theme() === 'dark'"
+             [class.hover:text-primary]="theme.theme() === 'light'"
+             [class.hover:bg-white/5]="theme.theme() === 'dark'"
+             [class.hover-bg]="theme.theme() === 'light'">
             <span class="text-lg">{{ item.icon }}</span>
             {{ item.label }}
           </a>
         }
-        <button (click)="showModal.set(true)" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium cursor-pointer w-full text-left">
+        <button (click)="showModal.set(true)"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium cursor-pointer w-full text-left"
+          [class.text-white/60]="theme.theme() === 'dark'"
+          [class.text-secondary]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'"
+          [class.hover:bg-white/5]="theme.theme() === 'dark'"
+          [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg">👥</span>
           Grupo
         </button>
       </nav>
 
-      <hr class="border-white/10 mx-4" />
+      <hr class="mx-4"
+        [class.border-white/10]="theme.theme() === 'dark'"
+        [class.border-theme]="theme.theme() === 'light'" />
       <div class="p-3">
-        <a routerLink="/perfil" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
+        <a routerLink="/perfil"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
+          [class.text-white/60]="theme.theme() === 'dark'"
+          [class.text-secondary]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'"
+          [class.hover:bg-white/5]="theme.theme() === 'dark'"
+          [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg">👤</span>
           Perfil
         </a>
       </div>
-      <hr class="border-white/10 mx-4" />
+      <hr class="mx-4"
+        [class.border-white/10]="theme.theme() === 'dark'"
+        [class.border-theme]="theme.theme() === 'light'" />
       <div class="p-3">
-        <a [routerLink]="['/groups']" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition text-sm font-medium">
+        <a [routerLink]="['/groups']"
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
+          [class.text-white/40]="theme.theme() === 'dark'"
+          [class.text-muted]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'"
+          [class.hover:bg-white/5]="theme.theme() === 'dark'"
+          [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg">←</span>
           Voltar aos grupos
         </a>
@@ -43,34 +87,75 @@ import { ModalMembrosComponent } from '../modal-members/modal-members';
     </aside>
 
     <!-- Mobile top bar -->
-    <div class="flex lg:hidden fixed top-0 left-0 right-0 z-40 bg-purple-dark/95 backdrop-blur-xl border-b border-white/10 items-center justify-between px-4 py-3">
-      <a [routerLink]="['/groups']" class="flex items-center gap-2 text-white/60 hover:text-white transition text-sm font-medium">
+    <div class="flex lg:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-xl items-center justify-between px-4 py-3 transition-colors"
+      [class.bg-purple-dark/95]="theme.theme() === 'dark'"
+      [class.bg-page/95]="theme.theme() === 'light'"
+      [class.border-b]="true"
+      [class.border-white/10]="theme.theme() === 'dark'"
+      [class.border-theme]="theme.theme() === 'light'">
+      <a [routerLink]="['/groups']"
+        class="flex items-center gap-2 transition text-sm font-medium"
+        [class.text-white/60]="theme.theme() === 'dark'"
+        [class.text-secondary]="theme.theme() === 'light'"
+        [class.hover:text-white]="theme.theme() === 'dark'"
+        [class.hover:text-primary]="theme.theme() === 'light'">
         <span class="text-lg">←</span>
         Voltar
       </a>
       <div class="flex items-center gap-2">
         <img src="doheem_loogo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
-        <span class="text-white font-bold text-sm">Doheem</span>
+        <span class="font-bold text-sm"
+          [class.text-white]="theme.theme() === 'dark'"
+          [class.text-primary]="theme.theme() === 'light'">Doheem</span>
       </div>
       <div class="flex items-center gap-3">
-        <a routerLink="/perfil" class="text-white/60 hover:text-white transition text-lg cursor-pointer">👤</a>
-        <button (click)="showModal.set(true)" class="flex items-center gap-1 text-white/60 hover:text-white transition text-sm font-medium cursor-pointer">
+        <a routerLink="/perfil"
+          class="transition text-lg cursor-pointer"
+          [class.text-white/60]="theme.theme() === 'dark'"
+          [class.text-secondary]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'">👤</a>
+        <button (click)="showModal.set(true)"
+          class="flex items-center gap-1 transition text-sm font-medium cursor-pointer"
+          [class.text-white/60]="theme.theme() === 'dark'"
+          [class.text-secondary]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'">
           <span class="text-lg">👥</span>
         </button>
       </div>
     </div>
 
     <!-- Mobile bottom nav -->
-    <nav class="flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-purple-dark/95 backdrop-blur-xl border-t border-white/10 px-1 pb-[env(safe-area-inset-bottom,0px)]">
+    <nav class="flex lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t px-1 pb-[env(safe-area-inset-bottom,0px)] transition-colors"
+      [class.bg-purple-dark/95]="theme.theme() === 'dark'"
+      [class.bg-page/95]="theme.theme() === 'light'"
+      [class.border-white/10]="theme.theme() === 'dark'"
+      [class.border-theme]="theme.theme() === 'light'">
       @for (item of navItems; track item.path; let i = $index) {
-        <a [routerLink]="item.path" routerLinkActive="bg-white/10 text-white" [routerLinkActiveOptions]="{exact: item.exact}"
-           class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition text-[10px] font-medium min-w-0">
+        <a [routerLink]="item.path"
+          [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
+          [routerLinkActiveOptions]="{exact: item.exact}"
+          class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0"
+          [class.text-white/50]="theme.theme() === 'dark'"
+          [class.text-muted]="theme.theme() === 'light'"
+          [class.hover:text-white]="theme.theme() === 'dark'"
+          [class.hover:text-primary]="theme.theme() === 'light'"
+          [class.hover:bg-white/5]="theme.theme() === 'dark'"
+          [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg leading-none">{{ item.icon }}</span>
           <span class="truncate w-full text-center">{{ item.label }}</span>
         </a>
       }
-      <a routerLink="/perfil" routerLinkActive="bg-white/10 text-white"
-         class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition text-[10px] font-medium min-w-0">
+      <a routerLink="/perfil"
+        [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
+        class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0"
+        [class.text-white/50]="theme.theme() === 'dark'"
+        [class.text-muted]="theme.theme() === 'light'"
+        [class.hover:text-white]="theme.theme() === 'dark'"
+        [class.hover:text-primary]="theme.theme() === 'light'"
+        [class.hover:bg-white/5]="theme.theme() === 'dark'"
+        [class.hover-bg]="theme.theme() === 'light'">
         <span class="text-lg leading-none">👤</span>
         <span class="truncate w-full text-center">Perfil</span>
       </a>
@@ -85,6 +170,7 @@ export class SidebarComponent {
   @Input() groupId!: string;
 
   protected showModal = signal(false);
+  protected theme = inject(ThemeService);
 
   get navItems() {
     return [
