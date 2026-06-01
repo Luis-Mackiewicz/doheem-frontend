@@ -27,7 +27,11 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
         </button>
       </nav>
 
-      <div class="p-4 border-t border-white/10">
+      <div class="p-4 border-t border-white/10 flex flex-col gap-1">
+        <a routerLink="/perfil" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
+          <span class="text-lg">👤</span>
+          Perfil
+        </a>
         <a [routerLink]="['/groups']" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition text-sm font-medium">
           <span class="text-lg">←</span>
           Voltar aos grupos
@@ -45,9 +49,12 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
         <img src="doheem_loogo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
         <span class="text-white font-bold text-sm">Doheem</span>
       </div>
-      <button (click)="showModal.set(true)" class="flex items-center gap-1 text-white/60 hover:text-white transition text-sm font-medium cursor-pointer">
-        <span class="text-lg">👥</span>
-      </button>
+      <div class="flex items-center gap-3">
+        <a routerLink="/perfil" class="text-white/60 hover:text-white transition text-lg cursor-pointer">👤</a>
+        <button (click)="showModal.set(true)" class="flex items-center gap-1 text-white/60 hover:text-white transition text-sm font-medium cursor-pointer">
+          <span class="text-lg">👥</span>
+        </button>
+      </div>
     </div>
 
     <!-- Mobile bottom nav -->
@@ -59,6 +66,11 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
           <span class="truncate w-full text-center">{{ item.label }}</span>
         </a>
       }
+      <a routerLink="/perfil" routerLinkActive="bg-white/10 text-white"
+         class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition text-[10px] font-medium min-w-0">
+        <span class="text-lg leading-none">👤</span>
+        <span class="truncate w-full text-center">Perfil</span>
+      </a>
     </nav>
 
     @if (showModal()) {
