@@ -8,7 +8,7 @@ import { ThemeService } from '../../services/theme-service';
   imports: [RouterLink, RouterLinkActive, ModalMembrosComponent],
   template: `
     <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 transition-colors"
-      [class.bg-purple-dark/90]="theme.theme() === 'dark'"
+      [class.bg-page]="theme.theme() === 'dark'"
       [class.bg-card]="theme.theme() === 'light'"
       [class.border-r]="true"
       [class.border-white/10]="theme.theme() === 'dark'"
@@ -88,7 +88,7 @@ import { ThemeService } from '../../services/theme-service';
 
     <!-- Mobile top bar -->
     <div class="flex lg:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-xl items-center justify-between px-4 py-3 transition-colors"
-      [class.bg-purple-dark/95]="theme.theme() === 'dark'"
+      [class.bg-page/95]="theme.theme() === 'dark'"
       [class.bg-page/95]="theme.theme() === 'light'"
       [class.border-b]="true"
       [class.border-white/10]="theme.theme() === 'dark'"
@@ -128,7 +128,7 @@ import { ThemeService } from '../../services/theme-service';
 
     <!-- Mobile bottom nav -->
     <nav class="flex lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t px-1 pb-[env(safe-area-inset-bottom,0px)] transition-colors"
-      [class.bg-purple-dark/95]="theme.theme() === 'dark'"
+      [class.bg-page/95]="theme.theme() === 'dark'"
       [class.bg-page/95]="theme.theme() === 'light'"
       [class.border-white/10]="theme.theme() === 'dark'"
       [class.border-theme]="theme.theme() === 'light'">
