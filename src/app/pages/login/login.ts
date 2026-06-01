@@ -3,10 +3,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CardComponent } from '../../components/card/card';
+import { PasswordInputComponent } from '../../components/password-input/password-input';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PasswordInputComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
@@ -47,8 +48,7 @@ import { CardComponent } from '../../components/card/card';
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
               Senha
-              <input formControlName="password" type="password" placeholder="••••••••"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
+              <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
             </label>
 
             <app-button type="submit" variant="solid" label="Entrar"></app-button>
