@@ -24,8 +24,8 @@ import { CardComponent } from '../../components/card/card';
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-              Email
-              <input formControlName="email" type="email" placeholder="seu@email.com"
+              Email ou telefone
+              <input formControlName="credential" type="text" placeholder="seu@email.com ou (11) 99999-0000"
                 class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
             </label>
 
@@ -70,7 +70,7 @@ export class LoginPage {
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      credential: ['', Validators.required],
       password: ['', Validators.required],
     });
   }

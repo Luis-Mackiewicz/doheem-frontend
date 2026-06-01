@@ -3,10 +3,11 @@ import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
+import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 
 @Component({
   selector: 'app-perfil',
-  imports: [ReactiveFormsModule, CardComponent, ButtonComponent],
+  imports: [ReactiveFormsModule, CardComponent, ButtonComponent, PhoneInputComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
@@ -25,6 +26,11 @@ import { ButtonComponent } from '../../components/button/button';
             <h2 class="text-white text-xl font-bold">Luís</h2>
             <p class="text-white/50 text-sm">luis@email.com</p>
           </div>
+
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70 mb-6">
+            Telefone
+            <app-phone-input value="5511999990001" (phoneChange)="onPhoneChange($event)" />
+          </label>
 
           <div class="flex items-center gap-3 mb-6">
             <div class="flex-1 h-px bg-white/10"></div>
@@ -59,6 +65,7 @@ import { ButtonComponent } from '../../components/button/button';
 })
 export class PerfilPage {
   protected form;
+  protected phone = '5511999990001';
 
   constructor(private fb: FormBuilder, private location: Location) {
     this.form = this.fb.group({
@@ -77,9 +84,14 @@ export class PerfilPage {
     this.location.back();
   }
 
+  onPhoneChange(value: string): void {
+    this.phone = value;
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
     console.log('Senha alterada');
+    console.log('Telefone:', this.phone);
     this.form.reset();
   }
 }

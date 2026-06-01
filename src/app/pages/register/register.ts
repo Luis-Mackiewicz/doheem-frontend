@@ -3,10 +3,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
+import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
@@ -27,6 +28,11 @@ import { ButtonComponent } from '../../components/button/button';
               Nome
               <input formControlName="name" type="text" placeholder="Seu nome"
                 class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              Telefone
+              <app-phone-input (phoneChange)="onPhoneChange($event)" />
             </label>
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
@@ -79,6 +85,7 @@ import { ButtonComponent } from '../../components/button/button';
 })
 export class RegisterPage {
   protected form;
+  protected phone = '';
 
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
@@ -86,11 +93,21 @@ export class RegisterPage {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-    });
+    }, { validators: this.passwordsMatch });
+  }
+
+  private passwordsMatch(group: { get: (key: string) => any }) {
+    const pwd = group.get('password')?.value;
+    const confirm = group.get('confirmPassword')?.value;
+    return pwd === confirm ? null : { mismatch: true };
+  }
+
+  onPhoneChange(value: string): void {
+    this.phone = value;
   }
 
   onSubmit(): void {
     if (this.form.invalid) return;
-    console.log('Register:', this.form.value);
+    console.log('Register:', { ...this.form.value, phone: this.phone });
   }
 }
