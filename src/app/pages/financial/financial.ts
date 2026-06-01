@@ -59,8 +59,10 @@ const CURRENT_USER = 'Carlos';
 
 const MOCK_PAYMENTS: Payment[] = [
   { expenseId: 1, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-28' },
-  { expenseId: 1, memberName: 'Mariana', status: 'awaiting', paidAt: '2026-05-30' },
+  { expenseId: 1, memberName: 'Mariana', status: 'awaiting', paidAt: '2026-05-30', receiptBase64: '' },
+  { expenseId: 3, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-25' },
   { expenseId: 4, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-25' },
+  { expenseId: 2, memberName: 'Ana', status: 'awaiting', paidAt: '2026-06-01', receiptBase64: '' },
 ];
 
 @Component({
