@@ -27,7 +27,7 @@ import {
       [class.border-r]="true"
       [class.border-white/10]="theme.theme() === 'dark'"
       [class.border-theme]="theme.theme() === 'light'">
-      <div class="flex items-center gap-3 px-6 py-5"
+      <a routerLink="/" class="flex items-center gap-3 px-6 py-5 cursor-pointer"
         [class.border-b]="true"
         [class.border-white/10]="theme.theme() === 'dark'"
         [class.border-theme]="theme.theme() === 'light'">
@@ -35,7 +35,7 @@ import {
         <span class="font-bold text-lg tracking-tight"
           [class.text-white]="theme.theme() === 'dark'"
           [class.text-primary]="theme.theme() === 'light'">Doheem</span>
-      </div>
+      </a>
 
       <nav class="flex flex-col gap-1 p-3">
         @for (item of navItems; track item.path) {
