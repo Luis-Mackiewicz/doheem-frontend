@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { NotificationService, CURRENT_USER, ADMIN_USER } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
 import {
@@ -9,8 +10,6 @@ import {
   LucideListTodo,
   LucideTriangleAlert,
   LucideBell,
-  LucideChevronLeft,
-  LucideChevronRight,
   LucideSearch,
 } from '@lucide/angular';
 
@@ -23,9 +22,9 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
 
 @Component({
   selector: 'app-notificacoes',
-  imports: [DatePipe, FormsModule,
+  imports: [DatePipe, FormsModule, PaginacaoComponent,
     LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
-    LucideChevronLeft, LucideChevronRight, LucideSearch,
+    LucideSearch,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
@@ -87,30 +86,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
               </div>
             </div>
           }
-          @if (totalNotifPages() > 1) {
-            <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
-              <button (click)="goToNotifPage(currentPage() - 1)"
-                [class.opacity-30]="currentPage() === 1"
-                [disabled]="currentPage() === 1"
-                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
-                <svg lucideChevronLeft class="w-4 h-4"></svg>
-              </button>
-              @for (page of visibleNotifPages(); track page) {
-                <button (click)="goToNotifPage(page)"
-                  [class]="page === currentPage()
-                    ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-                    : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
-                  {{ page }}
-                </button>
-              }
-              <button (click)="goToNotifPage(currentPage() + 1)"
-                [class.opacity-30]="currentPage() === totalNotifPages()"
-                [disabled]="currentPage() === totalNotifPages()"
-                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
-                <svg lucideChevronRight class="w-4 h-4"></svg>
-              </button>
-            </div>
-          }
+          <app-paginacao [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
@@ -151,15 +127,6 @@ export class NotificacoesPage {
   protected readonly totalNotifPages = computed(() =>
     Math.ceil(this.filteredNotifications().length / this.pageSize)
   );
-
-  protected readonly visibleNotifPages = computed(() => {
-    const total = this.totalNotifPages();
-    const current = this.currentPage();
-    let start = Math.max(1, current - 2);
-    let end = Math.min(total, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  });
 
   protected goToNotifPage(page: number): void {
     if (page >= 1 && page <= this.totalNotifPages()) {

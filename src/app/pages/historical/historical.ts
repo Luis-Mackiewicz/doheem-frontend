@@ -1,5 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { PaginacaoComponent } from '../../components/paginator/paginator';
 import {
   LucideHouse,
   LucideZap,
@@ -67,7 +68,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 @Component({
   selector: 'app-historico',
-  imports: [DatePipe,
+  imports: [DatePipe, PaginacaoComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
     LucideHistory, LucidePin, LucideInbox, LucideSearch,
@@ -148,30 +149,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
               </div>
             </div>
           }
-          @if (totalPages() > 1) {
-            <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
-              <button (click)="goToPage(currentPage() - 1)"
-                [class.opacity-30]="currentPage() === 1"
-                [disabled]="currentPage() === 1"
-                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
-                <svg lucideChevronLeft class="w-4 h-4"></svg>
-              </button>
-              @for (page of visiblePages(); track page) {
-                <button (click)="goToPage(page)"
-                  [class]="page === currentPage()
-                    ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-                    : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
-                  {{ page }}
-                </button>
-              }
-              <button (click)="goToPage(currentPage() + 1)"
-                [class.opacity-30]="currentPage() === totalPages()"
-                [disabled]="currentPage() === totalPages()"
-                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
-                <svg lucideChevronRight class="w-4 h-4"></svg>
-              </button>
-            </div>
-          }
+          <app-paginacao [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
@@ -239,15 +217,6 @@ export class HistoricoPage {
   protected readonly totalPages = computed(() =>
     Math.ceil(this.searchedExpenses().length / this.pageSize)
   );
-
-  protected readonly visiblePages = computed(() => {
-    const total = this.totalPages();
-    const current = this.currentPage();
-    let start = Math.max(1, current - 2);
-    let end = Math.min(total, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  });
 
   protected onSearch(value: string): void {
     this.searchQuery.set(value);

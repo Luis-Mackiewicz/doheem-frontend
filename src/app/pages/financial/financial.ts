@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
+import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 import {
   LucideDollarSign,
@@ -12,8 +13,6 @@ import {
   LucideX,
   LucidePen,
   LucideTrash2,
-  LucideChevronLeft,
-  LucideChevronRight,
   LucideHouse,
   LucideZap,
   LucideWifi,
@@ -89,10 +88,9 @@ const MOCK_PAYMENTS: Payment[] = [
 
 @Component({
   selector: 'app-financeiro',
-  imports: [FormsModule, ButtonComponent, DatePipe,
+  imports: [FormsModule, ButtonComponent, DatePipe, PaginacaoComponent,
     LucideDollarSign, LucideSearch, LucidePin, LucideBell, LucideCheck,
-    LucideX, LucidePen, LucideTrash2, LucideChevronLeft, LucideChevronRight,
-    LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
+    LucideX, LucidePen, LucideTrash2, LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
   ],
   template: `
@@ -205,31 +203,7 @@ const MOCK_PAYMENTS: Payment[] = [
         }
       </div>
 
-      <!-- Pagination -->
-      @if (totalFilteredPages() > 1) {
-        <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
-          <button (click)="goToPage(currentPage() - 1)"
-            [class.opacity-30]="currentPage() === 1"
-            [disabled]="currentPage() === 1"
-            class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
-            <svg lucideChevronLeft class="w-4 h-4"></svg>
-          </button>
-          @for (page of visiblePages(); track page) {
-            <button (click)="goToPage(page)"
-              [class]="page === currentPage()
-                ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-                : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
-              {{ page }}
-            </button>
-          }
-          <button (click)="goToPage(currentPage() + 1)"
-            [class.opacity-30]="currentPage() === totalFilteredPages()"
-            [disabled]="currentPage() === totalFilteredPages()"
-            class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
-            <svg lucideChevronRight class="w-4 h-4"></svg>
-          </button>
-        </div>
-      }
+      <app-paginacao [currentPage]="currentPage()" [totalPages]="totalFilteredPages()" (pageChange)="goToPage($event)" />
     </div>
 
     <!-- Modal -->
@@ -562,16 +536,6 @@ export class FinanceiroPage {
     return this.filteredExpenses().slice(start, start + this.pageSize);
   };
 
-  readonly visiblePages = () => {
-    const total = this.totalFilteredPages();
-    const current = this.currentPage();
-    let start = Math.max(1, current - 2);
-    let end = Math.min(total, start + 4);
-    if (end - start < 4) {
-      start = Math.max(1, end - 4);
-    }
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
-  };
 
   protected form!: ReturnType<typeof this.emptyForm>;
 
