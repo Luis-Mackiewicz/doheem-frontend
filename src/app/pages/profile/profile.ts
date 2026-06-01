@@ -11,8 +11,8 @@ import { PasswordInputComponent } from '../../components/password-input/password
   selector: 'app-perfil',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
   template: `
-    <section class="min-h-dvh flex flex-col justify-center bg-page overflow-y-auto">
-      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-6">
+    <section class="min-h-dvh bg-page overflow-y-auto">
+      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-16 pb-6">
 
         <app-card>
           <button (click)="goBack()" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
