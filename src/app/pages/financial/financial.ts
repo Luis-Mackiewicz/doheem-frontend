@@ -499,7 +499,7 @@ export class FinanceiroPage {
   protected expandReceipt = signal('');
   protected submitted = signal(false);
   protected searchQuery = signal('');
-  readonly pageSize = 5;
+  readonly pageSize = 3;
   readonly currentPage = signal(1);
 
   readonly filteredExpenses = () => {
