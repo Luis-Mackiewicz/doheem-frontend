@@ -124,7 +124,10 @@ const MOCK_EXPENSES: Expense[] = [
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Valor
                   <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.amount" (keydown)="preventNegative($event)"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full" />
+                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                  @if (submitted() && form.amount <= 0) {
+                    <span class="text-rose-400 text-xs mt-1">O valor deve ser maior que 0</span>
+                  }
                 </label>
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Categoria
@@ -208,6 +211,7 @@ export class FinanceiroPage {
   protected showModal = signal(false);
   protected editingId = signal<number | null>(null);
   protected deleting = signal<Expense | null>(null);
+  protected submitted = signal(false);
 
   protected form = this.emptyForm();
 
@@ -248,12 +252,14 @@ export class FinanceiroPage {
 
   openCreate(): void {
     this.editingId.set(null);
+    this.submitted.set(false);
     this.form = { ...this.emptyForm(), createdAt: new Date().toISOString().slice(0, 10) };
     this.showModal.set(true);
   }
 
   openEdit(e: Expense): void {
     this.editingId.set(e.id);
+    this.submitted.set(false);
     this.form = { ...e, participants: [...e.participants] };
     this.showModal.set(true);
   }
@@ -261,6 +267,7 @@ export class FinanceiroPage {
   closeModal(): void {
     this.showModal.set(false);
     this.editingId.set(null);
+    this.submitted.set(false);
   }
 
   preventNegative(e: KeyboardEvent): void {
@@ -268,6 +275,7 @@ export class FinanceiroPage {
   }
 
   save(): void {
+    this.submitted.set(true);
     if (!this.form.description.trim() || this.form.amount <= 0) return;
     const expense: Expense = {
       id: this.editingId() ?? Date.now(),
