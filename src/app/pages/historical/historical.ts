@@ -13,6 +13,7 @@ import {
   LucideHistory,
   LucidePin,
   LucideInbox,
+  LucideSearch,
 } from '@lucide/angular';
 
 interface SplitValue {
@@ -69,13 +70,13 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
   imports: [DatePipe,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
-    LucideHistory, LucidePin, LucideInbox,
+    LucideHistory, LucidePin, LucideInbox, LucideSearch,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
       <div>
         <h1 class="text-3xl font-bold text-primary tracking-tight">Histórico</h1>
-]      </div>
+      </div>
 
       <div class="flex items-center justify-between rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
         <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition px-2 cursor-pointer"><svg lucideChevronLeft class="w-5 h-5"></svg></button>
@@ -99,9 +100,17 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         </div>
       </div>
 
+      <!-- Search -->
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
+        <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
+          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
+          (input)="onSearch(searchInput.value)" />
+      </div>
+
       <div class="flex-1 flex flex-col gap-4 min-h-0">
-        @if (monthlyExpenses().length > 0) {
-          @for (e of monthlyExpenses(); track e.id) {
+        @if (searchedExpenses().length > 0) {
+          @for (e of paginatedExpenses(); track e.id) {
             <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
               <div class="flex items-start justify-between gap-4">
                 <div class="flex items-start gap-4 min-w-0 flex-1">
@@ -137,6 +146,30 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
                 </div>
                 <span class="text-primary font-bold text-lg shrink-0">R$ {{ e.amount.toFixed(2) }}</span>
               </div>
+            </div>
+          }
+          @if (totalPages() > 1) {
+            <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
+              <button (click)="goToPage(currentPage() - 1)"
+                [class.opacity-30]="currentPage() === 1"
+                [disabled]="currentPage() === 1"
+                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
+                <svg lucideChevronLeft class="w-4 h-4"></svg>
+              </button>
+              @for (page of visiblePages(); track page) {
+                <button (click)="goToPage(page)"
+                  [class]="page === currentPage()
+                    ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
+                    : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
+                  {{ page }}
+                </button>
+              }
+              <button (click)="goToPage(currentPage() + 1)"
+                [class.opacity-30]="currentPage() === totalPages()"
+                [disabled]="currentPage() === totalPages()"
+                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
+                <svg lucideChevronRight class="w-4 h-4"></svg>
+              </button>
             </div>
           }
         } @else {
@@ -178,8 +211,58 @@ export class HistoricoPage {
     return this.monthlyExpenses().reduce((sum, e) => sum + e.amount, 0);
   });
 
+  // Search
+  protected readonly searchQuery = signal('');
+
+  protected readonly searchedExpenses = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    let list = this.monthlyExpenses();
+    if (query) {
+      list = list.filter(e =>
+        e.description.toLowerCase().includes(query) ||
+        this.categoryLabel(e.category).toLowerCase().includes(query) ||
+        e.paidBy.toLowerCase().includes(query)
+      );
+    }
+    return list;
+  });
+
+  // Pagination
+  protected readonly pageSize = 3;
+  protected readonly currentPage = signal(1);
+
+  protected readonly paginatedExpenses = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.searchedExpenses().slice(start, start + this.pageSize);
+  });
+
+  protected readonly totalPages = computed(() =>
+    Math.ceil(this.searchedExpenses().length / this.pageSize)
+  );
+
+  protected readonly visiblePages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  });
+
+  protected onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.currentPage.set(1);
+  }
+
+  protected goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
   prevMonth(): void {
     if (this.atMinMonth()) return;
+    this.currentPage.set(1);
     if (this.selectedMonth() === 0) {
       this.selectedYear.update(y => y - 1);
       this.selectedMonth.set(11);
@@ -189,6 +272,7 @@ export class HistoricoPage {
   }
 
   nextMonth(): void {
+    this.currentPage.set(1);
     if (this.selectedMonth() === 11) {
       this.selectedYear.update(y => y + 1);
       this.selectedMonth.set(0);
