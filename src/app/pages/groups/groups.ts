@@ -20,8 +20,6 @@ const MOCK_GROUPS: Group[] = [
   { id: 8, name: 'República Aurora', members: 9, monthlyFee: 410 },
   { id: 9, name: 'Alojamento Rural', members: 3, monthlyFee: 200 },
   { id: 10, name: 'Vila Estudantil', members: 15, monthlyFee: 350 },
-  { id: 11, name: 'Casa República Nova', members: 6, monthlyFee: 480 },
-  { id: 12, name: 'Pensionato São Jorge', members: 8, monthlyFee: 370 },
 ];
 
 @Component({
@@ -37,7 +35,16 @@ const MOCK_GROUPS: Group[] = [
             ← 
           </a>
 
-          <h2 class="text-2xl font-bold text-white mb-6">Grupos</h2>
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-2xl font-bold text-white">Grupos</h2>
+          </div>
+
+          <div class="flex items-center gap-3 mb-6">
+            <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(totalGroups / 10) * 100"></div>
+            </div>
+            <span class="text-white/40 text-xs whitespace-nowrap">{{ totalGroups }} / 10 repúblicas</span>
+          </div>
 
           <div class="flex flex-col sm:flex-row gap-3 mb-6">
             <div class="relative flex-1">
@@ -101,6 +108,7 @@ const MOCK_GROUPS: Group[] = [
   `,
 })
 export class GroupsPage {
+  protected readonly totalGroups = MOCK_GROUPS.length;
   readonly pageSize = 5;
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
