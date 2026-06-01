@@ -94,9 +94,17 @@ const MOCK_PAYMENTS: Payment[] = [
         </div>
       </div>
 
+      <!-- Search -->
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 select-none">🔍</span>
+        <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
+          class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition"
+          (input)="onSearch(searchInput.value)" />
+      </div>
+
       <!-- List -->
       <div class="flex flex-col gap-4">
-        @for (e of expenses(); track e.id) {
+        @for (e of paginatedExpenses(); track e.id) {
           <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-5 shadow-lg shadow-black/10 hover:bg-white/[0.12] transition">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-4 min-w-0 flex-1">
@@ -157,6 +165,32 @@ const MOCK_PAYMENTS: Payment[] = [
           </div>
         }
       </div>
+
+      <!-- Pagination -->
+      @if (totalFilteredPages() > 1) {
+        <div class="flex items-center justify-center gap-1 mt-2 pt-4 border-t border-white/10">
+          <button (click)="goToPage(currentPage() - 1)"
+            [class.opacity-30]="currentPage() === 1"
+            [disabled]="currentPage() === 1"
+            class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+            ◄
+          </button>
+          @for (page of visiblePages(); track page) {
+            <button (click)="goToPage(page)"
+              [class]="page === currentPage()
+                ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
+                : 'text-white/70 hover:text-white transition rounded-lg px-3 py-1 text-sm'">
+              {{ page }}
+            </button>
+          }
+          <button (click)="goToPage(currentPage() + 1)"
+            [class.opacity-30]="currentPage() === totalFilteredPages()"
+            [disabled]="currentPage() === totalFilteredPages()"
+            class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+            ►
+          </button>
+        </div>
+      }
     </div>
 
     <!-- Modal -->
@@ -464,6 +498,41 @@ export class FinanceiroPage {
   protected payReceiptBase64 = signal('');
   protected expandReceipt = signal('');
   protected submitted = signal(false);
+  protected searchQuery = signal('');
+  readonly pageSize = 5;
+  readonly currentPage = signal(1);
+
+  readonly filteredExpenses = () => {
+    const query = this.searchQuery().toLowerCase();
+    let list = this.expenses();
+    if (query) {
+      list = list.filter(e =>
+        e.description.toLowerCase().includes(query) ||
+        this.categoryLabel(e.category).toLowerCase().includes(query) ||
+        e.paidBy.toLowerCase().includes(query)
+      );
+    }
+    return list;
+  };
+
+  readonly totalFilteredPages = () =>
+    Math.ceil(this.filteredExpenses().length / this.pageSize);
+
+  readonly paginatedExpenses = () => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredExpenses().slice(start, start + this.pageSize);
+  };
+
+  readonly visiblePages = () => {
+    const total = this.totalFilteredPages();
+    const current = this.currentPage();
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, start + 4);
+    if (end - start < 4) {
+      start = Math.max(1, end - 4);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  };
 
   protected form!: ReturnType<typeof this.emptyForm>;
 
@@ -649,6 +718,17 @@ export class FinanceiroPage {
 
   closeApproveModal(): void {
     this.approveExpense.set(null);
+  }
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.currentPage.set(1);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalFilteredPages()) {
+      this.currentPage.set(page);
+    }
   }
 
   openCreate(): void {
