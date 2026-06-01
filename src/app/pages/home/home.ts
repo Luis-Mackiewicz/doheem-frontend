@@ -66,19 +66,16 @@ import { ButtonComponent } from '../../components/button/button';
       <section id="app" class="min-h-dvh flex flex-col justify-center">
         <div class="max-w-7xl mx-auto w-full flex flex-col items-center text-center px-6 md:px-16 lg:px-24 py-24">
 
-          <span class="text-sm font-semibold tracking-[0.2em] uppercase text-secondary mb-4">Aplicativo</span>
-          <h2 class="text-3xl md:text-4xl font-extrabold leading-tight mb-4">Baixe o Doheem</h2>
+          <h2 class="text-3xl md:text-4xl font-bold mb-4 text-violet-900">Baixe o Doheem</h2>
           <p class="text-lg text-secondary max-w-xl leading-relaxed mb-8">
             Instale o Doheem no seu celular ou computador e tenha acesso rápido
-            a todas as funcionalidades. Funciona como um aplicativo nativo,
-            direto do seu navegador.
+            a todas as funcionalidades, tudo na palma da sua mão.
           </p>
 
           <button
             class="inline-flex items-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg cursor-pointer text-lg">
             📲 Instalar App
           </button>
-          <p class="text-muted text-sm mt-4">Disponível para Android, iOS e Desktop</p>
 
         </div>
       </section>
