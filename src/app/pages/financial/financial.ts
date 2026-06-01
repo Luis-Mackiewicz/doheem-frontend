@@ -142,8 +142,11 @@ const MOCK_EXPENSES: Expense[] = [
 
               <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Data de vencimento
-                  <input type="date" [(ngModel)]="form.dueDate"
+                  <input type="date" [min]="today" [(ngModel)]="form.dueDate"
                     class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                  @if (submitted() && form.dueDate && form.dueDate < today) {
+                    <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
+                  }
                 </label>
 
               <label class="flex items-center justify-between text-sm font-medium text-white/70 py-2">
@@ -206,6 +209,7 @@ const MOCK_EXPENSES: Expense[] = [
 export class FinanceiroPage {
   protected readonly members = MOCK_MEMBERS;
   protected readonly categories = CATEGORIES;
+  protected readonly today = new Date().toISOString().slice(0, 10);
 
   protected expenses = signal<Expense[]>([...MOCK_EXPENSES]);
   protected showModal = signal(false);
@@ -276,7 +280,7 @@ export class FinanceiroPage {
 
   save(): void {
     this.submitted.set(true);
-    if (!this.form.description.trim() || this.form.amount <= 0) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || (this.form.dueDate && this.form.dueDate < this.today)) return;
     const expense: Expense = {
       id: this.editingId() ?? Date.now(),
       description: this.form.description.trim(),
