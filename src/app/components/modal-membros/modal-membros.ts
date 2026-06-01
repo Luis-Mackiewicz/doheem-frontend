@@ -29,7 +29,7 @@ const MEMBROS: Membro[] = [
           </div>
           <div class="flex items-center gap-3 mb-4">
             <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(todos.length / maxMembros) * 100"></div>
+              <div class="h-full rounded-full bg-linear-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(todos.length / maxMembros) * 100"></div>
             </div>
             <span class="text-white/40 text-xs whitespace-nowrap">{{ todos.length }} / {{ maxMembros }} membros</span>
           </div>

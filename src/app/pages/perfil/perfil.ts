@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Location } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
@@ -7,7 +8,7 @@ import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 
 @Component({
   selector: 'app-perfil',
-  imports: [ReactiveFormsModule, CardComponent, ButtonComponent, PhoneInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
@@ -57,6 +58,12 @@ import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 
             <app-button type="submit" variant="solid" label="Salvar"></app-button>
           </form>
+
+          <div class="mt-6 pt-4 border-t border-white/10">
+            <a routerLink="/login" class="flex items-center justify-center gap-2 text-red-400 hover:text-red-300 text-sm font-medium transition cursor-pointer">
+              Sair da conta
+            </a>
+          </div>
         </app-card>
 
       </div>
