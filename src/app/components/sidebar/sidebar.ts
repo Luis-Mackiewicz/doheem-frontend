@@ -21,18 +21,18 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
             {{ item.label }}
           </a>
         }
-      </nav>
-
-      <hr class="border-white/10 mx-4" />
-      <div class="p-3 flex flex-col gap-1">
-        <a routerLink="/perfil" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
-          <span class="text-lg">👤</span>
-          Perfil
-        </a>
         <button (click)="showModal.set(true)" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium cursor-pointer w-full text-left">
           <span class="text-lg">👥</span>
           Grupo
         </button>
+      </nav>
+
+      <hr class="border-white/10 mx-4" />
+      <div class="p-3">
+        <a routerLink="/perfil" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
+          <span class="text-lg">👤</span>
+          Perfil
+        </a>
       </div>
       <hr class="border-white/10 mx-4" />
       <div class="p-3">
