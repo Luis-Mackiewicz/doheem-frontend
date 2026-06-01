@@ -18,8 +18,8 @@ import { ButtonComponent } from '../../components/button/button';
             </h1>
 
             <p class="text-lg md:text-xl text-secondary max-w-lg leading-relaxed">
-              Organize despesas, divida contas e coordene tarefas com seus colegas de república.
-              Tudo em um só lugar, simples e pensado para estudantes.
+              Organize despesas, divida contas e coordene tarefas com seus amigos e familiares.
+              Tudo em um só lugar, simples e organizado.
             </p>
 
             <div class="flex flex-wrap gap-4 mt-2">
@@ -41,9 +41,14 @@ import { ButtonComponent } from '../../components/button/button';
       <section id="sobre" class="min-h-dvh flex flex-col justify-center">
         <div class="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 items-center gap-12 md:gap-16 px-6 md:px-16 lg:px-24 py-24">
 
+          <div class="flex justify-center items-center">
+            <div class="w-full max-w-md aspect-square rounded-3xl overflow-hidden shadow-2xl">
+              <img src="doheem_logo.png" alt="Logotipo do Doheem" class="w-full h-full object-cover">
+            </div>
+          </div>
+
           <div class="flex flex-col gap-6">
-            <span class="text-sm font-semibold tracking-[0.2em] uppercase text-secondary">Sobre</span>
-            <h2 class="text-3xl md:text-4xl font-extrabold leading-tight">O que é o Doheem?</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-violet-900">O que é o Doheem?</h2>
             <p class="text-lg text-secondary leading-relaxed">
               Doheem é uma plataforma completa para gestão de repúblicas estudantis.
               Com ela, você organiza despesas, divide contas, coordena tarefas domésticas
@@ -53,22 +58,6 @@ import { ButtonComponent } from '../../components/button/button';
               Chega de planilhas perdidas e conversas no WhatsApp. Tudo centralizado,
               simples e pensado para facilitar o dia a dia da sua república.
             </p>
-          </div>
-
-          <div class="flex justify-center items-center">
-            <div class="w-full max-w-md aspect-square rounded-3xl bg-card border-theme shadow-2xl flex flex-col items-center justify-center gap-6 p-8">
-              <div class="flex gap-8 text-5xl">
-                <span class="bg-card p-5">💰</span>
-                <span class="bg-card p-5">📋</span>
-              </div>
-              <p class="text-muted text-center text-sm tracking-wide">
-                Despesas &bull; Tarefas &bull; Moradores
-              </p>
-              <div class="w-3/4 h-px bg-white/10"></div>
-              <p class="text-muted text-center text-xs max-w-[220px] leading-relaxed">
-                Tudo o que sua república precisa em um só painel
-              </p>
-            </div>
           </div>
 
         </div>
