@@ -13,7 +13,7 @@ import { ButtonComponent } from '../../components/button/button';
 
         <app-card customClass="h-[600px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button (click)="goBack()" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
-            ← Voltar
+            ← 
           </button>
           <div class="flex flex-col items-center gap-1 mb-8">
             <div class="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-2">

@@ -13,11 +13,11 @@ import { CardComponent } from '../../components/card/card';
 
         <app-card customClass="h-[600px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <a routerLink="/" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition">
-            ← Voltar
+            ← 
           </a>
 
           <div class="flex gap-1 bg-white/10 rounded-xl p-1 mb-8">
-            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white text-purple-dark">Login</span>
+            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Login</span>
             <a routerLink="/register" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 transition">Registrar</a>
           </div>
 

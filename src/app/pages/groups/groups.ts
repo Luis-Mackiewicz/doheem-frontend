@@ -34,7 +34,7 @@ const MOCK_GROUPS: Group[] = [
         <div class="w-full max-w-xl rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8 md:p-10">
 
           <a routerLink="/" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition">
-            ← Voltar
+            ← 
           </a>
 
           <h2 class="text-2xl font-bold text-white mb-6">Grupos</h2>

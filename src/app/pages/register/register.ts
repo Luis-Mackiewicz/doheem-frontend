@@ -18,7 +18,7 @@ import { ButtonComponent } from '../../components/button/button';
 
           <div class="flex gap-1 bg-white/10 rounded-xl p-1 mb-8">
             <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 transition">Login</a>
-            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white text-purple-dark">Registrar</span>
+            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Registrar</span>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
