@@ -137,18 +137,11 @@ const MOCK_EXPENSES: Expense[] = [
                 </label>
               </div>
 
-              <div class="grid grid-cols-2 gap-4">
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-                  Data de criação
-                  <input type="date" [(ngModel)]="form.createdAt"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
-                </label>
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Data de vencimento
                   <input type="date" [(ngModel)]="form.dueDate"
                     class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
                 </label>
-              </div>
 
               <label class="flex items-center justify-between text-sm font-medium text-white/70 py-2">
                 <span>Despesa fixa</span>
@@ -255,7 +248,7 @@ export class FinanceiroPage {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form = this.emptyForm();
+    this.form = { ...this.emptyForm(), createdAt: new Date().toISOString().slice(0, 10) };
     this.showModal.set(true);
   }
 
