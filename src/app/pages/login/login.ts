@@ -16,9 +16,9 @@ import { CardComponent } from '../../components/card/card';
             ← Voltar
           </a>
 
-          <div class="flex gap-6 mb-8">
-            <span class="text-white/40 font-semibold text-lg">Login</span>
-            <a routerLink="/register" class="text-white/70 font-semibold text-lg hover:text-white transition">Registrar</a>
+          <div class="flex gap-1 bg-white/10 rounded-xl p-1 mb-8">
+            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white text-purple-dark">Login</span>
+            <a routerLink="/register" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 transition">Registrar</a>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
