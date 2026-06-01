@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NotificationService, CURRENT_USER, ADMIN_USER } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
 import {
@@ -10,6 +11,7 @@ import {
   LucideBell,
   LucideChevronLeft,
   LucideChevronRight,
+  LucideSearch,
 } from '@lucide/angular';
 
 const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
@@ -21,9 +23,9 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
 
 @Component({
   selector: 'app-notificacoes',
-  imports: [DatePipe,
+  imports: [DatePipe, FormsModule,
     LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
-    LucideChevronLeft, LucideChevronRight,
+    LucideChevronLeft, LucideChevronRight, LucideSearch,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
@@ -38,6 +40,14 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
             Marcar todas como lidas
           </button>
         }
+      </div>
+
+      <!-- Search -->
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
+        <input #searchInput type="text" placeholder="Pesquisar notificações..."
+          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
+          (input)="onSearch(searchInput.value)" />
       </div>
 
       <div class="flex-1 flex flex-col gap-3 min-h-0">
@@ -119,10 +129,19 @@ export class NotificacoesPage {
   protected readonly svc = inject(NotificationService);
   protected readonly pageSize = 5;
   protected readonly currentPage = signal(1);
+  protected readonly searchQuery = signal('');
 
-  protected readonly filteredNotifications = computed(() =>
-    this.svc.notifications().filter(n => n.recipient === CURRENT_USER || n.recipient === ADMIN_USER)
-  );
+  protected readonly filteredNotifications = computed(() => {
+    const query = this.searchQuery().toLowerCase();
+    let list = this.svc.notifications().filter(n => n.recipient === CURRENT_USER || n.recipient === ADMIN_USER);
+    if (query) {
+      list = list.filter(n =>
+        n.title.toLowerCase().includes(query) ||
+        n.message.toLowerCase().includes(query)
+      );
+    }
+    return list;
+  });
 
   protected readonly paginatedNotifications = computed(() => {
     const start = (this.currentPage() - 1) * this.pageSize;
@@ -146,6 +165,11 @@ export class NotificacoesPage {
     if (page >= 1 && page <= this.totalNotifPages()) {
       this.currentPage.set(page);
     }
+  }
+
+  protected onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.currentPage.set(1);
   }
 
   protected markAllAsRead(): void {
