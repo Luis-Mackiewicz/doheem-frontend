@@ -11,7 +11,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-page overflow-y-auto">
-      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-6">
+      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-16">
 
         <app-card>
           <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
