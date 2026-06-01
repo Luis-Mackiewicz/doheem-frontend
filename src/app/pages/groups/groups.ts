@@ -27,12 +27,12 @@ const MOCK_GROUPS: Group[] = [
   selector: 'app-groups',
   imports: [RouterLink, ButtonComponent, ModalCriarGrupoComponent],
   template: `
-    <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
+    <section class="min-h-dvh flex flex-col justify-center bg-page">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
 
-        <div class="w-full max-w-xl rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8 md:p-10">
+        <div class="w-full max-w-xl rounded-3xl bg-card border-theme shadow-2xl p-8 md:p-10">
 
-          <a routerLink="/" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition">
+          <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
             ← 
           </a>
 
@@ -44,14 +44,14 @@ const MOCK_GROUPS: Group[] = [
             <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
               <div class="h-full rounded-full bg-linear-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(totalGroups / 10) * 100"></div>
             </div>
-            <span class="text-white/40 text-xs whitespace-nowrap">{{ totalGroups }} / 10 repúblicas</span>
+            <span class="text-muted text-xs whitespace-nowrap">{{ totalGroups }} / 10 repúblicas</span>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-3 mb-6">
             <div class="relative flex-1">
-              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 select-none">🔍</span>
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none">🔍</span>
               <input #searchInput type="text" placeholder="Pesquisar grupos..."
-                class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition"
+                class="w-full bg-input border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-white/50 transition"
                 (input)="onSearch(searchInput.value)" />
             </div>
             <app-button variant="solid" type="button" label="+ Criar" (click)="showCriarModal.set(true)"></app-button>
@@ -60,27 +60,27 @@ const MOCK_GROUPS: Group[] = [
 
           <div class="flex flex-col">
             @for (group of filteredGroups(); track group.id) {
-              <a [routerLink]="'/groups/' + group.id + '/dashboard'" class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-white/10 last:border-b-0 hover:bg-white/5">
+              <a [routerLink]="'/groups/' + group.id + '/dashboard'" class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-theme last:border-b-0 hover-bg">
                 <div class="flex items-center gap-4 min-w-0">
                   <span class="text-2xl shrink-0">🏠</span>
                   <div class="min-w-0">
                     <p class="text-white font-semibold truncate">{{ group.name }}</p>
-                    <p class="text-white/50 text-sm">{{ group.members }} membros · R$ {{ group.monthlyFee }}/mês</p>
+                    <p class="text-secondary text-sm">{{ group.members }} membros · R$ {{ group.monthlyFee }}/mês</p>
                   </div>
                 </div>
-                <span class="text-white/30 text-lg shrink-0">›</span>
+                <span class="text-muted text-lg shrink-0">›</span>
               </a>
             } @empty {
-              <p class="text-white/40 text-center py-12">Nenhum grupo encontrado</p>
+              <p class="text-muted text-center py-12">Nenhum grupo encontrado</p>
             }
           </div>
 
           @if (totalPages() > 1) {
-            <div class="flex items-center justify-center gap-1 mt-6 pt-4 border-t border-white/10">
+            <div class="flex items-center justify-center gap-1 mt-6 pt-4 border-t border-theme">
               <button (click)="goToPage(currentPage() - 1)"
                 [class.opacity-30]="currentPage() === 1"
                 [disabled]="currentPage() === 1"
-                class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+                class="text-secondary hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
                 ◄
               </button>
 
@@ -88,7 +88,7 @@ const MOCK_GROUPS: Group[] = [
                 <button (click)="goToPage(page)"
                   [class]="page === currentPage()
                     ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-                    : 'text-white/70 hover:text-white transition rounded-lg px-3 py-1 text-sm'">
+                    : 'text-secondary hover:text-white transition rounded-lg px-3 py-1 text-sm'">
                   {{ page }}
                 </button>
               }
@@ -96,7 +96,7 @@ const MOCK_GROUPS: Group[] = [
               <button (click)="goToPage(currentPage() + 1)"
                 [class.opacity-30]="currentPage() === totalPages()"
                 [disabled]="currentPage() === totalPages()"
-                class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+                class="text-secondary hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
                 ►
               </button>
             </div>

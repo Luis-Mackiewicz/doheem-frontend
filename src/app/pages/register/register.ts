@@ -10,20 +10,20 @@ import { PasswordInputComponent } from '../../components/password-input/password
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
   template: `
-    <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
+    <section class="min-h-dvh flex flex-col justify-center bg-page">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
 
         <app-card customClass="h-[600px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <a routerLink="/" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition">
+          <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
             ←
           </a>
 
-          <div class="flex gap-1 bg-white/10 rounded-xl p-1 mb-8">
-            <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-white/60 hover:text-white hover:bg-white/5 transition">Login</a>
+          <div class="flex gap-1 bg-card rounded-xl p-1 mb-8">
+            <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover:text-primary hover:bg-white/5 transition">Login</a>
             <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Registrar</span>
           </div>
 
-          <button type="button" class="inline-flex items-center justify-center gap-3 border border-white/30 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/10 transition backdrop-blur-sm cursor-pointer w-full mb-4">
+          <button type="button" class="inline-flex items-center justify-center gap-3 border border-theme text-primary font-semibold px-8 py-3 rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer w-full mb-4">
             <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -34,43 +34,43 @@ import { PasswordInputComponent } from '../../components/password-input/password
           </button>
 
           <div class="flex items-center gap-3 mb-4">
-            <div class="flex-1 h-px bg-white/10"></div>
-            <span class="text-white/40 text-sm">ou</span>
-            <div class="flex-1 h-px bg-white/10"></div>
+            <div class="flex-1 h-px border-soft"></div>
+            <span class="text-muted text-sm">ou</span>
+            <div class="flex-1 h-px border-soft"></div>
           </div>
 
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Nome
               <input formControlName="name" type="text" placeholder="Seu nome"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition" />
             </label>
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Telefone
               <app-phone-input (phoneChange)="onPhoneChange($event)" />
             </label>
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Email
               <input formControlName="email" type="email" placeholder="seu@email.com"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition" />
             </label>
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Senha
               <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
             </label>
 
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Confirmar senha
               <app-password-input [value]="form.get('confirmPassword')?.value ?? ''" (valueChange)="form.get('confirmPassword')?.setValue($event)" />
             </label>
 
             <app-button type="submit" variant="solid" label="Criar conta"></app-button>
 
-            <p class="text-center text-white/50 text-sm">
+            <p class="text-center text-secondary text-sm">
               Já tem conta?
               <a routerLink="/login" class="text-white font-semibold hover:underline">Entrar</a>
             </p>

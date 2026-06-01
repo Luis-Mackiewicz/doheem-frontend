@@ -73,45 +73,45 @@ const MOCK_PAYMENTS: Payment[] = [
       <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Financeiro</h1>
-          <p class="text-white/40 text-sm mt-1">Gerencie as despesas do grupo</p>
+          <h1 class="text-3xl font-bold text-primary tracking-tight">Financeiro</h1>
+          <p class="text-muted text-sm mt-1">Gerencie as despesas do grupo</p>
           <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
         </div>
         <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
       </div>
 
       <!-- Total -->
-      <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-lg shadow-black/10">
+      <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-lg">💰</div>
             <div>
-              <p class="text-white/50 text-sm font-medium">Total do mês</p>
-              <p class="text-2xl font-bold text-white tracking-tight">R$ {{ totalAmount().toFixed(2) }}</p>
+              <p class="text-secondary text-sm font-medium">Total do mês</p>
+              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ totalAmount().toFixed(2) }}</p>
             </div>
           </div>
-          <span class="text-white/30 text-xs border border-white/10 rounded-lg px-2.5 py-1">{{ expenses().length }} despesas</span>
+          <span class="text-muted text-xs border border-theme rounded-lg px-2.5 py-1">{{ expenses().length }} despesas</span>
         </div>
       </div>
 
       <!-- Search -->
       <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 select-none">🔍</span>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none">🔍</span>
         <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
-          class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition"
+          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
           (input)="onSearch(searchInput.value)" />
       </div>
 
       <!-- List -->
       <div class="flex-1 flex flex-col gap-4 min-h-0">
         @for (e of paginatedExpenses(); track e.id) {
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-5 shadow-lg shadow-black/10 hover:bg-white/[0.12] transition">
+          <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-4 min-w-0 flex-1">
                 <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-lg shrink-0">{{ categoryIcon(e.category) }}</div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <p class="text-white font-semibold truncate">{{ e.description }}</p>
+                    <p class="text-primary font-semibold truncate">{{ e.description }}</p>
                     <div class="flex items-center gap-1.5">
                       @if (e.installments > 1) {
                         <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
@@ -121,7 +121,7 @@ const MOCK_PAYMENTS: Payment[] = [
                       }
                     </div>
                   </div>
-                  <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
+                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                     <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
@@ -134,7 +134,7 @@ const MOCK_PAYMENTS: Payment[] = [
               </div>
               <div class="flex items-center gap-3 shrink-0">
                 <div class="flex flex-col items-end gap-1">
-                  <span class="text-white font-bold text-lg">R$ {{ e.amount.toFixed(2) }}</span>
+                  <span class="text-primary font-bold text-lg">R$ {{ e.amount.toFixed(2) }}</span>
                   @if (myPaymentStatus(e.id); as p) {
                     @if (p.status === 'pending') {
                       <button (click)="openPayModal(e)" class="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full hover:bg-emerald-500/30 transition cursor-pointer">Pagar</button>
@@ -152,41 +152,41 @@ const MOCK_PAYMENTS: Payment[] = [
                         🔔 {{ count }} pendente{{ count > 1 ? 's' : '' }}
                       </button>
                     }
-                    <button (click)="openEdit(e)" class="text-white/40 hover:text-white transition cursor-pointer text-sm">✏️</button>
-                    <button (click)="confirmDelete(e)" class="text-white/40 hover:text-rose-400 transition cursor-pointer text-sm">🗑️</button>
+                    <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer text-sm">✏️</button>
+                    <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer text-sm">🗑️</button>
                   </div>
                 }
               </div>
             </div>
           </div>
         } @empty {
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-10 text-center">
-            <p class="text-white/40">Nenhuma despesa cadastrada</p>
+          <div class="rounded-2xl bg-card border border-theme p-10 text-center">
+            <p class="text-muted">Nenhuma despesa cadastrada</p>
           </div>
         }
       </div>
 
       <!-- Pagination -->
       @if (totalFilteredPages() > 1) {
-        <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-white/10">
+        <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
           <button (click)="goToPage(currentPage() - 1)"
             [class.opacity-30]="currentPage() === 1"
             [disabled]="currentPage() === 1"
-            class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+            class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
             ◄
           </button>
           @for (page of visiblePages(); track page) {
             <button (click)="goToPage(page)"
               [class]="page === currentPage()
                 ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-                : 'text-white/70 hover:text-white transition rounded-lg px-3 py-1 text-sm'">
+                : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
               {{ page }}
             </button>
           }
           <button (click)="goToPage(currentPage() + 1)"
             [class.opacity-30]="currentPage() === totalFilteredPages()"
             [disabled]="currentPage() === totalFilteredPages()"
-            class="text-white/70 hover:text-white transition px-2 py-1 text-sm disabled:cursor-default">
+            class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
             ►
           </button>
         </div>
@@ -197,32 +197,32 @@ const MOCK_PAYMENTS: Payment[] = [
     @if (showModal()) {
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeModal()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-lg">
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
+          <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-white font-bold text-lg">{{ editingId() ? 'Editar despesa' : 'Nova despesa' }}</h2>
-              <button (click)="closeModal()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+              <h2 class="text-primary font-bold text-lg">{{ editingId() ? 'Editar despesa' : 'Nova despesa' }}</h2>
+              <button (click)="closeModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
             </div>
 
             <div class="flex flex-col gap-4">
-              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Descrição
                 <input type="text" placeholder="Ex: Conta de luz" [(ngModel)]="form.description"
-                  class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full" />
+                  class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full" />
               </label>
 
               <div class="grid grid-cols-2 gap-4">
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Valor total
                   <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.amount" (keydown)="preventNegative($event)"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   @if (submitted() && form.amount <= 0) {
                     <span class="text-rose-400 text-xs mt-1">O valor deve ser maior que 0</span>
                   }
                 </label>
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Categoria
                   <select [(ngModel)]="form.category"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full appearance-none cursor-pointer">
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
                     @for (c of categories; track c.value) {
                       <option [value]="c.value" class="bg-purple-dark text-white">{{ c.icon }} {{ c.label }}</option>
                     }
@@ -231,18 +231,18 @@ const MOCK_PAYMENTS: Payment[] = [
               </div>
 
               <div class="grid grid-cols-2 gap-4">
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Data de competência
                   <input type="date" [(ngModel)]="form.competenceDate"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
                   @if (submitted() && !form.competenceDate) {
                     <span class="text-rose-400 text-xs mt-1">A data de competência é obrigatória</span>
                   }
                 </label>
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.dueDate"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
                   @if (submitted() && form.dueDate && form.dueDate < today) {
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
                   }
@@ -250,27 +250,27 @@ const MOCK_PAYMENTS: Payment[] = [
               </div>
 
               <div class="grid grid-cols-2 gap-4">
-                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Parcelas
                   <input type="number" min="1" step="1" [(ngModel)]="form.installments" (input)="onInstallmentsChange()"
-                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 </label>
                 @if (form.installments > 1) {
-                  <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                     1ª data de vencimento
                     <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
-                      class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                      class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
                   </label>
                 }
               </div>
               @if (form.installments > 1 && form.amount > 0) {
-                <p class="text-white/50 text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ (form.amount / form.installments).toFixed(2) }}</p>
+                <p class="text-secondary text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ (form.amount / form.installments).toFixed(2) }}</p>
               }
 
-              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Pago por
                 <select [(ngModel)]="form.paidBy"
-                  class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full appearance-none cursor-pointer">
+                  class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
                   <option value="" disabled class="bg-purple-dark text-white/40">Selecione...</option>
                   @for (m of members; track m) {
                     <option [value]="m" class="bg-purple-dark text-white">{{ m }}</option>
@@ -281,7 +281,7 @@ const MOCK_PAYMENTS: Payment[] = [
                 }
               </label>
 
-              <label class="flex items-center justify-between text-sm font-medium text-white/70 py-2">
+              <label class="flex items-center justify-between text-sm font-medium text-secondary py-2">
                 <span>Despesa fixa</span>
                 <button type="button" (click)="form.fixed = !form.fixed"
                   class="relative w-11 h-6 rounded-full transition cursor-pointer"
@@ -293,15 +293,15 @@ const MOCK_PAYMENTS: Payment[] = [
               </label>
 
               <!-- Split mode -->
-              <div class="flex flex-col gap-2.5 text-sm font-medium text-white/70">
+              <div class="flex flex-col gap-2.5 text-sm font-medium text-secondary">
                 <span>Modo de rateio</span>
-                <div class="flex bg-white/10 rounded-xl p-1 gap-1">
+                <div class="flex bg-card-strong rounded-xl p-1 gap-1">
                   @for (opt of splitOptions; track opt.value) {
                     <button type="button" (click)="setSplitMode(opt.value)"
                       class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
                       [class.bg-white/65]="form.splitMode === opt.value"
                       [class.text-purple-dark]="form.splitMode === opt.value"
-                      [class.text-white/60]="form.splitMode !== opt.value">
+                      [class.text-secondary]="form.splitMode !== opt.value">
                       {{ opt.label }}
                     </button>
                   }
@@ -309,13 +309,13 @@ const MOCK_PAYMENTS: Payment[] = [
               </div>
 
               @if (form.splitMode === 'equal') {
-                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   <span>Todos os membros dividem igualmente</span>
                   <div class="grid grid-cols-2 gap-2 mt-1">
                     @for (sv of computedSplitValues(); track sv.name) {
-                      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-white/5">
-                        <span class="text-white text-sm">{{ sv.name }}</span>
-                        <span class="text-white/80 text-sm font-medium">R$ {{ sv.value.toFixed(2) }}</span>
+                      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
+                        <span class="text-primary text-sm">{{ sv.name }}</span>
+                        <span class="text-secondary text-sm font-medium">R$ {{ sv.value.toFixed(2) }}</span>
                       </div>
                     }
                   </div>
@@ -323,24 +323,24 @@ const MOCK_PAYMENTS: Payment[] = [
               }
 
               @if (form.splitMode === 'some') {
-                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   <span>Selecione os participantes (mínimo 2)</span>
                   @if (submitted() && selectedSomeCount() < 2) {
                     <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
                   }
                   <div class="grid grid-cols-2 gap-2 mt-1">
                     @for (m of members; track m) {
-                      <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer text-sm">
+                      <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card-strong hover-bg transition cursor-pointer text-sm">
                         <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
                           [class.border-purple-400]="isSomeSelected(m)"
-                          [class.border-white/30]="!isSomeSelected(m)">
+                          [class.border-soft]="!isSomeSelected(m)">
                           @if (isSomeSelected(m)) {
                             <span class="text-purple-400 text-[10px]">✓</span>
                           }
                         </div>
                         <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
-                        <span class="text-white flex-1">{{ m }}</span>
-                        <span class="text-white/50 text-xs">R$ {{ someValue(m).toFixed(2) }}</span>
+                        <span class="text-primary flex-1">{{ m }}</span>
+                        <span class="text-secondary text-xs">R$ {{ someValue(m).toFixed(2) }}</span>
                       </label>
                     }
                   </div>
@@ -348,7 +348,7 @@ const MOCK_PAYMENTS: Payment[] = [
               }
 
               @if (form.splitMode === 'custom') {
-                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   <span>Valores por morador</span>
                   @if (submitted() && customTotal() !== form.amount) {
                     <span class="text-rose-400 text-xs">
@@ -357,11 +357,11 @@ const MOCK_PAYMENTS: Payment[] = [
                   }
                   <div class="grid grid-cols-2 gap-2 mt-1">
                     @for (m of members; track m) {
-                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5">
-                        <span class="text-white text-sm w-16 shrink-0">{{ m }}</span>
+                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
+                        <span class="text-primary text-sm w-16 shrink-0">{{ m }}</span>
                         <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
                           (input)="recalcCustom()"
-                          class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-2 py-1.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                          class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                       </div>
                     }
                   </div>
@@ -382,9 +382,9 @@ const MOCK_PAYMENTS: Payment[] = [
     @if (deleting()) {
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancelDelete()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-sm">
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
-            <h2 class="text-white font-bold text-lg mb-2">Excluir despesa?</h2>
-            <p class="text-white/60 text-sm">Tem certeza que deseja excluir "{{ deleting()?.description }}"?</p>
+          <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
+            <h2 class="text-primary font-bold text-lg mb-2">Excluir despesa?</h2>
+            <p class="text-secondary text-sm">Tem certeza que deseja excluir "{{ deleting()?.description }}"?</p>
             <div class="flex gap-3 mt-6">
               <app-button type="button" variant="outline" label="Cancelar" (click)="cancelDelete()"></app-button>
               <app-button type="button" variant="solid" label="Excluir" (click)="deleteExpense()"></app-button>
@@ -398,25 +398,25 @@ const MOCK_PAYMENTS: Payment[] = [
     @if (payingExpense(); as e) {
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closePayModal()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-sm">
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
+          <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-white font-bold text-lg">Pagar despesa</h2>
-              <button (click)="closePayModal()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+              <h2 class="text-primary font-bold text-lg">Pagar despesa</h2>
+              <button (click)="closePayModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
             </div>
-            <p class="text-white/70 text-sm mb-1">{{ e.description }}</p>
+            <p class="text-secondary text-sm mb-1">{{ e.description }}</p>
             @for (sv of e.splitValues; track sv.name) {
               @if (sv.name === CURRENT_USER) {
-                <p class="text-white font-semibold text-lg">Sua cota: R$ {{ sv.value.toFixed(2) }}</p>
+                <p class="text-primary font-semibold text-lg">Sua cota: R$ {{ sv.value.toFixed(2) }}</p>
               }
             }
             <div class="mt-4 flex flex-col gap-2">
-              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Comprovante (opcional)
                 <input type="file" accept="image/*" (change)="onReceiptSelected($event)"
-                  class="text-white/60 text-sm file:bg-white/10 file:border file:border-white/20 file:rounded-lg file:px-3 file:py-1.5 file:text-white file:cursor-pointer file:mr-3" />
+                  class="text-secondary text-sm file:bg-white/10 file:border file:border-theme file:rounded-lg file:px-3 file:py-1.5 file:text-primary file:cursor-pointer file:mr-3" />
               </label>
               @if (payReceiptBase64()) {
-                <img [src]="payReceiptBase64()" class="w-full h-32 object-cover rounded-xl border border-white/10" />
+                <img [src]="payReceiptBase64()" class="w-full h-32 object-cover rounded-xl border border-theme" />
               }
             </div>
             <div class="flex gap-3 mt-6">
@@ -432,25 +432,25 @@ const MOCK_PAYMENTS: Payment[] = [
     @if (approveExpense(); as e) {
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeApproveModal()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-md">
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
+          <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-white font-bold text-lg">Pagamentos pendentes</h2>
-              <button (click)="closeApproveModal()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+              <h2 class="text-primary font-bold text-lg">Pagamentos pendentes</h2>
+              <button (click)="closeApproveModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
             </div>
-            <p class="text-white/60 text-sm mb-4">{{ e.description }}</p>
+            <p class="text-secondary text-sm mb-4">{{ e.description }}</p>
             @for (p of pendingPaymentsForCreator(e); track p.memberName) {
-              <div class="rounded-xl bg-white/5 p-4 mb-3 last:mb-0">
+              <div class="rounded-xl bg-card-strong p-4 mb-3 last:mb-0">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-white font-semibold">{{ p.memberName }}</span>
-                  <span class="text-white/50 text-xs">Pago em {{ p.paidAt }}</span>
+                  <span class="text-primary font-semibold">{{ p.memberName }}</span>
+                  <span class="text-secondary text-xs">Pago em {{ p.paidAt }}</span>
                 </div>
                 @for (sv of e.splitValues; track sv.name) {
                   @if (sv.name === p.memberName) {
-                    <p class="text-white/60 text-sm">Valor: R$ {{ sv.value.toFixed(2) }}</p>
+                    <p class="text-secondary text-sm">Valor: R$ {{ sv.value.toFixed(2) }}</p>
                   }
                 }
                 @if (p.receiptBase64) {
-                  <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-white/10 mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
+                  <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-theme mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
                 }
                 <div class="flex gap-2 mt-3">
                   <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer">✓ Aprovar</button>
@@ -458,7 +458,7 @@ const MOCK_PAYMENTS: Payment[] = [
                 </div>
               </div>
             } @empty {
-              <p class="text-white/40 text-center py-6">Nenhum pagamento pendente</p>
+              <p class="text-muted text-center py-6">Nenhum pagamento pendente</p>
             }
             <div class="mt-4">
               <app-button type="button" variant="outline" label="Fechar" (click)="closeApproveModal()"></app-button>

@@ -57,32 +57,32 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
     <div class="flex flex-col gap-8 h-full">
       <!-- Header -->
       <div>
-        <h1 class="text-3xl font-bold text-white tracking-tight">Histórico</h1>
-        <p class="text-white/40 text-sm mt-1">Consulte todas as despesas desde a criação do grupo</p>
+        <h1 class="text-3xl font-bold text-primary tracking-tight">Histórico</h1>
+        <p class="text-muted text-sm mt-1">Consulte todas as despesas desde a criação do grupo</p>
         <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
       </div>
 
       <!-- Month navigator -->
-      <div class="flex items-center justify-between rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-4 shadow-lg shadow-black/10">
-        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-white/60 hover:text-white transition text-lg px-2 cursor-pointer">◄</button>
+      <div class="flex items-center justify-between rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
+        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">◄</button>
         <div class="flex items-center gap-3">
-          <span class="text-white font-bold text-lg">{{ selectedMonthName() }}</span>
-          <span class="text-white/50 text-sm">{{ selectedYear() }}</span>
+          <span class="text-primary font-bold text-lg">{{ selectedMonthName() }}</span>
+          <span class="text-secondary text-sm">{{ selectedYear() }}</span>
         </div>
-        <button (click)="nextMonth()" class="text-white/60 hover:text-white transition text-lg px-2 cursor-pointer">►</button>
+        <button (click)="nextMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">►</button>
       </div>
 
       <!-- Total do mês -->
-      <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-lg shadow-black/10">
+      <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-lg">📋</div>
             <div>
-              <p class="text-white/50 text-sm font-medium">Total do mês</p>
-              <p class="text-2xl font-bold text-white tracking-tight">R$ {{ monthlyTotal().toFixed(2) }}</p>
+              <p class="text-secondary text-sm font-medium">Total do mês</p>
+              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ monthlyTotal().toFixed(2) }}</p>
             </div>
           </div>
-          <span class="text-white/30 text-xs border border-white/10 rounded-lg px-2.5 py-1">{{ monthlyExpenses().length }} despesas</span>
+          <span class="text-muted text-xs border border-theme rounded-lg px-2.5 py-1">{{ monthlyExpenses().length }} despesas</span>
         </div>
       </div>
 
@@ -90,13 +90,13 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
       <div class="flex-1 flex flex-col gap-4 min-h-0">
         @if (monthlyExpenses().length > 0) {
           @for (e of monthlyExpenses(); track e.id) {
-            <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-5 shadow-lg shadow-black/10 hover:bg-white/[0.12] transition">
+            <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
               <div class="flex items-start justify-between gap-4">
                 <div class="flex items-start gap-4 min-w-0 flex-1">
                   <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-lg shrink-0">{{ categoryIcon(e.category) }}</div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                      <p class="text-white font-semibold truncate">{{ e.description }}</p>
+                      <p class="text-primary font-semibold truncate">{{ e.description }}</p>
                       @if (e.installments > 1) {
                         <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
                       }
@@ -104,16 +104,16 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
                         <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">📌 Fixa</span>
                       }
                     </div>
-                    <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'dd/MM/yyyy' }} · Pago por {{ e.paidBy }}</p>
+                    <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'dd/MM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                     <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                      <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
+                      <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                       @for (sv of e.splitValues; track sv.name) {
-                        <span class="text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ sv.value.toFixed(2) }}</span>
+                        <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ sv.value.toFixed(2) }}</span>
                       }
                     </div>
                   </div>
                 </div>
-                <span class="text-white font-bold text-lg shrink-0">R$ {{ e.amount.toFixed(2) }}</span>
+                <span class="text-primary font-bold text-lg shrink-0">R$ {{ e.amount.toFixed(2) }}</span>
               </div>
             </div>
           }
@@ -121,8 +121,8 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
               <p class="text-4xl mb-3">📭</p>
-              <p class="text-white/40 text-lg font-medium">Nenhuma despesa neste mês</p>
-              <p class="text-white/30 text-sm mt-1">Não houve despesas registradas em {{ selectedMonthName() }} de {{ selectedYear() }}</p>
+              <p class="text-muted text-lg font-medium">Nenhuma despesa neste mês</p>
+              <p class="text-muted text-sm mt-1">Não houve despesas registradas em {{ selectedMonthName() }} de {{ selectedYear() }}</p>
             </div>
           </div>
         }

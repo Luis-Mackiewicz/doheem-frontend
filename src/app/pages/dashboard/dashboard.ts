@@ -60,31 +60,31 @@ const MOCK_TASKS: TaskItem[] = [
   selector: 'app-dashboard',
   template: `
     <div class="flex flex-col gap-6">
-      <h1 class="text-2xl font-bold text-white">{{ groupName }}</h1>
+      <h1 class="text-2xl font-bold text-primary">{{ groupName }}</h1>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <p class="text-white/50 text-sm font-medium">Você deve</p>
+        <div class="rounded-2xl bg-card border-theme p-5">
+          <p class="text-secondary text-sm font-medium">Você deve</p>
           <p class="text-2xl font-bold text-orange-400 mt-1">R$ 150,00</p>
         </div>
-        <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <p class="text-white/50 text-sm font-medium">Você tem a receber</p>
+        <div class="rounded-2xl bg-card border-theme p-5">
+          <p class="text-secondary text-sm font-medium">Você tem a receber</p>
           <p class="text-2xl font-bold text-green-400 mt-1">R$ 120,00</p>
         </div>
-        <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <p class="text-white/50 text-sm font-medium">Dívida total do grupo</p>
-          <p class="text-2xl font-bold text-white mt-1">R$ 1.345,00</p>
-          <p class="text-white/40 text-xs mt-1">Mês de Maio</p>
+        <div class="rounded-2xl bg-card border-theme p-5">
+          <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
+          <p class="text-2xl font-bold text-primary mt-1">R$ 1.345,00</p>
+          <p class="text-muted text-xs mt-1">Mês de Maio</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-          <h2 class="text-white font-semibold mb-4">Saldo dos Moradores</h2>
+        <div class="rounded-2xl bg-card border-theme p-5">
+          <h2 class="text-primary font-semibold mb-4">Saldo dos Moradores</h2>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
-                <tr class="text-white/40 border-b border-white/10">
+                <tr class="text-muted border-b border-theme">
                   <th class="text-left pb-2 font-medium">Morador</th>
                   <th class="text-right pb-2 font-medium">Deve</th>
                   <th class="text-right pb-2 font-medium">A receber</th>
@@ -92,20 +92,20 @@ const MOCK_TASKS: TaskItem[] = [
               </thead>
               <tbody>
                 @for (r of residents; track r.name) {
-                  <tr class="border-b border-white/5 last:border-b-0">
-                    <td class="py-3 text-white font-medium">{{ r.name }}</td>
+                  <tr class="border-b border-soft last:border-b-0">
+                    <td class="py-3 text-primary font-medium">{{ r.name }}</td>
                     <td class="py-3 text-right">
                       @if (r.owes > 0) {
                         <span class="text-orange-400">R$ {{ r.owes.toFixed(2) }}</span>
                       } @else {
-                        <span class="text-white/30">—</span>
+                        <span class="text-muted">—</span>
                       }
                     </td>
                     <td class="py-3 text-right">
                       @if (r.toReceive > 0) {
                         <span class="text-green-400">R$ {{ r.toReceive.toFixed(2) }}</span>
                       } @else {
-                        <span class="text-white/30">—</span>
+                        <span class="text-muted">—</span>
                       }
                     </td>
                   </tr>
@@ -116,31 +116,31 @@ const MOCK_TASKS: TaskItem[] = [
         </div>
 
         <div class="flex flex-col gap-4">
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-            <h2 class="text-white font-semibold mb-4">Tarefas a Fazer</h2>
+          <div class="rounded-2xl bg-card border-theme p-5">
+            <h2 class="text-primary font-semibold mb-4">Tarefas a Fazer</h2>
             <div class="flex flex-col gap-2">
               @for (t of tasks; track t.title) {
-                <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0">
+                <div class="flex items-center justify-between py-2 border-b border-soft last:border-b-0">
                   <div>
-                    <p class="text-white text-sm">{{ t.title }}</p>
-                    <p class="text-white/40 text-xs">{{ t.assignedTo }} · {{ t.dueDate }}</p>
+                    <p class="text-primary text-sm">{{ t.title }}</p>
+                    <p class="text-muted text-xs">{{ t.assignedTo }} · {{ t.dueDate }}</p>
                   </div>
-                  <span class="text-white/20 text-xs border border-white/10 rounded-lg px-2 py-0.5">{{ t.dueDate }}</span>
+                  <span class="text-muted text-xs border border-theme rounded-lg px-2 py-0.5">{{ t.dueDate }}</span>
                 </div>
               }
             </div>
           </div>
 
-          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
-            <h2 class="text-white font-semibold mb-4">Despesas Recentes</h2>
+          <div class="rounded-2xl bg-card border-theme p-5">
+            <h2 class="text-primary font-semibold mb-4">Despesas Recentes</h2>
             <div class="flex flex-col gap-2">
               @for (e of expenses; track e.description) {
-                <div class="flex items-center justify-between py-2 border-b border-white/5 last:border-b-0">
+                <div class="flex items-center justify-between py-2 border-b border-soft last:border-b-0">
                   <div>
-                    <p class="text-white text-sm">{{ e.description }}</p>
-                    <p class="text-white/40 text-xs">{{ e.paidBy }} · {{ e.date }}</p>
+                    <p class="text-primary text-sm">{{ e.description }}</p>
+                    <p class="text-muted text-xs">{{ e.paidBy }} · {{ e.date }}</p>
                   </div>
-                  <span class="text-white font-medium text-sm">R$ {{ e.amount.toFixed(2) }}</span>
+                  <span class="text-primary font-medium text-sm">R$ {{ e.amount.toFixed(2) }}</span>
                 </div>
               }
             </div>

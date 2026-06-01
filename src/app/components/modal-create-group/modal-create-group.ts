@@ -12,7 +12,7 @@ import { ButtonComponent } from '../button/button';
         <app-card customClass="gap-5">
           <div class="flex items-center justify-between">
             <h2 class="text-white font-bold text-lg">Criar grupo</h2>
-            <button (click)="close.emit()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+            <button (click)="close.emit()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
           </div>
 
           <div class="flex flex-col items-center gap-2">
@@ -27,25 +27,25 @@ import { ButtonComponent } from '../button/button';
               </div>
             </button>
             <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden" />
-            <span class="text-white/40 text-xs">Clique na foto para alterar</span>
+            <span class="text-muted text-xs">Clique na foto para alterar</span>
           </div>
 
-          <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Nome do grupo
             <input type="text" placeholder="Ex: República Solaris" [(ngModel)]="nome" required
-              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full" />
+              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-primary placeholder-white/40 outline-none focus:border-white/50 transition w-full" />
           </label>
 
-          <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Descrição
             <textarea placeholder="Descreva o grupo..." [(ngModel)]="descricao" rows="3"
-              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full resize-none"></textarea>
+              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-primary placeholder-white/40 outline-none focus:border-white/50 transition w-full resize-none"></textarea>
           </label>
 
-          <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Moeda
             <select [(ngModel)]="moeda"
-              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full appearance-none cursor-pointer">
+              class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition w-full appearance-none cursor-pointer">
               @for (m of moedas; track m) {
                 <option [value]="m" class="bg-purple-dark text-white">{{ m }}</option>
               }

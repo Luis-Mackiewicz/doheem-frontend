@@ -45,8 +45,8 @@ const STATUS_CONFIG = {
       <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-white tracking-tight">Tarefas</h1>
-          <p class="text-white/40 text-sm mt-1">Gerencie as tarefas da república</p>
+          <h1 class="text-3xl font-bold text-primary tracking-tight">Tarefas</h1>
+          <p class="text-muted text-sm mt-1">Gerencie as tarefas da república</p>
           <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
         </div>
         <app-button type="button" variant="solid" label="+ Nova Tarefa" (click)="openCreate()"></app-button>
@@ -55,12 +55,12 @@ const STATUS_CONFIG = {
       <!-- Kanban columns -->
       <div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
         @for (s of statuses; track s) {
-          <div class="flex flex-col rounded-2xl bg-white/[0.07] backdrop-blur-xl border border-white/10 p-4 shadow-lg shadow-black/10 min-h-0">
+          <div class="flex flex-col rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10 min-h-0">
             <!-- Column header -->
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-theme">
               <div class="flex items-center gap-2">
                 <span>{{ STATUS_CONFIG[s].icon }}</span>
-                <span class="text-white font-bold text-sm">{{ STATUS_CONFIG[s].label }}</span>
+                <span class="text-primary font-bold text-sm">{{ STATUS_CONFIG[s].label }}</span>
               </div>
               <span class="text-xs font-medium {{ STATUS_CONFIG[s].badge }} px-2 py-0.5 rounded-full">{{ tasksByStatus(s).length }}</span>
             </div>
@@ -69,16 +69,16 @@ const STATUS_CONFIG = {
             <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
               @if (tasksByStatus(s).length > 0) {
                 @for (t of tasksByStatus(s); track t.id) {
-                   <div (click)="openDetail(t)" class="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/[0.14] transition shadow-md cursor-pointer">
+                   <div (click)="openDetail(t)" class="rounded-xl bg-card-strong border border-theme p-4 hover:bg-card-hover transition shadow-md cursor-pointer">
                     <div class="flex items-start justify-between gap-3">
                       <div class="min-w-0 flex-1">
-                        <p class="text-white font-medium text-sm leading-snug">{{ t.title }}</p>
+                        <p class="text-primary font-medium text-sm leading-snug">{{ t.title }}</p>
                         <div class="flex items-center gap-2 mt-2 flex-wrap">
                           <span class="text-[11px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full">{{ t.assignedTo }}</span>
                           @if (t.createdBy === ADMIN_USER) {
                             <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span>
                           }
-                          <span class="text-[11px] text-white/30">{{ t.createdAt | date:'dd/MM' }}</span>
+                          <span class="text-[11px] text-muted">{{ t.createdAt | date:'dd/MM' }}</span>
                         </div>
                       </div>
                       <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
@@ -97,7 +97,7 @@ const STATUS_CONFIG = {
                 }
               } @else {
                 <div class="flex-1 flex items-center justify-center">
-                  <p class="text-white/25 text-sm text-center">Nenhuma tarefa</p>
+                  <p class="text-muted text-sm text-center">Nenhuma tarefa</p>
                 </div>
               }
             </div>
@@ -109,33 +109,33 @@ const STATUS_CONFIG = {
     <!-- Create modal -->
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="showModal.set(false)">
-        <div class="w-full max-w-md rounded-2xl bg-purple-dark border border-white/10 p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+        <div class="w-full max-w-md rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-6">
-            <h2 class="text-lg font-bold text-white">Nova Tarefa</h2>
-            <button (click)="showModal.set(false)" class="text-white/40 hover:text-white transition cursor-pointer text-xl">✕</button>
+            <h2 class="text-lg font-bold text-primary">Nova Tarefa</h2>
+            <button (click)="showModal.set(false)" class="text-muted hover:text-primary transition cursor-pointer text-xl">✕</button>
           </div>
 
           <div class="flex flex-col gap-4">
             <div>
-              <label class="text-white/60 text-xs font-medium mb-1.5 block">Título</label>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Título</label>
               <input #titleInput type="text" placeholder="Ex: Limpar a cozinha"
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition text-sm">
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm">
             </div>
             <div>
-              <label class="text-white/60 text-xs font-medium mb-1.5 block">Descrição <span class="text-white/30">(opcional)</span></label>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Descrição <span class="text-muted">(opcional)</span></label>
               <textarea #descInput rows="3" placeholder="Descreva a tarefa..."
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition text-sm resize-none"></textarea>
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm resize-none"></textarea>
             </div>
             <div>
-              <label class="text-white/60 text-xs font-medium mb-1.5 block">Responsável</label>
-              <select #memberSelect class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white outline-none focus:border-white/50 transition text-sm appearance-none cursor-pointer">
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Responsável</label>
+              <select #memberSelect class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer">
                 @for (m of MOCK_MEMBERS; track m) {
                   <option class="bg-purple-dark text-white" [value]="m">{{ m }}</option>
                 }
               </select>
             </div>
             <div class="flex justify-end gap-3 mt-2">
-              <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-white/60 hover:text-white transition text-sm cursor-pointer">Cancelar</button>
+              <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-secondary hover:text-primary transition text-sm cursor-pointer">Cancelar</button>
               <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
             </div>
           </div>
@@ -146,37 +146,37 @@ const STATUS_CONFIG = {
     <!-- Detail modal -->
     @if (selectedTask(); as t) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="selectedTask.set(undefined)">
-        <div class="w-full max-w-lg rounded-2xl bg-purple-dark border border-white/10 p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+        <div class="w-full max-w-lg rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-3 min-w-0">
               <span class="text-2xl">{{ STATUS_CONFIG[t.status].icon }}</span>
               <div class="min-w-0">
-                <h2 class="text-lg font-bold text-white truncate">{{ t.title }}</h2>
+                <h2 class="text-lg font-bold text-primary truncate">{{ t.title }}</h2>
                 <span class="text-xs font-medium {{ STATUS_CONFIG[t.status].badge }} px-2 py-0.5 rounded-full">{{ STATUS_CONFIG[t.status].label }}</span>
               </div>
             </div>
-            <button (click)="selectedTask.set(undefined)" class="text-white/40 hover:text-white transition cursor-pointer text-xl shrink-0">✕</button>
+            <button (click)="selectedTask.set(undefined)" class="text-muted hover:text-primary transition cursor-pointer text-xl shrink-0">✕</button>
           </div>
 
           <div class="flex flex-col gap-4">
             @if (t.description) {
               <div>
-                <label class="text-white/40 text-xs font-medium mb-1.5 block">Descrição</label>
-                <p class="text-white/80 text-sm leading-relaxed bg-white/5 rounded-xl px-4 py-3 border border-white/10">{{ t.description }}</p>
+                <label class="text-muted text-xs font-medium mb-1.5 block">Descrição</label>
+                <p class="text-secondary text-sm leading-relaxed bg-card-strong rounded-xl px-4 py-3 border border-theme">{{ t.description }}</p>
               </div>
             }
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="text-white/40 text-xs font-medium mb-1 block">Responsável</label>
-                <p class="text-white text-sm">{{ t.assignedTo }}</p>
+                <label class="text-muted text-xs font-medium mb-1 block">Responsável</label>
+                <p class="text-primary text-sm">{{ t.assignedTo }}</p>
               </div>
               <div>
-                <label class="text-white/40 text-xs font-medium mb-1 block">Criado por</label>
-                <p class="text-white text-sm">{{ t.createdBy }} @if (t.createdBy === ADMIN_USER) { <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span> }</p>
+                <label class="text-muted text-xs font-medium mb-1 block">Criado por</label>
+                <p class="text-primary text-sm">{{ t.createdBy }} @if (t.createdBy === ADMIN_USER) { <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span> }</p>
               </div>
               <div>
-                <label class="text-white/40 text-xs font-medium mb-1 block">Criada em</label>
-                <p class="text-white text-sm">{{ t.createdAt | date:'dd/MM/yyyy' }}</p>
+                <label class="text-muted text-xs font-medium mb-1 block">Criada em</label>
+                <p class="text-primary text-sm">{{ t.createdAt | date:'dd/MM/yyyy' }}</p>
               </div>
             </div>
           </div>

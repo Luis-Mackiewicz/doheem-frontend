@@ -6,9 +6,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     <div class="relative">
       <input [type]="visible ? 'text' : 'password'" [value]="value" (input)="onInput($event)"
         [placeholder]="placeholder"
-        class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition pr-12" />
+        class="w-full bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition pr-12" />
       <button type="button" (click)="toggle()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition cursor-pointer">
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition cursor-pointer">
         @if (visible) {
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
