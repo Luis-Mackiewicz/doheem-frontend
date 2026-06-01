@@ -1,7 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
+import { NotificationService } from '../../services/notification-service';
 
 type TaskStatus = 'todo' | 'doing' | 'done';
 
@@ -13,6 +14,7 @@ interface Task {
   createdBy: string;
   status: TaskStatus;
   createdAt: string;
+  dueDate: string;
 }
 
 const CURRENT_USER: string = 'Carlos';
@@ -21,14 +23,14 @@ const ADMIN_USER: string = 'Ana';
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const MOCK_TASKS: Task[] = [
-  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28' },
-  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29' },
-  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30' },
-  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25' },
-  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26' },
-  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20' },
-  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22' },
-  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23' },
+  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28', dueDate: '2026-06-05' },
+  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29', dueDate: '2026-06-02' },
+  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30', dueDate: '2026-06-10' },
+  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25', dueDate: '2026-06-01' },
+  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26', dueDate: '2026-06-03' },
+  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20', dueDate: '2026-05-25' },
+  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22', dueDate: '2026-05-28' },
+  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23', dueDate: '2026-05-30' },
 ];
 
 const STATUS_CONFIG = {
@@ -69,18 +71,22 @@ const STATUS_CONFIG = {
             <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
               @if (tasksByStatus(s).length > 0) {
                 @for (t of tasksByStatus(s); track t.id) {
-                   <div (click)="openDetail(t)" class="rounded-xl bg-card-strong border border-theme p-4 hover:bg-card-hover transition shadow-md cursor-pointer">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="min-w-0 flex-1">
-                        <p class="text-primary font-medium text-sm leading-snug">{{ t.title }}</p>
-                        <div class="flex items-center gap-2 mt-2 flex-wrap">
-                          <span class="text-[11px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full">{{ t.assignedTo }}</span>
-                          @if (t.createdBy === ADMIN_USER) {
-                            <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span>
-                          }
-                          <span class="text-[11px] text-muted">{{ t.createdAt | date:'dd/MM' }}</span>
-                        </div>
-                      </div>
+                    <div (click)="openDetail(t)" class="rounded-xl bg-card-strong border border-theme p-4 hover:bg-card-hover transition shadow-md cursor-pointer"
+                      [class.border-rose-500/40]="isOverdue(t)">
+                     <div class="flex items-start justify-between gap-3">
+                       <div class="min-w-0 flex-1">
+                         <p class="text-primary font-medium text-sm leading-snug">{{ t.title }}</p>
+                         <div class="flex items-center gap-2 mt-2 flex-wrap">
+                           <span class="text-[11px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full">{{ t.assignedTo }}</span>
+                           @if (isOverdue(t)) {
+                             <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full">⚠️ Atrasada</span>
+                           }
+                           @if (t.createdBy === ADMIN_USER) {
+                             <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span>
+                           }
+                           <span class="text-[11px] text-muted">{{ t.createdAt | date:'dd/MM' }}</span>
+                         </div>
+                       </div>
                       <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
                         @if (s !== 'todo') {
                           <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer text-sm">◀</button>
@@ -134,9 +140,14 @@ const STATUS_CONFIG = {
                 }
               </select>
             </div>
+            <div>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
+              <input #dueDateInput type="date" [min]="today"
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm" />
+            </div>
             <div class="flex justify-end gap-3 mt-2">
               <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-secondary hover:text-primary transition text-sm cursor-pointer">Cancelar</button>
-              <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
+              <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value, dueDateInput.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
             </div>
           </div>
         </div>
@@ -178,6 +189,12 @@ const STATUS_CONFIG = {
                 <label class="text-muted text-xs font-medium mb-1 block">Criada em</label>
                 <p class="text-primary text-sm">{{ t.createdAt | date:'dd/MM/yyyy' }}</p>
               </div>
+              @if (t.dueDate) {
+                <div>
+                  <label class="text-muted text-xs font-medium mb-1 block">Data limite</label>
+                  <p class="text-primary text-sm" [class.text-rose-400]="isOverdue(t)">{{ t.dueDate | date:'dd/MM/yyyy' }} @if (isOverdue(t)) { <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full">Atrasada</span> }</p>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -191,11 +208,35 @@ export class TarefasPage {
   protected readonly statuses: TaskStatus[] = ['todo', 'doing', 'done'];
   protected readonly CURRENT_USER = CURRENT_USER;
   protected readonly ADMIN_USER = ADMIN_USER;
+  protected readonly today = new Date().toISOString().slice(0, 10);
 
   private tasksSignal = signal<Task[]>([...MOCK_TASKS]);
+  private notif = inject(NotificationService);
 
   protected showModal = signal(false);
   protected selectedTask = signal<Task | undefined>(undefined);
+
+  constructor() {
+    this.checkOverdueTasks();
+  }
+
+  private checkOverdueTasks(): void {
+    const today = new Date();
+    for (const task of this.tasksSignal()) {
+      if (task.status === 'done' || !task.dueDate) continue;
+      const due = new Date(task.dueDate + 'T23:59:59');
+      if (due < today) {
+        this.notif.add('task_overdue', 'Tarefa atrasada',
+          `${task.title} — atribuída a ${task.assignedTo}`,
+          ADMIN_USER, task.id);
+      }
+    }
+  }
+
+  protected isOverdue(task: Task): boolean {
+    if (task.status === 'done' || !task.dueDate) return false;
+    return new Date(task.dueDate + 'T23:59:59') < new Date();
+  }
 
   protected tasksByStatus = (status: TaskStatus) => {
     return this.tasksSignal().filter(t => t.status === status);
@@ -223,12 +264,27 @@ export class TarefasPage {
     this.selectedTask.set(task);
   }
 
-  confirmCreate(title: string, description: string, assignedTo: string): void {
+  confirmCreate(title: string, description: string, assignedTo: string, dueDate: string): void {
     if (!title.trim()) return;
-    this.tasksSignal.update(list => [
-      ...list,
-      { id: this.nextId(), title: title.trim(), description: description.trim(), assignedTo, createdBy: CURRENT_USER, status: 'todo', createdAt: new Date().toISOString().slice(0, 10) },
-    ]);
+    const task: Task = {
+      id: this.nextId(),
+      title: title.trim(),
+      description: description.trim(),
+      assignedTo,
+      createdBy: CURRENT_USER,
+      status: 'todo',
+      createdAt: new Date().toISOString().slice(0, 10),
+      dueDate,
+    };
+    this.tasksSignal.update(list => [...list, task]);
+
+    // RN-16: notificar responsável 24h antes
+    if (task.dueDate) {
+      this.notif.add('task_reminder', 'Tarefa próxima do prazo',
+        `${task.title} — vence em ${task.dueDate}`,
+        task.assignedTo, task.id);
+    }
+
     this.showModal.set(false);
   }
 

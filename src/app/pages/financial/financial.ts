@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
+import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 
 interface SplitValue {
   name: string;
@@ -556,6 +557,29 @@ export class FinanceiroPage {
 
   constructor() {
     this.form = this.emptyForm();
+    this.checkDebts();
+  }
+
+  private notif = inject(NotificationService);
+
+  private checkDebts(): void {
+    const today = new Date();
+    for (const expense of this.expenses()) {
+      if (!expense.dueDate) continue;
+      const dueDate = new Date(expense.dueDate + 'T23:59:59');
+      const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysOverdue < NOTIFICATION_CONFIG.debtReminderDays) continue;
+      for (const sv of expense.splitValues) {
+        if (sv.name === expense.paidBy) continue;
+        const payment = this.payments().find(p => p.expenseId === expense.id && p.memberName === sv.name);
+        if (payment && payment.status !== 'pending') continue;
+        if (!this.notif.canSendReminder(expense.id, sv.name)) continue;
+        this.notif.add('debt_reminder', 'Lembrete de dívida',
+          `${expense.description} — venceu há ${daysOverdue} dia(s). Sua parte: R$ ${sv.value.toFixed(2)}`,
+          sv.name, expense.id);
+        this.notif.registerReminder(expense.id, sv.name);
+      }
+    }
   }
 
   splitModeLabel(mode: SplitMode): string {
@@ -838,6 +862,17 @@ export class FinanceiroPage {
       }
       return [...list, expense];
     });
+
+    // RN-14: notificar moradores envolvidos no rateio
+    if (!this.editingId()) {
+      for (const sv of splitValues) {
+        if (sv.name === expense.paidBy) continue;
+        this.notif.add('expense', 'Nova despesa',
+          `${expense.description} — sua parte: R$ ${sv.value.toFixed(2)}`,
+          sv.name, expense.id);
+      }
+    }
+
     this.closeModal();
   }
 

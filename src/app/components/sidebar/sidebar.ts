@@ -2,6 +2,7 @@ import { Component, Input, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ModalMembrosComponent } from '../modal-members/modal-members';
 import { ThemeService } from '../../services/theme-service';
+import { NotificationService } from '../../services/notification-service';
 
 @Component({
   selector: 'app-sidebar',
@@ -36,7 +37,10 @@ import { ThemeService } from '../../services/theme-service';
              [class.hover:bg-white/5]="theme.theme() === 'dark'"
              [class.hover-bg]="theme.theme() === 'light'">
             <span class="text-lg">{{ item.icon }}</span>
-            {{ item.label }}
+            <span class="flex-1">{{ item.label }}</span>
+            @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
+              <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
+            }
           </a>
         }
         <button (click)="showModal.set(true)"
@@ -143,7 +147,12 @@ import { ThemeService } from '../../services/theme-service';
           [class.hover:text-primary]="theme.theme() === 'light'"
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
-          <span class="text-lg leading-none">{{ item.icon }}</span>
+          <span class="text-lg leading-none relative">
+            {{ item.icon }}
+            @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
+              <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
+            }
+          </span>
           <span class="truncate w-full text-center">{{ item.label }}</span>
         </a>
       }
@@ -171,6 +180,7 @@ export class SidebarComponent {
 
   protected showModal = signal(false);
   protected theme = inject(ThemeService);
+  protected notif = inject(NotificationService);
 
   get navItems() {
     return [
