@@ -23,9 +23,15 @@ const MEMBROS: Membro[] = [
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">
       <div (click)="$event.stopPropagation()" class="w-full max-w-md">
         <app-card>
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center justify-between mb-1">
             <h2 class="text-white font-bold text-lg">Membros</h2>
             <button (click)="close.emit()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+          </div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(todos.length / maxMembros) * 100"></div>
+            </div>
+            <span class="text-white/40 text-xs whitespace-nowrap">{{ todos.length }} / {{ maxMembros }} membros</span>
           </div>
 
           <div class="relative mb-4">
@@ -58,6 +64,7 @@ const MEMBROS: Membro[] = [
 export class ModalMembrosComponent {
   @Output() close = new EventEmitter<void>();
 
+  protected readonly maxMembros = 30;
   protected readonly todos = MEMBROS;
   protected readonly filtered = signal(MEMBROS);
 
