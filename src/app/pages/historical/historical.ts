@@ -64,7 +64,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
       <!-- Month navigator -->
       <div class="flex items-center justify-between rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-4 shadow-lg shadow-black/10">
-        <button (click)="prevMonth()" class="text-white/60 hover:text-white transition text-lg px-2 cursor-pointer">◄</button>
+        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-white/60 hover:text-white transition text-lg px-2 cursor-pointer">◄</button>
         <div class="flex items-center gap-3">
           <span class="text-white font-bold text-lg">{{ selectedMonthName() }}</span>
           <span class="text-white/50 text-sm">{{ selectedYear() }}</span>
@@ -137,6 +137,12 @@ export class HistoricoPage {
 
   private readonly allExpenses = [...MOCK_EXPENSES];
 
+  private readonly minDate = new Date(Math.min(...this.allExpenses.map(e => new Date(e.competenceDate + 'T00:00:00').getTime())));
+  private readonly minYear = this.minDate.getFullYear();
+  private readonly minMonth = this.minDate.getMonth();
+
+  protected readonly atMinMonth = computed(() => this.selectedYear() === this.minYear && this.selectedMonth() === this.minMonth);
+
   protected readonly selectedMonthName = computed(() => MONTHS[this.selectedMonth()]);
 
   protected readonly monthlyExpenses = computed(() => {
@@ -151,6 +157,7 @@ export class HistoricoPage {
   });
 
   prevMonth(): void {
+    if (this.atMinMonth()) return;
     if (this.selectedMonth() === 0) {
       this.selectedYear.update(y => y - 1);
       this.selectedMonth.set(11);
