@@ -1,0 +1,68 @@
+import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { CardComponent } from '../card/card';
+
+interface Membro {
+  nome: string;
+  telefone: string;
+}
+
+const MEMBROS: Membro[] = [
+  { nome: 'Carlos Silva', telefone: '(11) 99999-0001' },
+  { nome: 'Ana Oliveira', telefone: '(11) 99999-0002' },
+  { nome: 'Pedro Santos', telefone: '(11) 99999-0003' },
+  { nome: 'Mariana Costa', telefone: '(11) 99999-0004' },
+  { nome: 'João Pereira', telefone: '(11) 99999-0005' },
+  { nome: 'Fernanda Lima', telefone: '(11) 99999-0006' },
+  { nome: 'Rafael Souza', telefone: '(11) 99999-0007' },
+];
+
+@Component({
+  selector: 'app-modal-membros',
+  imports: [CardComponent],
+  template: `
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">
+      <div (click)="$event.stopPropagation()" class="w-full max-w-md">
+        <app-card>
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-white font-bold text-lg">Membros</h2>
+            <button (click)="close.emit()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+          </div>
+
+          <div class="relative mb-4">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 select-none text-sm">🔍</span>
+            <input #searchInput type="text" placeholder="Pesquisar membros..."
+              class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition text-sm"
+              (input)="onSearch(searchInput.value)" />
+          </div>
+
+          <div class="flex flex-col gap-1 max-h-72 overflow-y-auto">
+            @for (m of filtered(); track m.nome) {
+              <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition">
+                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                  <span class="text-white/60 text-sm font-semibold">{{ m.nome.charAt(0) }}</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-white text-sm font-medium truncate">{{ m.nome }}</p>
+                  <p class="text-white/40 text-xs">{{ m.telefone }}</p>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-white/30 text-sm text-center py-8">Nenhum membro encontrado</p>
+            }
+          </div>
+        </app-card>
+      </div>
+    </div>
+  `,
+})
+export class ModalMembrosComponent {
+  @Output() close = new EventEmitter<void>();
+
+  protected readonly todos = MEMBROS;
+  protected readonly filtered = signal(MEMBROS);
+
+  onSearch(value: string): void {
+    const q = value.toLowerCase();
+    this.filtered.set(this.todos.filter(m => m.nome.toLowerCase().includes(q)));
+  }
+}
