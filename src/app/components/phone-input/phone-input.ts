@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal, ElementRef, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, ViewChild, ElementRef, HostListener } from '@angular/core';
 
 interface Country {
   name: string;
@@ -63,6 +63,8 @@ export class PhoneInputComponent {
   protected dropdownTop = 0;
   protected dropdownLeft = 0;
 
+  @ViewChild('trigger', { read: ElementRef }) triggerRef!: ElementRef<HTMLButtonElement>;
+
   constructor(private el: ElementRef) {}
 
   private parseInitial(value: string): void {
@@ -92,8 +94,7 @@ export class PhoneInputComponent {
   toggleDropdown(): void {
     const next = !this.open();
     if (next) {
-      const btn = this.el.nativeElement.querySelector('button');
-      const rect = btn.getBoundingClientRect();
+      const rect = this.triggerRef.nativeElement.getBoundingClientRect();
       this.dropdownTop = rect.bottom;
       this.dropdownLeft = rect.left;
     }
