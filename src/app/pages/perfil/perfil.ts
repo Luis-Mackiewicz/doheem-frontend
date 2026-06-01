@@ -11,7 +11,7 @@ import { ButtonComponent } from '../../components/button/button';
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
 
-        <app-card customClass="h-[520px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <app-card customClass="h-[600px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button (click)="goBack()" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
             ← Voltar
           </button>
