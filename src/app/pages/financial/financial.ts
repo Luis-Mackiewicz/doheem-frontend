@@ -123,7 +123,7 @@ const MOCK_EXPENSES: Expense[] = [
               <div class="grid grid-cols-2 gap-4">
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Valor
-                  <input type="number" placeholder="0,00" [(ngModel)]="form.amount"
+                  <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.amount" (keydown)="preventNegative($event)"
                     class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full" />
                 </label>
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
@@ -270,8 +270,12 @@ export class FinanceiroPage {
     this.editingId.set(null);
   }
 
+  preventNegative(e: KeyboardEvent): void {
+    if (e.key === '-' || e.key === 'e') e.preventDefault();
+  }
+
   save(): void {
-    if (!this.form.description.trim() || !this.form.amount) return;
+    if (!this.form.description.trim() || this.form.amount <= 0) return;
     const expense: Expense = {
       id: this.editingId() ?? Date.now(),
       description: this.form.description.trim(),
