@@ -50,34 +50,34 @@ import { ButtonComponent } from '../../components/button/button';
 
     </section>
 
-    <section id="sobre" class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium text-white">
+    <section id="sobre" class="min-h-dvh flex flex-col justify-center bg-white text-purple-dark">
       <div class="max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 items-center gap-12 md:gap-16 px-6 md:px-16 lg:px-24 py-24">
 
         <div class="flex flex-col gap-6">
-          <span class="text-sm font-semibold tracking-[0.2em] uppercase text-white/60">Sobre</span>
-          <h2 class="text-3xl md:text-4xl font-extrabold leading-tight text-white">O que é o Doheem?</h2>
-          <p class="text-lg text-white/70 leading-relaxed">
+          <span class="text-sm font-semibold tracking-[0.2em] uppercase text-purple-dark/50">Sobre</span>
+          <h2 class="text-3xl md:text-4xl font-extrabold leading-tight text-purple-dark">O que é o Doheem?</h2>
+          <p class="text-lg text-purple-dark/60 leading-relaxed">
             Doheem é uma plataforma completa para gestão de repúblicas estudantis.
             Com ela, você organiza despesas, divide contas, coordena tarefas domésticas
             e mantém tudo transparente entre os moradores.
           </p>
-          <p class="text-lg text-white/70 leading-relaxed">
+          <p class="text-lg text-purple-dark/60 leading-relaxed">
             Chega de planilhas perdidas e conversas no WhatsApp. Tudo centralizado,
             simples e pensado para facilitar o dia a dia da sua república.
           </p>
         </div>
 
         <div class="flex justify-center items-center">
-          <div class="w-full max-w-md aspect-square rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl flex flex-col items-center justify-center gap-6 p-8">
+          <div class="w-full max-w-md aspect-square rounded-3xl bg-purple-dark/5 backdrop-blur-xl border border-purple-dark/10 shadow-2xl flex flex-col items-center justify-center gap-6 p-8">
             <div class="flex gap-8 text-5xl">
-              <span class="bg-white/10 backdrop-blur-sm rounded-2xl p-5">💰</span>
-              <span class="bg-white/10 backdrop-blur-sm rounded-2xl p-5">📋</span>
+              <span class="bg-purple-dark/10 backdrop-blur-sm rounded-2xl p-5">💰</span>
+              <span class="bg-purple-dark/10 backdrop-blur-sm rounded-2xl p-5">📋</span>
             </div>
-            <p class="text-white/50 text-center text-sm tracking-wide">
+            <p class="text-purple-dark/50 text-center text-sm tracking-wide">
               Despesas &bull; Tarefas &bull; Moradores
             </p>
-            <div class="w-3/4 h-px bg-white/10"></div>
-            <p class="text-white/40 text-center text-xs max-w-[220px] leading-relaxed">
+            <div class="w-3/4 h-px bg-purple-dark/10"></div>
+            <p class="text-purple-dark/40 text-center text-xs max-w-[220px] leading-relaxed">
               Tudo o que sua república precisa em um só painel
             </p>
           </div>
