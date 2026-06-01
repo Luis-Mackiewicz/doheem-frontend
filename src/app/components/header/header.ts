@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
           <img src="doheem_loogo.png" alt="Doheem" class="h-8 w-auto" />
           <span class="text-white font-bold text-xl tracking-tight">Doheem</span>
         </div>
-        <a routerLink="/perfil" class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center cursor-pointer hover:bg-white/20 transition">
+        <a routerLink="/" class="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center cursor-pointer hover:bg-white/20 transition">
           <svg class="w-5 h-5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />

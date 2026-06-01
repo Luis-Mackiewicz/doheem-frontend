@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
@@ -11,6 +12,9 @@ import { ButtonComponent } from '../../components/button/button';
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
 
         <app-card>
+          <button (click)="goBack()" class="text-white/50 hover:text-white text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
+            ← Voltar
+          </button>
           <div class="flex flex-col items-center gap-1 mb-8">
             <div class="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-2">
               <svg class="w-10 h-10 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -56,7 +60,7 @@ import { ButtonComponent } from '../../components/button/button';
 export class PerfilPage {
   protected form;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private location: Location) {
     this.form = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
@@ -67,6 +71,10 @@ export class PerfilPage {
     const pwd = group.get('newPassword')?.value;
     const confirm = group.get('confirmPassword')?.value;
     return pwd === confirm ? null : { mismatch: true };
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 
   onSubmit(): void {
