@@ -10,6 +10,16 @@ interface SplitValue {
 
 type SplitMode = 'equal' | 'some' | 'custom';
 
+type PaymentStatus = 'pending' | 'awaiting' | 'approved';
+
+interface Payment {
+  expenseId: number;
+  memberName: string;
+  status: PaymentStatus;
+  paidAt?: string;
+  receiptBase64?: string;
+}
+
 interface Expense {
   id: number;
   description: string;
@@ -43,6 +53,14 @@ const MOCK_EXPENSES: Expense[] = [
   { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), installments: 3, firstDueDate: '2026-06-05', fixed: true },
   { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 116 })), installments: 1, firstDueDate: '', fixed: false },
   { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), installments: 2, firstDueDate: '2026-06-20', fixed: false },
+];
+
+const CURRENT_USER = 'Carlos';
+
+const MOCK_PAYMENTS: Payment[] = [
+  { expenseId: 1, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-28' },
+  { expenseId: 1, memberName: 'Mariana', status: 'awaiting', paidAt: '2026-05-30' },
+  { expenseId: 4, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-25' },
 ];
 
 @Component({
@@ -97,17 +115,37 @@ const MOCK_EXPENSES: Expense[] = [
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                     <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
-                      <span class="text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ sv.value.toFixed(2) }}</span>
+                      <span class="flex items-center gap-1 text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">
+                        {{ paymentStatusDot(e.id, sv.name) }} {{ sv.name }} R$ {{ sv.value.toFixed(2) }}
+                      </span>
                     }
                   </div>
                 </div>
               </div>
               <div class="flex items-center gap-3 shrink-0">
-                <span class="text-white font-bold text-lg">R$ {{ e.amount.toFixed(2) }}</span>
-                <div class="flex flex-col gap-1">
-                  <button (click)="openEdit(e)" class="text-white/40 hover:text-white transition cursor-pointer text-sm">✏️</button>
-                  <button (click)="confirmDelete(e)" class="text-white/40 hover:text-rose-400 transition cursor-pointer text-sm">🗑️</button>
+                <div class="flex flex-col items-end gap-1">
+                  <span class="text-white font-bold text-lg">R$ {{ e.amount.toFixed(2) }}</span>
+                  @if (myPaymentStatus(e.id); as p) {
+                    @if (p.status === 'pending') {
+                      <button (click)="openPayModal(e)" class="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full hover:bg-emerald-500/30 transition cursor-pointer">Pagar</button>
+                    } @else if (p.status === 'awaiting') {
+                      <span class="text-[10px] text-amber-400 flex items-center gap-1">🟡 Aguardando</span>
+                    } @else if (p.status === 'approved') {
+                      <span class="text-[10px] text-emerald-400 flex items-center gap-1">🟢 Pago</span>
+                    }
+                  }
                 </div>
+                @if (e.paidBy === CURRENT_USER) {
+                  <div class="flex flex-col gap-1">
+                    @if (pendingPaymentsForCreator(e).length; as count) {
+                      <button (click)="openApproveModal(e)" class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full hover:bg-amber-500/30 transition cursor-pointer whitespace-nowrap">
+                        🔔 {{ count }} pendente{{ count > 1 ? 's' : '' }}
+                      </button>
+                    }
+                    <button (click)="openEdit(e)" class="text-white/40 hover:text-white transition cursor-pointer text-sm">✏️</button>
+                    <button (click)="confirmDelete(e)" class="text-white/40 hover:text-rose-400 transition cursor-pointer text-sm">🗑️</button>
+                  </div>
+                }
               </div>
             </div>
           </div>
@@ -319,6 +357,87 @@ const MOCK_EXPENSES: Expense[] = [
         </div>
       </div>
     }
+
+    <!-- Payment modal -->
+    @if (payingExpense(); as e) {
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closePayModal()">
+        <div (click)="$event.stopPropagation()" class="w-full max-w-sm">
+          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-white font-bold text-lg">Pagar despesa</h2>
+              <button (click)="closePayModal()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+            </div>
+            <p class="text-white/70 text-sm mb-1">{{ e.description }}</p>
+            @for (sv of e.splitValues; track sv.name) {
+              @if (sv.name === CURRENT_USER) {
+                <p class="text-white font-semibold text-lg">Sua cota: R$ {{ sv.value.toFixed(2) }}</p>
+              }
+            }
+            <div class="mt-4 flex flex-col gap-2">
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                Comprovante (opcional)
+                <input type="file" accept="image/*" (change)="onReceiptSelected($event)"
+                  class="text-white/60 text-sm file:bg-white/10 file:border file:border-white/20 file:rounded-lg file:px-3 file:py-1.5 file:text-white file:cursor-pointer file:mr-3" />
+              </label>
+              @if (payReceiptBase64()) {
+                <img [src]="payReceiptBase64()" class="w-full h-32 object-cover rounded-xl border border-white/10" />
+              }
+            </div>
+            <div class="flex gap-3 mt-6">
+              <app-button type="button" variant="outline" label="Cancelar" (click)="closePayModal()"></app-button>
+              <app-button type="button" variant="solid" label="Confirmar pagamento" (click)="confirmPay()"></app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Approval modal -->
+    @if (approveExpense(); as e) {
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeApproveModal()">
+        <div (click)="$event.stopPropagation()" class="w-full max-w-md">
+          <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-white font-bold text-lg">Pagamentos pendentes</h2>
+              <button (click)="closeApproveModal()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
+            </div>
+            <p class="text-white/60 text-sm mb-4">{{ e.description }}</p>
+            @for (p of pendingPaymentsForCreator(e); track p.memberName) {
+              <div class="rounded-xl bg-white/5 p-4 mb-3 last:mb-0">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-white font-semibold">{{ p.memberName }}</span>
+                  <span class="text-white/50 text-xs">Pago em {{ p.paidAt }}</span>
+                </div>
+                @for (sv of e.splitValues; track sv.name) {
+                  @if (sv.name === p.memberName) {
+                    <p class="text-white/60 text-sm">Valor: R$ {{ sv.value.toFixed(2) }}</p>
+                  }
+                }
+                @if (p.receiptBase64) {
+                  <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-white/10 mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
+                }
+                <div class="flex gap-2 mt-3">
+                  <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer">✓ Aprovar</button>
+                  <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer">✗ Rejeitar</button>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-white/40 text-center py-6">Nenhum pagamento pendente</p>
+            }
+            <div class="mt-4">
+              <app-button type="button" variant="outline" label="Fechar" (click)="closeApproveModal()"></app-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Receipt expand -->
+    @if (expandReceipt(); as url) {
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4" (click)="expandReceipt.set('')">
+        <img [src]="url" class="max-w-full max-h-full object-contain rounded-2xl" (click)="$event.stopPropagation()" />
+      </div>
+    }
   `,
 })
 export class FinanceiroPage {
@@ -331,10 +450,17 @@ export class FinanceiroPage {
     { value: 'custom', label: 'Personalizado' },
   ] as const;
 
+  protected readonly CURRENT_USER = CURRENT_USER;
+
   protected expenses = signal<Expense[]>([...MOCK_EXPENSES]);
+  protected payments = signal<Payment[]>([...MOCK_PAYMENTS]);
   protected showModal = signal(false);
   protected editingId = signal<number | null>(null);
   protected deleting = signal<Expense | null>(null);
+  protected payingExpense = signal<Expense | null>(null);
+  protected approveExpense = signal<Expense | null>(null);
+  protected payReceiptBase64 = signal('');
+  protected expandReceipt = signal('');
   protected submitted = signal(false);
 
   protected form!: ReturnType<typeof this.emptyForm>;
@@ -435,6 +561,92 @@ export class FinanceiroPage {
     if (mode === 'some' && this.selectedSome().length === 0) {
       this.selectedSome.set([...this.members]);
     }
+  }
+
+  /* Payments */
+  protected paymentsForExpense = (expenseId: number): Payment[] => {
+    return this.payments().filter(p => p.expenseId === expenseId);
+  };
+
+  myPaymentStatus(expenseId: number): Payment | undefined {
+    return this.payments().find(p => p.expenseId === expenseId && p.memberName === CURRENT_USER);
+  }
+
+  paymentStatusDot(expenseId: number, memberName: string): string {
+    const p = this.payments().find(p => p.expenseId === expenseId && p.memberName === memberName);
+    if (!p || p.status === 'pending') return '⚪';
+    if (p.status === 'awaiting') return '🟡';
+    return '🟢';
+  }
+
+  openPayModal(e: Expense): void {
+    this.payingExpense.set(e);
+    this.payReceiptBase64.set('');
+  }
+
+  closePayModal(): void {
+    this.payingExpense.set(null);
+    this.payReceiptBase64.set('');
+  }
+
+  onReceiptSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => this.payReceiptBase64.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  confirmPay(): void {
+    const expense = this.payingExpense();
+    if (!expense) return;
+    this.payments.update(list => {
+      const idx = list.findIndex(p => p.expenseId === expense.id && p.memberName === CURRENT_USER);
+      const payment: Payment = {
+        expenseId: expense.id,
+        memberName: CURRENT_USER,
+        status: 'awaiting',
+        paidAt: new Date().toISOString().slice(0, 10),
+        receiptBase64: this.payReceiptBase64() || undefined,
+      };
+      if (idx >= 0) {
+        const updated = [...list];
+        updated[idx] = payment;
+        return updated;
+      }
+      return [...list, payment];
+    });
+    this.closePayModal();
+  }
+
+  pendingPaymentsForCreator(expense: Expense): Payment[] {
+    if (expense.paidBy !== CURRENT_USER) return [];
+    return this.payments().filter(p => p.expenseId === expense.id && p.status === 'awaiting');
+  }
+
+  approvePayment(p: Payment): void {
+    this.payments.update(list =>
+      list.map(p2 => p2.expenseId === p.expenseId && p2.memberName === p.memberName
+        ? { ...p2, status: 'approved' as PaymentStatus } : p2)
+    );
+  }
+
+  rejectPayment(p: Payment): void {
+    this.payments.update(list =>
+      list.filter(p2 => !(p2.expenseId === p.expenseId && p2.memberName === p.memberName))
+    );
+  }
+
+  receiptUrl(p: Payment): string {
+    return p.receiptBase64 || '';
+  }
+
+  openApproveModal(e: Expense): void {
+    this.approveExpense.set(e);
+  }
+
+  closeApproveModal(): void {
+    this.approveExpense.set(null);
   }
 
   openCreate(): void {
