@@ -13,7 +13,7 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
         <span class="text-white font-bold text-lg tracking-tight">Doheem</span>
       </div>
 
-      <nav class="flex flex-col gap-1 p-3 flex-1">
+      <nav class="flex flex-col gap-1 p-3">
         @for (item of navItems; track item.path) {
           <a [routerLink]="item.path" routerLinkActive="bg-white/10 text-white" [routerLinkActiveOptions]="{exact: item.exact}"
              class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
@@ -27,11 +27,15 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
         </button>
       </nav>
 
-      <div class="p-4 border-t border-white/10 flex flex-col gap-1">
+      <hr class="border-white/10 mx-4" />
+      <div class="p-3">
         <a routerLink="/perfil" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition text-sm font-medium">
           <span class="text-lg">👤</span>
           Perfil
         </a>
+      </div>
+      <hr class="border-white/10 mx-4" />
+      <div class="p-3">
         <a [routerLink]="['/groups']" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/40 hover:text-white hover:bg-white/5 transition text-sm font-medium">
           <span class="text-lg">←</span>
           Voltar aos grupos
