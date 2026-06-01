@@ -1,5 +1,19 @@
 import { Component, computed, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import {
+  LucideHouse,
+  LucideZap,
+  LucideWifi,
+  LucideDroplets,
+  LucideShoppingCart,
+  LucideSparkles,
+  LucidePackage,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideHistory,
+  LucidePin,
+  LucideInbox,
+} from '@lucide/angular';
 
 interface SplitValue {
   name: string;
@@ -26,13 +40,13 @@ interface Expense {
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const CATEGORIES = [
-  { value: 'aluguel', label: 'Aluguel', icon: '🔑' },
-  { value: 'energia', label: 'Energia', icon: '⚡' },
-  { value: 'internet', label: 'Internet', icon: '🌐' },
-  { value: 'agua', label: 'Água', icon: '💧' },
-  { value: 'compras', label: 'Compras', icon: '🛒' },
-  { value: 'limpeza', label: 'Limpeza', icon: '🧹' },
-  { value: 'outros', label: 'Outros', icon: '📦' },
+  { value: 'aluguel', label: 'Aluguel' },
+  { value: 'energia', label: 'Energia' },
+  { value: 'internet', label: 'Internet' },
+  { value: 'agua', label: 'Água' },
+  { value: 'compras', label: 'Compras' },
+  { value: 'limpeza', label: 'Limpeza' },
+  { value: 'outros', label: 'Outros' },
 ];
 
 const MOCK_EXPENSES: Expense[] = [
@@ -52,7 +66,11 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 @Component({
   selector: 'app-historico',
-  imports: [DatePipe],
+  imports: [DatePipe,
+    LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
+    LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
+    LucideHistory, LucidePin, LucideInbox,
+  ],
   template: `
     <div class="flex flex-col gap-8 h-full">
       <div>
@@ -60,18 +78,18 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 ]      </div>
 
       <div class="flex items-center justify-between rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
-        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">◄</button>
+        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition px-2 cursor-pointer"><svg lucideChevronLeft class="w-5 h-5"></svg></button>
         <div class="flex items-center gap-3">
           <span class="text-primary font-bold text-lg">{{ selectedMonthName() }}</span>
           <span class="text-secondary text-sm">{{ selectedYear() }}</span>
         </div>
-        <button (click)="nextMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">►</button>
+        <button (click)="nextMonth()" class="text-secondary hover:text-primary transition px-2 cursor-pointer"><svg lucideChevronRight class="w-5 h-5"></svg></button>
       </div>
 
       <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-lg">📋</div>
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideHistory class="w-5 h-5 text-purple-300"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
               <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ monthlyTotal().toFixed(2) }}</p>
@@ -87,7 +105,17 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
             <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
               <div class="flex items-start justify-between gap-4">
                 <div class="flex items-start gap-4 min-w-0 flex-1">
-                  <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-lg shrink-0">{{ categoryIcon(e.category) }}</div>
+                  <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                    @switch (e.category) {
+                      @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-purple-300"></svg> }
+                      @case ('energia') { <svg lucideZap class="w-5 h-5 text-purple-300"></svg> }
+                      @case ('internet') { <svg lucideWifi class="w-5 h-5 text-purple-300"></svg> }
+                      @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-purple-300"></svg> }
+                      @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-purple-300"></svg> }
+                      @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-purple-300"></svg> }
+                      @default { <svg lucidePackage class="w-5 h-5 text-purple-300"></svg> }
+                    }
+                  </div>
                   <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap">
                       <p class="text-primary font-semibold truncate">{{ e.description }}</p>
@@ -95,7 +123,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
                         <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
                       }
                       @if (e.fixed) {
-                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">📌 Fixa</span>
+                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
                       }
                     </div>
                     <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'dd/MM/yyyy' }} · Pago por {{ e.paidBy }}</p>
@@ -114,7 +142,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
-              <p class="text-4xl mb-3">📭</p>
+              <svg lucideInbox class="w-10 h-10 text-muted mb-3 mx-auto"></svg>
               <p class="text-muted text-lg font-medium">Nenhuma despesa neste mês</p>
               <p class="text-muted text-sm mt-1">Não houve despesas registradas em {{ selectedMonthName() }} de {{ selectedYear() }}</p>
             </div>
@@ -171,10 +199,6 @@ export class HistoricoPage {
 
   categoryLabel(value: string): string {
     return CATEGORIES.find(c => c.value === value)?.label ?? value;
-  }
-
-  categoryIcon(value: string): string {
-    return CATEGORIES.find(c => c.value === value)?.icon ?? '📦';
   }
 
   splitModeLabel(mode: SplitMode): string {

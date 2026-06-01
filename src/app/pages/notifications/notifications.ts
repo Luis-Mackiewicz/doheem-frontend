@@ -2,17 +2,26 @@ import { Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NotificationService, CURRENT_USER, ADMIN_USER } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
+import {
+  LucideDollarSign,
+  LucideClock,
+  LucideListTodo,
+  LucideTriangleAlert,
+  LucideBell,
+} from '@lucide/angular';
 
-const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: string }> = {
-  expense: { icon: '💰', color: 'text-purple-300', bg: 'bg-purple-500/15' },
-  debt_reminder: { icon: '⏰', color: 'text-amber-300', bg: 'bg-amber-500/15' },
-  task_reminder: { icon: '✅', color: 'text-blue-300', bg: 'bg-blue-500/15' },
-  task_overdue: { icon: '⚠️', color: 'text-rose-300', bg: 'bg-rose-500/15' },
+const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
+  expense: { color: 'text-purple-300', bg: 'bg-purple-500/15' },
+  debt_reminder: { color: 'text-amber-300', bg: 'bg-amber-500/15' },
+  task_reminder: { color: 'text-blue-300', bg: 'bg-blue-500/15' },
+  task_overdue: { color: 'text-rose-300', bg: 'bg-rose-500/15' },
 };
 
 @Component({
   selector: 'app-notificacoes',
-  imports: [DatePipe],
+  imports: [DatePipe,
+    LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
+  ],
   template: `
     <div class="flex flex-col gap-8 h-full">
       <!-- Header -->
@@ -36,8 +45,13 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: s
               [class.border-l-4]="!n.read"
               [class.border-l-purple-400]="!n.read">
               <div class="flex items-start gap-4">
-                <div class="w-10 h-10 rounded-xl {{ TYPE_CONFIG[n.type].bg }} flex items-center justify-center text-lg shrink-0">
-                  {{ TYPE_CONFIG[n.type].icon }}
+                <div class="w-10 h-10 rounded-xl {{ TYPE_CONFIG[n.type].bg }} flex items-center justify-center shrink-0">
+                  @switch (n.type) {
+                    @case ('expense') { <svg lucideDollarSign class="w-5 h-5 {{ TYPE_CONFIG[n.type].color }}"></svg> }
+                    @case ('debt_reminder') { <svg lucideClock class="w-5 h-5 {{ TYPE_CONFIG[n.type].color }}"></svg> }
+                    @case ('task_reminder') { <svg lucideListTodo class="w-5 h-5 {{ TYPE_CONFIG[n.type].color }}"></svg> }
+                    @case ('task_overdue') { <svg lucideTriangleAlert class="w-5 h-5 {{ TYPE_CONFIG[n.type].color }}"></svg> }
+                  }
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2">
@@ -63,7 +77,7 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: s
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
-              <p class="text-4xl mb-3">🔔</p>
+              <svg lucideBell class="w-10 h-10 text-muted mb-3 mx-auto"></svg>
               <p class="text-secondary text-lg font-medium">Nenhuma notificação</p>
               <p class="text-muted text-sm mt-1">Você está em dia!</p>
             </div>

@@ -3,6 +3,16 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 import { NotificationService } from '../../services/notification-service';
+import {
+  LucideClipboardList,
+  LucideRefreshCw,
+  LucideCircleCheck,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideTrash2,
+  LucideTriangleAlert,
+  LucideX,
+} from '@lucide/angular';
 
 type TaskStatus = 'todo' | 'doing' | 'done';
 
@@ -34,14 +44,18 @@ const MOCK_TASKS: Task[] = [
 ];
 
 const STATUS_CONFIG = {
-  todo: { label: 'A Fazer', icon: '📋', color: 'from-blue-400 to-blue-600', border: 'border-blue-500/30', bg: 'bg-blue-500/10', badge: 'bg-blue-500/20 text-blue-300' },
-  doing: { label: 'Fazendo', icon: '🔄', color: 'from-amber-400 to-amber-600', border: 'border-amber-500/30', bg: 'bg-amber-500/10', badge: 'bg-amber-500/20 text-amber-300' },
-  done: { label: 'Concluído', icon: '✅', color: 'from-emerald-400 to-emerald-600', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', badge: 'bg-emerald-500/20 text-emerald-300' },
+  todo: { label: 'A Fazer', color: 'from-blue-400 to-blue-600', border: 'border-blue-500/30', bg: 'bg-blue-500/10', badge: 'bg-blue-500/20 text-blue-300' },
+  doing: { label: 'Fazendo', color: 'from-amber-400 to-amber-600', border: 'border-amber-500/30', bg: 'bg-amber-500/10', badge: 'bg-amber-500/20 text-amber-300' },
+  done: { label: 'Concluído', color: 'from-emerald-400 to-emerald-600', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', badge: 'bg-emerald-500/20 text-emerald-300' },
 };
 
 @Component({
   selector: 'app-tarefas',
-  imports: [FormsModule, DatePipe, ButtonComponent],
+  imports: [FormsModule, DatePipe, ButtonComponent,
+    LucideClipboardList, LucideRefreshCw, LucideCircleCheck,
+    LucideChevronLeft, LucideChevronRight, LucideTrash2,
+    LucideTriangleAlert, LucideX,
+  ],
   template: `
     <div class="flex flex-col gap-8 h-full">
       <div class="flex items-start justify-between gap-4 flex-wrap">
@@ -58,7 +72,11 @@ const STATUS_CONFIG = {
             <!-- Column header -->
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-theme">
               <div class="flex items-center gap-2">
-                <span>{{ STATUS_CONFIG[s].icon }}</span>
+                @switch (s) {
+                  @case ('todo') { <svg lucideClipboardList class="w-5 h-5 text-blue-400"></svg> }
+                  @case ('doing') { <svg lucideRefreshCw class="w-5 h-5 text-amber-400"></svg> }
+                  @case ('done') { <svg lucideCircleCheck class="w-5 h-5 text-emerald-400"></svg> }
+                }
                 <span class="text-primary font-bold text-sm">{{ STATUS_CONFIG[s].label }}</span>
               </div>
               <span class="text-xs font-medium {{ STATUS_CONFIG[s].badge }} px-2 py-0.5 rounded-full">{{ tasksByStatus(s).length }}</span>
@@ -75,9 +93,9 @@ const STATUS_CONFIG = {
                          <p class="text-primary font-medium text-sm leading-snug">{{ t.title }}</p>
                          <div class="flex items-center gap-2 mt-2 flex-wrap">
                            <span class="text-[11px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full">{{ t.assignedTo }}</span>
-                           @if (isOverdue(t)) {
-                             <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full">⚠️ Atrasada</span>
-                           }
+                            @if (isOverdue(t)) {
+                              <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full flex items-center gap-1"><svg lucideTriangleAlert class="w-3 h-3"></svg> Atrasada</span>
+                            }
                            @if (t.createdBy === ADMIN_USER) {
                              <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span>
                            }
@@ -86,13 +104,13 @@ const STATUS_CONFIG = {
                        </div>
                       <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
                         @if (s !== 'todo') {
-                          <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer text-sm">◀</button>
+                          <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer"><svg lucideChevronLeft class="w-4 h-4"></svg></button>
                         }
                         @if (s !== 'done') {
-                          <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer text-sm">▶</button>
+                          <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer"><svg lucideChevronRight class="w-4 h-4"></svg></button>
                         }
                         @if (canDelete(t)) {
-                          <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 transition cursor-pointer text-sm">🗑️</button>
+                          <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
                         }
                       </div>
                     </div>
@@ -115,7 +133,7 @@ const STATUS_CONFIG = {
         <div class="w-full max-w-md rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-bold text-primary">Nova Tarefa</h2>
-            <button (click)="showModal.set(false)" class="text-muted hover:text-primary transition cursor-pointer text-xl">✕</button>
+            <button (click)="showModal.set(false)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
           </div>
 
           <div class="flex flex-col gap-4">
@@ -157,13 +175,17 @@ const STATUS_CONFIG = {
         <div class="w-full max-w-lg rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-3 min-w-0">
-              <span class="text-2xl">{{ STATUS_CONFIG[t.status].icon }}</span>
+              @switch (t.status) {
+                @case ('todo') { <svg lucideClipboardList class="w-6 h-6 text-blue-400 shrink-0"></svg> }
+                @case ('doing') { <svg lucideRefreshCw class="w-6 h-6 text-amber-400 shrink-0"></svg> }
+                @case ('done') { <svg lucideCircleCheck class="w-6 h-6 text-emerald-400 shrink-0"></svg> }
+              }
               <div class="min-w-0">
                 <h2 class="text-lg font-bold text-primary truncate">{{ t.title }}</h2>
                 <span class="text-xs font-medium {{ STATUS_CONFIG[t.status].badge }} px-2 py-0.5 rounded-full">{{ STATUS_CONFIG[t.status].label }}</span>
               </div>
             </div>
-            <button (click)="selectedTask.set(undefined)" class="text-muted hover:text-primary transition cursor-pointer text-xl shrink-0">✕</button>
+            <button (click)="selectedTask.set(undefined)" class="text-muted hover:text-primary transition cursor-pointer shrink-0"><svg lucideX class="w-5 h-5"></svg></button>
           </div>
 
           <div class="flex flex-col gap-4">
@@ -189,7 +211,7 @@ const STATUS_CONFIG = {
               @if (t.dueDate) {
                 <div>
                   <label class="text-muted text-xs font-medium mb-1 block">Data limite</label>
-                  <p class="text-primary text-sm" [class.text-rose-400]="isOverdue(t)">{{ t.dueDate | date:'dd/MM/yyyy' }} @if (isOverdue(t)) { <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full">Atrasada</span> }</p>
+                  <p class="text-primary text-sm" [class.text-rose-400]="isOverdue(t)">{{ t.dueDate | date:'dd/MM/yyyy' }} @if (isOverdue(t)) { <span class="text-[11px] bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><svg lucideTriangleAlert class="w-3 h-3"></svg> Atrasada</span> }</p>
                 </div>
               }
             </div>
