@@ -20,6 +20,8 @@ interface Expense {
   paidBy: string;
   splitMode: SplitMode;
   splitValues: SplitValue[];
+  installments: number;
+  firstDueDate: string;
   fixed: boolean;
 }
 
@@ -36,11 +38,11 @@ const CATEGORIES = [
 ];
 
 const MOCK_EXPENSES: Expense[] = [
-  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 64 })), fixed: false },
-  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 50 })), fixed: false },
-  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), fixed: true },
-  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 116 })), fixed: false },
-  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), fixed: false },
+  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 64 })), installments: 1, firstDueDate: '', fixed: false },
+  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 50 })), installments: 1, firstDueDate: '', fixed: false },
+  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), installments: 3, firstDueDate: '2026-06-05', fixed: true },
+  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 116 })), installments: 1, firstDueDate: '', fixed: false },
+  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), installments: 2, firstDueDate: '2026-06-20', fixed: false },
 ];
 
 @Component({
@@ -82,9 +84,14 @@ const MOCK_EXPENSES: Expense[] = [
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
                     <p class="text-white font-semibold truncate">{{ e.description }}</p>
-                    @if (e.fixed) {
-                      <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">📌 Fixa</span>
-                    }
+                    <div class="flex items-center gap-1.5">
+                      @if (e.installments > 1) {
+                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
+                      }
+                      @if (e.fixed) {
+                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">📌 Fixa</span>
+                      }
+                    </div>
                   </div>
                   <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -167,6 +174,24 @@ const MOCK_EXPENSES: Expense[] = [
                   }
                 </label>
               </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  Parcelas
+                  <input type="number" min="1" step="1" [(ngModel)]="form.installments" (input)="onInstallmentsChange()"
+                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                </label>
+                @if (form.installments > 1) {
+                  <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                    1ª data de vencimento
+                    <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
+                      class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                  </label>
+                }
+              </div>
+              @if (form.installments > 1 && form.amount > 0) {
+                <p class="text-white/50 text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ (form.amount / form.installments).toFixed(2) }}</p>
+              }
 
               <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                 Pago por
@@ -326,6 +351,8 @@ export class FinanceiroPage {
       paidBy: '',
       splitMode: 'equal' as SplitMode,
       fixed: false,
+      installments: 1,
+      firstDueDate: '',
       splitCustom: Object.fromEntries(MOCK_MEMBERS.map(m => [m, 0])) as Record<string, number>,
     };
   }
@@ -398,6 +425,11 @@ export class FinanceiroPage {
     // force change detection — ngModel handles the binding
   }
 
+  onInstallmentsChange(): void {
+    if (this.form.installments < 1) this.form.installments = 1;
+    if (this.form.installments <= 1) this.form.firstDueDate = '';
+  }
+
   setSplitMode(mode: SplitMode): void {
     this.form.splitMode = mode;
     if (mode === 'some' && this.selectedSome().length === 0) {
@@ -426,6 +458,8 @@ export class FinanceiroPage {
       paidBy: e.paidBy,
       splitMode: e.splitMode,
       fixed: e.fixed,
+      installments: e.installments,
+      firstDueDate: e.firstDueDate,
       splitCustom: Object.fromEntries(this.members.map(m => {
         const sv = e.splitValues.find(v => v.name === m);
         return [m, sv ? sv.value : 0];
@@ -496,7 +530,9 @@ export class FinanceiroPage {
       paidBy: this.form.paidBy,
       splitMode: this.form.splitMode,
       splitValues,
-      fixed: false,
+      installments: this.form.installments,
+      firstDueDate: this.form.installments > 1 ? this.form.firstDueDate : '',
+      fixed: this.form.fixed,
     };
     this.expenses.update(list => {
       if (this.editingId()) {
