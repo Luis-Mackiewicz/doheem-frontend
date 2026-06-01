@@ -3,10 +3,11 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './components/header/header';
 import { ThemeService } from './services/theme-service';
+import { LucideSun, LucideMoon } from '@lucide/angular';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent],
+  imports: [RouterOutlet, HeaderComponent, LucideSun, LucideMoon],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

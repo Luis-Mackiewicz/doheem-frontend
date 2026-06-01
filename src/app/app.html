@@ -13,5 +13,5 @@
   [class.border-purple-500/30]="theme.theme() === 'light'"
   [class.backdrop-blur-xl]="true"
   title="Alternar tema">
-  @if (theme.theme() === 'dark') { ☀️ } @else { 🌙 }
+  @if (theme.theme() === 'dark') { <svg lucideSun class="w-5 h-5"></svg> } @else { <svg lucideMoon class="w-5 h-5"></svg> }
 </button>
