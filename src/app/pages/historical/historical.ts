@@ -1,6 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
+import { BuscaComponent } from '../../components/busca/busca';
 import {
   LucideHouse,
   LucideZap,
@@ -14,7 +15,6 @@ import {
   LucideHistory,
   LucidePin,
   LucideInbox,
-  LucideSearch,
 } from '@lucide/angular';
 
 interface SplitValue {
@@ -68,10 +68,10 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 
 @Component({
   selector: 'app-historico',
-  imports: [DatePipe, PaginacaoComponent,
+  imports: [DatePipe, PaginacaoComponent, BuscaComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
-    LucideHistory, LucidePin, LucideInbox, LucideSearch,
+    LucideHistory, LucidePin, LucideInbox,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
@@ -101,13 +101,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         </div>
       </div>
 
-      <!-- Search -->
-      <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
-        <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
-          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
-          (input)="onSearch(searchInput.value)" />
-      </div>
+      <app-busca placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-4 min-h-0">
         @if (searchedExpenses().length > 0) {

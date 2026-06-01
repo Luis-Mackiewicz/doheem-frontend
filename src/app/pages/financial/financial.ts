@@ -3,10 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
+import { BuscaComponent } from '../../components/busca/busca';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 import {
   LucideDollarSign,
-  LucideSearch,
   LucidePin,
   LucideBell,
   LucideCheck,
@@ -88,8 +88,8 @@ const MOCK_PAYMENTS: Payment[] = [
 
 @Component({
   selector: 'app-financeiro',
-  imports: [FormsModule, ButtonComponent, DatePipe, PaginacaoComponent,
-    LucideDollarSign, LucideSearch, LucidePin, LucideBell, LucideCheck,
+  imports: [FormsModule, ButtonComponent, DatePipe, PaginacaoComponent, BuscaComponent,
+    LucideDollarSign, LucidePin, LucideBell, LucideCheck,
     LucideX, LucidePen, LucideTrash2, LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
   ],
@@ -116,13 +116,7 @@ const MOCK_PAYMENTS: Payment[] = [
         </div>
       </div>
 
-      <!-- Search -->
-      <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
-        <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
-          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
-          (input)="onSearch(searchInput.value)" />
-      </div>
+      <app-busca placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
 
       <!-- List -->
       <div class="flex-1 flex flex-col gap-4 min-h-0">

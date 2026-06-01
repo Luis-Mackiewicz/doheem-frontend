@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
+import { BuscaComponent } from '../../components/busca/busca';
 import { NotificationService, CURRENT_USER, ADMIN_USER } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
 import {
@@ -10,7 +11,6 @@ import {
   LucideListTodo,
   LucideTriangleAlert,
   LucideBell,
-  LucideSearch,
 } from '@lucide/angular';
 
 const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
@@ -22,9 +22,8 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
 
 @Component({
   selector: 'app-notificacoes',
-  imports: [DatePipe, FormsModule, PaginacaoComponent,
+  imports: [DatePipe, FormsModule, PaginacaoComponent, BuscaComponent,
     LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
-    LucideSearch,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
@@ -41,13 +40,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
         }
       </div>
 
-      <!-- Search -->
-      <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
-        <input #searchInput type="text" placeholder="Pesquisar notificações..."
-          class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
-          (input)="onSearch(searchInput.value)" />
-      </div>
+      <app-busca placeholder="Pesquisar notificações..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-3 min-h-0">
         @if (filteredNotifications().length > 0) {
