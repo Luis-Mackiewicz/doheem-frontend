@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Output, signal, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../card/card';
 import { ButtonComponent } from '../button/button';
@@ -15,17 +15,19 @@ import { ButtonComponent } from '../button/button';
             <button (click)="close.emit()" class="text-white/40 hover:text-white transition cursor-pointer text-xl leading-none">&times;</button>
           </div>
 
-          <div class="flex flex-col items-center gap-3">
-            @if (imagemPreview(); as img) {
-              <img [src]="img" class="w-20 h-20 rounded-2xl object-cover border border-white/20" />
-            } @else {
-              <div class="w-20 h-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl">🏠</div>
-            }
-            <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70 w-full">
-              Imagem do grupo (URL)
-              <input type="url" placeholder="https://..." [(ngModel)]="imagemUrl" (input)="onUrlChange()"
-                class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full text-sm" />
-            </label>
+          <div class="flex flex-col items-center gap-2">
+            <button type="button" (click)="fileInput.click()" class="cursor-pointer group relative">
+              @if (imagemPreview(); as img) {
+                <img [src]="img" class="w-20 h-20 rounded-2xl object-cover border border-white/20" />
+              } @else {
+                <div class="w-20 h-20 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-2xl group-hover:bg-white/20 transition">🏠</div>
+              }
+              <div class="absolute inset-0 rounded-2xl bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white text-xs font-medium backdrop-blur-sm">
+                Alterar
+              </div>
+            </button>
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden" />
+            <span class="text-white/40 text-xs">Clique na foto para alterar</span>
           </div>
 
           <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
@@ -58,18 +60,27 @@ import { ButtonComponent } from '../button/button';
 })
 export class ModalCriarGrupoComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() created = new EventEmitter<{ nome: string; descricao: string; moeda: string; imagemUrl: string }>();
+  @Output() created = new EventEmitter<{ nome: string; descricao: string; moeda: string; imagemBase64: string }>();
+
+  @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   protected nome = '';
   protected descricao = '';
   protected moeda = 'BRL';
   protected moedas = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'PYG', 'UYU'];
-  protected imagemUrl = '';
+  protected imagemBase64 = '';
   protected readonly imagemPreview = signal('');
 
-  onUrlChange(): void {
-    const url = this.imagemUrl.trim();
-    this.imagemPreview.set(url);
+  onFileSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.imagemBase64 = dataUrl;
+      this.imagemPreview.set(dataUrl);
+    };
+    reader.readAsDataURL(file);
   }
 
   criar(): void {
@@ -78,7 +89,7 @@ export class ModalCriarGrupoComponent {
       nome: this.nome.trim(),
       descricao: this.descricao.trim(),
       moeda: this.moeda,
-      imagemUrl: this.imagemUrl.trim(),
+      imagemBase64: this.imagemBase64,
     });
     this.close.emit();
   }
