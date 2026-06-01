@@ -41,7 +41,7 @@ const MEMBROS: Membro[] = [
               (input)="onSearch(searchInput.value)" />
           </div>
 
-          <div class="flex flex-col gap-1 max-h-72 overflow-y-auto">
+          <div class="flex flex-col gap-1 h-72 overflow-y-auto">
             @for (m of filtered(); track m.nome) {
               <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5 transition">
                 <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
