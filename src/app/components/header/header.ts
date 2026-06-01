@@ -7,11 +7,11 @@ import { ThemeService } from '../../services/theme-service';
   imports: [RouterLink],
   template: `
     <header class="fixed top-0 left-0 w-full z-50 backdrop-blur-xl border-b"
-      [class.bg-purple-dark/60]="theme.theme() === 'dark'"
-      [class.bg-page/90]="theme.theme() === 'light'"
+      [class.bg-neutal-950]="theme.theme() === 'dark'"
+      [class.bg-violet-950]="theme.theme() === 'light'"
       [class.border-white/10]="theme.theme() === 'dark'"
-      [class.border-theme]="theme.theme() === 'light'">
-      <div class="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 lg:px-24 py-4">
+      [class.border-black/10]="theme.theme() === 'light'">
+      <div class="max-w-6xl mx-auto flex items-center justify-between px-8 py-2">
         <a routerLink="/" class="flex items-center gap-3">
           <img src="doheem_loogo.png" alt="Doheem" class="h-8 w-auto rounded-full" />
           <span class="text-white font-bold text-xl tracking-tight">Doheem</span>

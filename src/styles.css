@@ -23,17 +23,17 @@
 }
 
 [data-theme="light"] {
-  --bg-page: #f5f0eb;
-  --bg-card: rgba(255, 255, 255, 0.80);
-  --bg-card-hover: rgba(255, 255, 255, 0.92);
-  --bg-card-strong: rgba(255, 255, 255, 0.88);
+  --bg-page: #f5f3ff;
+  --bg-card: rgba(255, 255, 255, 0.82);
+  --bg-card-hover: rgba(255, 255, 255, 0.94);
+  --bg-card-strong: rgba(255, 255, 255, 0.90);
   --text-primary: #1a1a2e;
   --text-secondary: #6b6b80;
   --text-muted: #9ca3af;
   --border-theme: rgba(139, 92, 246, 0.30);
   --border-soft: rgba(139, 92, 246, 0.12);
-  --bg-input: rgba(139, 92, 246, 0.08);
-  --hover-bg: rgba(139, 92, 246, 0.05);
+  --bg-input: #ede9fe;
+  --hover-bg: rgba(139, 92, 246, 0.06);
 }
 
 .bg-page { background-color: var(--bg-page); }
