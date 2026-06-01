@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 interface ResidentBalance {
   name: string;
@@ -18,6 +19,19 @@ interface TaskItem {
   assignedTo: string;
   dueDate: string;
 }
+
+const MOCK_GROUPS: { id: number; name: string }[] = [
+  { id: 1, name: 'República Solaris' },
+  { id: 2, name: 'Casa do Estudante' },
+  { id: 3, name: 'Alojamento Universitário' },
+  { id: 4, name: 'República Bela Vista' },
+  { id: 5, name: 'Pensionato Central' },
+  { id: 6, name: 'Kitnet Compartilhada' },
+  { id: 7, name: 'Casa da Praia' },
+  { id: 8, name: 'Republica 8' },
+  { id: 9, name: 'Republica 9' },
+  { id: 10, name: 'Republica 10' },
+];
 
 const MOCK_RESIDENTS: ResidentBalance[] = [
   { name: 'Carlos', owes: 150, toReceive: 0 },
@@ -46,7 +60,7 @@ const MOCK_TASKS: TaskItem[] = [
   selector: 'app-dashboard',
   template: `
     <div class="flex flex-col gap-6">
-      <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+      <h1 class="text-2xl font-bold text-white">{{ groupName }}</h1>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 p-5">
@@ -137,6 +151,13 @@ const MOCK_TASKS: TaskItem[] = [
   `,
 })
 export class DashboardPage {
+  protected groupName: string;
+
+  constructor(route: ActivatedRoute) {
+    const id = Number(route.parent?.snapshot.paramMap.get('id'));
+    this.groupName = MOCK_GROUPS.find(g => g.id === id)?.name ?? 'Dashboard';
+  }
+
   protected residents = MOCK_RESIDENTS;
   protected expenses = MOCK_EXPENSES;
   protected tasks = MOCK_TASKS;
