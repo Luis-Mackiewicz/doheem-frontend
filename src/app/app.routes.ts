@@ -3,14 +3,14 @@ import { HomePage } from './pages/home/home';
 import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
 import { GroupsPage } from './pages/groups/groups';
-import { PerfilPage } from './pages/perfil/perfil';
+import { PerfilPage } from './pages/profile/profile';
 import { NotFoundPage } from './pages/not-found/not-found';
 import { GroupLayoutComponent } from './pages/group-layout/group-layout';
 import { DashboardPage } from './pages/dashboard/dashboard';
-import { FinanceiroPage } from './pages/financeiro/financeiro';
-import { TarefasPage } from './pages/tarefas/tarefas';
-import { HistoricoPage } from './pages/historico/historico';
-import { NotificacoesPage } from './pages/notificacoes/notificacoes';
+import { FinanceiroPage } from './pages/financial/financial';
+import { TarefasPage } from './pages/tasks/tasks';
+import { HistoricoPage } from './pages/historical/historical';
+import { NotificacoesPage } from './pages/notifications/notifications';
 
 export const routes: Routes = [
   { path: '', component: HomePage },

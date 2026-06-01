@@ -1,6 +1,6 @@
 import { Component, Input, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ModalMembrosComponent } from '../modal-membros/modal-membros';
+import { ModalMembrosComponent } from '../modal-members/modal-members';
 
 @Component({
   selector: 'app-sidebar',

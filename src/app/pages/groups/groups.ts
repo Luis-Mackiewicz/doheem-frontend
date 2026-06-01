@@ -1,7 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
-import { ModalCriarGrupoComponent } from '../../components/modal-criar-grupo/modal-criar-grupo';
+import { ModalCriarGrupoComponent } from '../../components/modal-create-group/modal-create-group';
 
 interface Group {
   id: number;
