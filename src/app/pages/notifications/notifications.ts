@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { NotificationService, CURRENT_USER, ADMIN_USER } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
@@ -8,6 +8,8 @@ import {
   LucideListTodo,
   LucideTriangleAlert,
   LucideBell,
+  LucideChevronLeft,
+  LucideChevronRight,
 } from '@lucide/angular';
 
 const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
@@ -21,6 +23,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
   selector: 'app-notificacoes',
   imports: [DatePipe,
     LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
+    LucideChevronLeft, LucideChevronRight,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full">
@@ -30,7 +33,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
           <h1 class="text-3xl font-bold text-primary tracking-tight">Notificações</h1>
         </div>
         @if (filteredNotifications().length > 0) {
-          <button (click)="svc.markAllAsRead()"
+          <button (click)="markAllAsRead()"
             class="text-xs font-medium text-secondary hover:text-primary border border-theme rounded-lg px-3 py-1.5 transition cursor-pointer">
             Marcar todas como lidas
           </button>
@@ -39,7 +42,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
 
       <div class="flex-1 flex flex-col gap-3 min-h-0">
         @if (filteredNotifications().length > 0) {
-          @for (n of filteredNotifications(); track n.id) {
+          @for (n of paginatedNotifications(); track n.id) {
             <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 transition"
               [class.opacity-60]="n.read"
               [class.border-l-4]="!n.read"
@@ -74,6 +77,30 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
               </div>
             </div>
           }
+          @if (totalNotifPages() > 1) {
+            <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
+              <button (click)="goToNotifPage(currentPage() - 1)"
+                [class.opacity-30]="currentPage() === 1"
+                [disabled]="currentPage() === 1"
+                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
+                <svg lucideChevronLeft class="w-4 h-4"></svg>
+              </button>
+              @for (page of visibleNotifPages(); track page) {
+                <button (click)="goToNotifPage(page)"
+                  [class]="page === currentPage()
+                    ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
+                    : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
+                  {{ page }}
+                </button>
+              }
+              <button (click)="goToNotifPage(currentPage() + 1)"
+                [class.opacity-30]="currentPage() === totalNotifPages()"
+                [disabled]="currentPage() === totalNotifPages()"
+                class="text-secondary hover:text-primary transition px-2 py-1 disabled:cursor-default">
+                <svg lucideChevronRight class="w-4 h-4"></svg>
+              </button>
+            </div>
+          }
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
@@ -90,8 +117,39 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
 export class NotificacoesPage {
   protected readonly TYPE_CONFIG = TYPE_CONFIG;
   protected readonly svc = inject(NotificationService);
+  protected readonly pageSize = 5;
+  protected readonly currentPage = signal(1);
 
   protected readonly filteredNotifications = computed(() =>
     this.svc.notifications().filter(n => n.recipient === CURRENT_USER || n.recipient === ADMIN_USER)
   );
+
+  protected readonly paginatedNotifications = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredNotifications().slice(start, start + this.pageSize);
+  });
+
+  protected readonly totalNotifPages = computed(() =>
+    Math.ceil(this.filteredNotifications().length / this.pageSize)
+  );
+
+  protected readonly visibleNotifPages = computed(() => {
+    const total = this.totalNotifPages();
+    const current = this.currentPage();
+    let start = Math.max(1, current - 2);
+    let end = Math.min(total, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  });
+
+  protected goToNotifPage(page: number): void {
+    if (page >= 1 && page <= this.totalNotifPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
+  protected markAllAsRead(): void {
+    this.svc.markAllAsRead();
+    this.currentPage.set(1);
+  }
 }
