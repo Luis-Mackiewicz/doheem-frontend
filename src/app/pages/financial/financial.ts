@@ -655,7 +655,11 @@ export class FinanceiroPage {
     this.editingId.set(null);
     this.submitted.set(false);
     this.selectedSome.set([...this.members]);
-    this.form = { ...this.emptyForm() };
+    this.form = {
+      ...this.emptyForm(),
+      competenceDate: this.today,
+      paidBy: this.members[0],
+    };
     this.showModal.set(true);
   }
 
