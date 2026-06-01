@@ -8,6 +8,7 @@ type TaskStatus = 'todo' | 'doing' | 'done';
 interface Task {
   id: number;
   title: string;
+  description: string;
   assignedTo: string;
   createdBy: string;
   status: TaskStatus;
@@ -20,14 +21,14 @@ const ADMIN_USER: string = 'Ana';
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const MOCK_TASKS: Task[] = [
-  { id: 1, title: 'Consertar torneira da cozinha', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28' },
-  { id: 2, title: 'Comprar lâmpadas novas', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29' },
-  { id: 3, title: 'Limpar caixa d\'água', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30' },
-  { id: 4, title: 'Organizar despensa', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25' },
-  { id: 5, title: 'Lavar roupa de cama', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26' },
-  { id: 6, title: 'Limpar área externa', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20' },
-  { id: 7, title: 'Passar pano na sala', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22' },
-  { id: 8, title: 'Trocar filtro da água', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23' },
+  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28' },
+  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29' },
+  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30' },
+  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25' },
+  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26' },
+  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20' },
+  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22' },
+  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23' },
 ];
 
 const STATUS_CONFIG = {
@@ -68,7 +69,7 @@ const STATUS_CONFIG = {
             <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
               @if (tasksByStatus(s).length > 0) {
                 @for (t of tasksByStatus(s); track t.id) {
-                  <div class="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/[0.14] transition shadow-md">
+                   <div (click)="openDetail(t)" class="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-4 hover:bg-white/[0.14] transition shadow-md cursor-pointer">
                     <div class="flex items-start justify-between gap-3">
                       <div class="min-w-0 flex-1">
                         <p class="text-white font-medium text-sm leading-snug">{{ t.title }}</p>
@@ -80,7 +81,7 @@ const STATUS_CONFIG = {
                           <span class="text-[11px] text-white/30">{{ t.createdAt | date:'dd/MM' }}</span>
                         </div>
                       </div>
-                      <div class="flex items-center gap-1 shrink-0">
+                      <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
                         @if (s !== 'todo') {
                           <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer text-sm">◀</button>
                         }
@@ -121,6 +122,11 @@ const STATUS_CONFIG = {
                 class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition text-sm">
             </div>
             <div>
+              <label class="text-white/60 text-xs font-medium mb-1.5 block">Descrição <span class="text-white/30">(opcional)</span></label>
+              <textarea #descInput rows="3" placeholder="Descreva a tarefa..."
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition text-sm resize-none"></textarea>
+            </div>
+            <div>
               <label class="text-white/60 text-xs font-medium mb-1.5 block">Responsável</label>
               <select #memberSelect class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white outline-none focus:border-white/50 transition text-sm appearance-none cursor-pointer">
                 @for (m of MOCK_MEMBERS; track m) {
@@ -130,7 +136,48 @@ const STATUS_CONFIG = {
             </div>
             <div class="flex justify-end gap-3 mt-2">
               <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-white/60 hover:text-white transition text-sm cursor-pointer">Cancelar</button>
-              <button (click)="confirmCreate(titleInput.value, memberSelect.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
+              <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Detail modal -->
+    @if (selectedTask(); as t) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="selectedTask.set(undefined)">
+        <div class="w-full max-w-lg rounded-2xl bg-purple-dark border border-white/10 p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-2xl">{{ STATUS_CONFIG[t.status].icon }}</span>
+              <div class="min-w-0">
+                <h2 class="text-lg font-bold text-white truncate">{{ t.title }}</h2>
+                <span class="text-xs font-medium {{ STATUS_CONFIG[t.status].badge }} px-2 py-0.5 rounded-full">{{ STATUS_CONFIG[t.status].label }}</span>
+              </div>
+            </div>
+            <button (click)="selectedTask.set(undefined)" class="text-white/40 hover:text-white transition cursor-pointer text-xl shrink-0">✕</button>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            @if (t.description) {
+              <div>
+                <label class="text-white/40 text-xs font-medium mb-1.5 block">Descrição</label>
+                <p class="text-white/80 text-sm leading-relaxed bg-white/5 rounded-xl px-4 py-3 border border-white/10">{{ t.description }}</p>
+              </div>
+            }
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-white/40 text-xs font-medium mb-1 block">Responsável</label>
+                <p class="text-white text-sm">{{ t.assignedTo }}</p>
+              </div>
+              <div>
+                <label class="text-white/40 text-xs font-medium mb-1 block">Criado por</label>
+                <p class="text-white text-sm">{{ t.createdBy }} @if (t.createdBy === ADMIN_USER) { <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span> }</p>
+              </div>
+              <div>
+                <label class="text-white/40 text-xs font-medium mb-1 block">Criada em</label>
+                <p class="text-white text-sm">{{ t.createdAt | date:'dd/MM/yyyy' }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -148,6 +195,7 @@ export class TarefasPage {
   private tasksSignal = signal<Task[]>([...MOCK_TASKS]);
 
   protected showModal = signal(false);
+  protected selectedTask = signal<Task | undefined>(undefined);
 
   protected tasksByStatus = (status: TaskStatus) => {
     return this.tasksSignal().filter(t => t.status === status);
@@ -171,11 +219,15 @@ export class TarefasPage {
     this.showModal.set(true);
   }
 
-  confirmCreate(title: string, assignedTo: string): void {
+  openDetail(task: Task): void {
+    this.selectedTask.set(task);
+  }
+
+  confirmCreate(title: string, description: string, assignedTo: string): void {
     if (!title.trim()) return;
     this.tasksSignal.update(list => [
       ...list,
-      { id: this.nextId(), title: title.trim(), assignedTo, createdBy: CURRENT_USER, status: 'todo', createdAt: new Date().toISOString().slice(0, 10) },
+      { id: this.nextId(), title: title.trim(), description: description.trim(), assignedTo, createdBy: CURRENT_USER, status: 'todo', createdAt: new Date().toISOString().slice(0, 10) },
     ]);
     this.showModal.set(false);
   }
