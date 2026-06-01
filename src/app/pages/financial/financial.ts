@@ -3,6 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 
+interface SplitValue {
+  name: string;
+  value: number;
+}
+
+type SplitMode = 'equal' | 'some' | 'custom';
+
 interface Expense {
   id: number;
   description: string;
@@ -11,7 +18,8 @@ interface Expense {
   competenceDate: string;
   dueDate: string;
   paidBy: string;
-  participants: string[];
+  splitMode: SplitMode;
+  splitValues: SplitValue[];
   fixed: boolean;
 }
 
@@ -28,11 +36,11 @@ const CATEGORIES = [
 ];
 
 const MOCK_EXPENSES: Expense[] = [
-  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
-  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', participants: ['Ana', 'Carlos', 'Pedro'], fixed: false },
-  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', participants: ['Mariana', 'João'], fixed: true },
-  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
-  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', participants: ['Ana', 'Pedro'], fixed: false },
+  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 64 })), fixed: false },
+  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 50 })), fixed: false },
+  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), fixed: true },
+  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 116 })), fixed: false },
+  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), fixed: false },
 ];
 
 @Component({
@@ -80,8 +88,9 @@ const MOCK_EXPENSES: Expense[] = [
                   </div>
                   <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                    @for (p of e.participants; track p) {
-                      <span class="text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{{ p }}</span>
+                    <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
+                    @for (sv of e.splitValues; track sv.name) {
+                      <span class="text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ sv.value.toFixed(2) }}</span>
                     }
                   </div>
                 </div>
@@ -184,24 +193,81 @@ const MOCK_EXPENSES: Expense[] = [
                 </button>
               </label>
 
-              <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-                <span>Participantes</span>
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                  @for (m of members; track m) {
-                    <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer text-sm">
-                      <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
-                        [class.border-purple-400]="isParticipantSelected(m)"
-                        [class.border-white/30]="!isParticipantSelected(m)">
-                        @if (isParticipantSelected(m)) {
-                          <span class="text-purple-400 text-[10px]">✓</span>
-                        }
-                      </div>
-                      <input type="checkbox" [checked]="isParticipantSelected(m)" (change)="toggleParticipant(m)" class="hidden" />
-                      <span class="text-white">{{ m }}</span>
-                    </label>
+              <!-- Split mode -->
+              <div class="flex flex-col gap-2.5 text-sm font-medium text-white/70">
+                <span>Modo de rateio</span>
+                <div class="flex bg-white/10 rounded-xl p-1 gap-1">
+                  @for (opt of splitOptions; track opt.value) {
+                    <button type="button" (click)="setSplitMode(opt.value)"
+                      class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
+                      [class.bg-white/65]="form.splitMode === opt.value"
+                      [class.text-purple-dark]="form.splitMode === opt.value"
+                      [class.text-white/60]="form.splitMode !== opt.value">
+                      {{ opt.label }}
+                    </button>
                   }
                 </div>
               </div>
+
+              @if (form.splitMode === 'equal') {
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  <span>Todos os membros dividem igualmente</span>
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (sv of computedSplitValues(); track sv.name) {
+                      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-white/5">
+                        <span class="text-white text-sm">{{ sv.name }}</span>
+                        <span class="text-white/80 text-sm font-medium">R$ {{ sv.value.toFixed(2) }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (form.splitMode === 'some') {
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  <span>Selecione os participantes (mínimo 2)</span>
+                  @if (submitted() && selectedSomeCount() < 2) {
+                    <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
+                  }
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (m of members; track m) {
+                      <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition cursor-pointer text-sm">
+                        <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
+                          [class.border-purple-400]="isSomeSelected(m)"
+                          [class.border-white/30]="!isSomeSelected(m)">
+                          @if (isSomeSelected(m)) {
+                            <span class="text-purple-400 text-[10px]">✓</span>
+                          }
+                        </div>
+                        <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
+                        <span class="text-white flex-1">{{ m }}</span>
+                        <span class="text-white/50 text-xs">R$ {{ someValue(m).toFixed(2) }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (form.splitMode === 'custom') {
+                <div class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  <span>Valores por morador</span>
+                  @if (submitted() && customTotal() !== form.amount) {
+                    <span class="text-rose-400 text-xs">
+                      A soma (R$ {{ customTotal().toFixed(2) }}) deve ser igual ao valor total (R$ {{ form.amount.toFixed(2) }})
+                    </span>
+                  }
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (m of members; track m) {
+                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5">
+                        <span class="text-white text-sm w-16 shrink-0">{{ m }}</span>
+                        <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
+                          (input)="recalcCustom()"
+                          class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-2 py-1.5 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
 
             <div class="flex gap-3 mt-6">
@@ -234,6 +300,11 @@ export class FinanceiroPage {
   protected readonly members = MOCK_MEMBERS;
   protected readonly categories = CATEGORIES;
   protected readonly today = new Date().toISOString().slice(0, 10);
+  protected readonly splitOptions = [
+    { value: 'equal', label: 'Todos' },
+    { value: 'some', label: 'Alguns' },
+    { value: 'custom', label: 'Personalizado' },
+  ] as const;
 
   protected expenses = signal<Expense[]>([...MOCK_EXPENSES]);
   protected showModal = signal(false);
@@ -241,7 +312,7 @@ export class FinanceiroPage {
   protected deleting = signal<Expense | null>(null);
   protected submitted = signal(false);
 
-  protected form = this.emptyForm();
+  protected form!: ReturnType<typeof this.emptyForm>;
 
   protected totalAmount = () => this.expenses().reduce((sum, e) => sum + e.amount, 0);
 
@@ -253,9 +324,18 @@ export class FinanceiroPage {
       competenceDate: '',
       dueDate: '',
       paidBy: '',
-      participants: [] as string[],
+      splitMode: 'equal' as SplitMode,
       fixed: false,
+      splitCustom: Object.fromEntries(MOCK_MEMBERS.map(m => [m, 0])) as Record<string, number>,
     };
+  }
+
+  constructor() {
+    this.form = this.emptyForm();
+  }
+
+  splitModeLabel(mode: SplitMode): string {
+    return this.splitOptions.find(o => o.value === mode)?.label ?? '';
   }
 
   categoryLabel(value: string): string {
@@ -266,22 +346,69 @@ export class FinanceiroPage {
     return CATEGORIES.find(c => c.value === value)?.icon ?? '📦';
   }
 
-  isParticipantSelected(name: string): boolean {
-    return this.form.participants.includes(name);
+  /* Mode A: equal split computed */
+  protected computedSplitValues = () => {
+    const total = this.form.amount;
+    const count = this.members.length;
+    if (total <= 0 || count === 0) return [];
+    const base = Math.floor((total * 100) / count) / 100;
+    const remainder = Math.round((total - base * count) * 100) / 100;
+    return this.members.map((name, i) => ({
+      name,
+      value: i === 0 ? +(base + remainder).toFixed(2) : base,
+    }));
+  };
+
+  /* Mode B: some members */
+  protected selectedSome = signal<string[]>([]);
+
+  isSomeSelected(name: string): boolean {
+    return this.selectedSome().includes(name);
   }
 
-  toggleParticipant(name: string): void {
-    const idx = this.form.participants.indexOf(name);
-    if (idx >= 0) {
-      this.form.participants.splice(idx, 1);
-    } else {
-      this.form.participants.push(name);
+  toggleSome(name: string): void {
+    this.selectedSome.update(list => {
+      if (list.includes(name) && list.length <= 2) return list;
+      if (list.includes(name)) return list.filter(n => n !== name);
+      return [...list, name];
+    });
+  }
+
+  get selectedSomeCount() {
+    return () => this.selectedSome().length;
+  }
+
+  someValue(name: string): number {
+    const selected = this.selectedSome();
+    if (!selected.includes(name)) return 0;
+    const count = selected.length;
+    if (count === 0) return 0;
+    const base = Math.floor((this.form.amount * 100) / count) / 100;
+    const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
+    return name === selected[0] ? +(base + remainder).toFixed(2) : base;
+  }
+
+  /* Mode C: custom values */
+  protected customTotal = () => {
+    const vals = Object.values(this.form.splitCustom);
+    return vals.reduce((sum, v) => sum + (Number(v) || 0), 0);
+  };
+
+  recalcCustom(): void {
+    // force change detection — ngModel handles the binding
+  }
+
+  setSplitMode(mode: SplitMode): void {
+    this.form.splitMode = mode;
+    if (mode === 'some' && this.selectedSome().length === 0) {
+      this.selectedSome.set([...this.members]);
     }
   }
 
   openCreate(): void {
     this.editingId.set(null);
     this.submitted.set(false);
+    this.selectedSome.set([...this.members]);
     this.form = { ...this.emptyForm() };
     this.showModal.set(true);
   }
@@ -289,7 +416,21 @@ export class FinanceiroPage {
   openEdit(e: Expense): void {
     this.editingId.set(e.id);
     this.submitted.set(false);
-    this.form = { ...e, participants: [...e.participants] };
+    this.selectedSome.set(e.splitValues.map(sv => sv.name));
+    this.form = {
+      description: e.description,
+      amount: e.amount,
+      category: e.category,
+      competenceDate: e.competenceDate,
+      dueDate: e.dueDate,
+      paidBy: e.paidBy,
+      splitMode: e.splitMode,
+      fixed: e.fixed,
+      splitCustom: Object.fromEntries(this.members.map(m => {
+        const sv = e.splitValues.find(v => v.name === m);
+        return [m, sv ? sv.value : 0];
+      })) as Record<string, number>,
+    };
     this.showModal.set(true);
   }
 
@@ -305,7 +446,46 @@ export class FinanceiroPage {
 
   save(): void {
     this.submitted.set(true);
+
     if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || (this.form.dueDate && this.form.dueDate < this.today)) return;
+
+    let splitValues: SplitValue[] = [];
+
+    if (this.form.splitMode === 'equal') {
+      splitValues = this.computedSplitValues();
+    } else if (this.form.splitMode === 'some') {
+      const selected = this.selectedSome();
+      if (selected.length < 2) return;
+      const count = selected.length;
+      const base = Math.floor((this.form.amount * 100) / count) / 100;
+      const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
+      splitValues = selected.map((name, i) => ({
+        name,
+        value: i === 0 ? +(base + remainder).toFixed(2) : base,
+      }));
+    } else if (this.form.splitMode === 'custom') {
+      splitValues = this.members
+        .filter(m => (Number(this.form.splitCustom[m]) || 0) > 0)
+        .map(m => ({ name: m, value: Number(this.form.splitCustom[m]) || 0 }));
+      const totalCustom = splitValues.reduce((s, v) => s + v.value, 0);
+      if (Math.abs(totalCustom - this.form.amount) > 0.01) return;
+    }
+
+    if (splitValues.length < 2) return;
+
+    // RN-06.D: auto-fix rounding diffs, atribuir ao responsável
+    const sumSplit = splitValues.reduce((s, v) => s + v.value, 0);
+    const diff = Math.round((this.form.amount - sumSplit) * 100) / 100;
+    if (Math.abs(diff) > 0.001) {
+      const payerIdx = splitValues.findIndex(v => v.name === this.form.paidBy);
+      if (payerIdx >= 0) {
+        splitValues[payerIdx] = {
+          ...splitValues[payerIdx],
+          value: +(splitValues[payerIdx].value + diff).toFixed(2),
+        };
+      }
+    }
+
     const expense: Expense = {
       id: this.editingId() ?? Date.now(),
       description: this.form.description.trim(),
@@ -314,8 +494,9 @@ export class FinanceiroPage {
       competenceDate: this.form.competenceDate,
       dueDate: this.form.dueDate,
       paidBy: this.form.paidBy,
-      participants: this.form.participants.length ? this.form.participants : [...this.members],
-      fixed: this.form.fixed,
+      splitMode: this.form.splitMode,
+      splitValues,
+      fixed: false,
     };
     this.expenses.update(list => {
       if (this.editingId()) {
