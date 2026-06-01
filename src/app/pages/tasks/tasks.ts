@@ -9,21 +9,25 @@ interface Task {
   id: number;
   title: string;
   assignedTo: string;
+  createdBy: string;
   status: TaskStatus;
   createdAt: string;
 }
 
+const CURRENT_USER: string = 'Carlos';
+const ADMIN_USER: string = 'Ana';
+
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const MOCK_TASKS: Task[] = [
-  { id: 1, title: 'Consertar torneira da cozinha', assignedTo: 'Carlos', status: 'todo', createdAt: '2026-05-28' },
-  { id: 2, title: 'Comprar lâmpadas novas', assignedTo: 'Ana', status: 'todo', createdAt: '2026-05-29' },
-  { id: 3, title: 'Limpar caixa d\'água', assignedTo: 'Pedro', status: 'todo', createdAt: '2026-05-30' },
-  { id: 4, title: 'Organizar despensa', assignedTo: 'Mariana', status: 'doing', createdAt: '2026-05-25' },
-  { id: 5, title: 'Lavar roupa de cama', assignedTo: 'João', status: 'doing', createdAt: '2026-05-26' },
-  { id: 6, title: 'Limpar área externa', assignedTo: 'Pedro', status: 'done', createdAt: '2026-05-20' },
-  { id: 7, title: 'Passar pano na sala', assignedTo: 'Ana', status: 'done', createdAt: '2026-05-22' },
-  { id: 8, title: 'Trocar filtro da água', assignedTo: 'Carlos', status: 'done', createdAt: '2026-05-23' },
+  { id: 1, title: 'Consertar torneira da cozinha', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28' },
+  { id: 2, title: 'Comprar lâmpadas novas', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29' },
+  { id: 3, title: 'Limpar caixa d\'água', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30' },
+  { id: 4, title: 'Organizar despensa', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25' },
+  { id: 5, title: 'Lavar roupa de cama', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26' },
+  { id: 6, title: 'Limpar área externa', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20' },
+  { id: 7, title: 'Passar pano na sala', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22' },
+  { id: 8, title: 'Trocar filtro da água', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23' },
 ];
 
 const STATUS_CONFIG = {
@@ -70,6 +74,9 @@ const STATUS_CONFIG = {
                         <p class="text-white font-medium text-sm leading-snug">{{ t.title }}</p>
                         <div class="flex items-center gap-2 mt-2 flex-wrap">
                           <span class="text-[11px] bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-full">{{ t.assignedTo }}</span>
+                          @if (t.createdBy === ADMIN_USER) {
+                            <span class="text-[11px] bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full">Admin</span>
+                          }
                           <span class="text-[11px] text-white/30">{{ t.createdAt | date:'dd/MM' }}</span>
                         </div>
                       </div>
@@ -79,6 +86,9 @@ const STATUS_CONFIG = {
                         }
                         @if (s !== 'done') {
                           <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer text-sm">▶</button>
+                        }
+                        @if (canDelete(t)) {
+                          <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 transition cursor-pointer text-sm">🗑️</button>
                         }
                       </div>
                     </div>
@@ -132,6 +142,8 @@ export class TarefasPage {
   protected readonly MOCK_MEMBERS = MOCK_MEMBERS;
   protected readonly STATUS_CONFIG = STATUS_CONFIG;
   protected readonly statuses: TaskStatus[] = ['todo', 'doing', 'done'];
+  protected readonly CURRENT_USER = CURRENT_USER;
+  protected readonly ADMIN_USER = ADMIN_USER;
 
   private tasksSignal = signal<Task[]>([...MOCK_TASKS]);
 
@@ -163,8 +175,16 @@ export class TarefasPage {
     if (!title.trim()) return;
     this.tasksSignal.update(list => [
       ...list,
-      { id: this.nextId(), title: title.trim(), assignedTo, status: 'todo', createdAt: new Date().toISOString().slice(0, 10) },
+      { id: this.nextId(), title: title.trim(), assignedTo, createdBy: CURRENT_USER, status: 'todo', createdAt: new Date().toISOString().slice(0, 10) },
     ]);
     this.showModal.set(false);
+  }
+
+  canDelete(task: Task): boolean {
+    return task.createdBy === CURRENT_USER || CURRENT_USER === ADMIN_USER;
+  }
+
+  deleteTask(id: number): void {
+    this.tasksSignal.update(list => list.filter(t => t.id !== id));
   }
 }
