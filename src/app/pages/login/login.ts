@@ -9,10 +9,10 @@ import { PasswordInputComponent } from '../../components/password-input/password
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PasswordInputComponent],
   template: `
-    <section class="min-h-dvh flex flex-col justify-center bg-page">
-      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
+    <section class="min-h-dvh flex flex-col justify-center bg-page overflow-y-auto">
+      <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-6">
 
-        <app-card customClass="h-[600px] overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <app-card>
           <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
             ← 
           </a>
