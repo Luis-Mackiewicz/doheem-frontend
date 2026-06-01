@@ -1,5 +1,13 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import {
+  LucideArrowDown,
+  LucideArrowUp,
+  LucideWallet,
+  LucideUsers,
+  LucideClipboardList,
+  LucideReceipt,
+} from '@lucide/angular';
 
 interface ResidentBalance {
   name: string;
@@ -58,29 +66,49 @@ const MOCK_TASKS: TaskItem[] = [
 
 @Component({
   selector: 'app-dashboard',
+  imports: [
+    LucideArrowDown,
+    LucideArrowUp,
+    LucideWallet,
+    LucideUsers,
+    LucideClipboardList,
+    LucideReceipt,
+  ],
   template: `
     <div class="flex flex-col gap-6">
       <h1 class="text-2xl font-bold text-primary">{{ groupName }}</h1>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-card border-theme p-5">
-          <p class="text-secondary text-sm font-medium">Você deve</p>
-          <p class="text-2xl font-bold text-orange-400 mt-1">R$ 150,00</p>
+          <div class="flex items-center gap-2 mb-2">
+            <svg lucideArrowDown class="w-4 h-4 text-orange-400"></svg>
+            <p class="text-secondary text-sm font-medium">Você deve</p>
+          </div>
+          <p class="text-2xl font-bold text-orange-400">R$ 150,00</p>
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
-          <p class="text-secondary text-sm font-medium">Você tem a receber</p>
-          <p class="text-2xl font-bold text-green-400 mt-1">R$ 120,00</p>
+          <div class="flex items-center gap-2 mb-2">
+            <svg lucideArrowUp class="w-4 h-4 text-green-400"></svg>
+            <p class="text-secondary text-sm font-medium">Você tem a receber</p>
+          </div>
+          <p class="text-2xl font-bold text-green-400">R$ 120,00</p>
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
-          <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
-          <p class="text-2xl font-bold text-primary mt-1">R$ 1.345,00</p>
+          <div class="flex items-center gap-2 mb-2">
+            <svg lucideWallet class="w-4 h-4 text-primary"></svg>
+            <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
+          </div>
+          <p class="text-2xl font-bold text-primary">R$ 1.345,00</p>
           <p class="text-muted text-xs mt-1">Mês de Maio</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="rounded-2xl bg-card border-theme p-5">
-          <h2 class="text-primary font-semibold mb-4">Saldo dos Moradores</h2>
+          <div class="flex items-center gap-2 mb-4">
+            <svg lucideUsers class="w-5 h-5 text-violet-400"></svg>
+            <h2 class="text-primary font-semibold">Saldo dos Moradores</h2>
+          </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
@@ -117,7 +145,10 @@ const MOCK_TASKS: TaskItem[] = [
 
         <div class="flex flex-col gap-4">
           <div class="rounded-2xl bg-card border-theme p-5">
-            <h2 class="text-primary font-semibold mb-4">Tarefas a Fazer</h2>
+            <div class="flex items-center gap-2 mb-4">
+              <svg lucideClipboardList class="w-5 h-5 text-violet-400"></svg>
+              <h2 class="text-primary font-semibold">Tarefas a Fazer</h2>
+            </div>
             <div class="flex flex-col gap-2">
               @for (t of tasks; track t.title) {
                 <div class="flex items-center justify-between py-2 border-b border-soft last:border-b-0">
@@ -132,7 +163,10 @@ const MOCK_TASKS: TaskItem[] = [
           </div>
 
           <div class="rounded-2xl bg-card border-theme p-5">
-            <h2 class="text-primary font-semibold mb-4">Despesas Recentes</h2>
+            <div class="flex items-center gap-2 mb-4">
+              <svg lucideReceipt class="w-5 h-5 text-violet-400"></svg>
+              <h2 class="text-primary font-semibold">Despesas Recentes</h2>
+            </div>
             <div class="flex flex-col gap-2">
               @for (e of expenses; track e.description) {
                 <div class="flex items-center justify-between py-2 border-b border-soft last:border-b-0">

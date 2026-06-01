@@ -18,7 +18,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
             ←
           </a>
 
-          <div class="flex gap-1 bg-card rounded-xl p-1 mb-8">
+          <div class="flex gap-1 bg-violet-900/10 rounded-xl p-1 mb-8">
             <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover:text-primary hover:bg-white/5 transition">Login</a>
             <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Registrar</span>
           </div>
@@ -72,7 +72,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
 
             <p class="text-center text-secondary text-sm">
               Já tem conta?
-              <a routerLink="/login" class="text-white font-semibold hover:underline">Entrar</a>
+              <a routerLink="/login" class="text-violet-900 font-semibold hover:underline">Entrar</a>
             </p>
 
           </form>

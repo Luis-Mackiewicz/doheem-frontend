@@ -144,7 +144,7 @@ const STATUS_CONFIG = {
             </div>
             <div class="flex justify-end gap-3 mt-2">
               <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-secondary hover:text-primary transition text-sm cursor-pointer">Cancelar</button>
-              <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value, dueDateInput.value)" class="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
+              <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value, dueDateInput.value)" class="px-6 py-2 rounded-xl bg-linear-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
             </div>
           </div>
         </div>

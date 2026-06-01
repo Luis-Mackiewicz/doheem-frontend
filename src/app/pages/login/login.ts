@@ -17,7 +17,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
             ← 
           </a>
 
-          <div class="flex gap-1 bg-card rounded-xl p-1 mb-8">
+          <div class="flex gap-1 bg-violet-900/10 rounded-xl p-1 mb-8">
             <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Login</span>
             <a routerLink="/register" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover:text-primary hover:bg-white/5 transition">Registrar</a>
           </div>
@@ -55,7 +55,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
 
             <p class="text-center text-secondary text-sm">
               Não tem conta?
-              <a routerLink="/register" class="text-white font-semibold hover:underline">Registrar</a>
+              <a routerLink="/register" class="text-violet-600 font-semibold hover:underline">Registrar</a>
             </p>
 
           </form>

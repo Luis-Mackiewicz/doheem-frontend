@@ -3,10 +3,23 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ModalMembrosComponent } from '../modal-members/modal-members';
 import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
+import {
+  LucideLayoutDashboard,
+  LucideDollarSign,
+  LucideListTodo,
+  LucideHistory,
+  LucideBell,
+  LucideUsers,
+  LucideUser,
+  LucideArrowLeft,
+} from '@lucide/angular';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, ModalMembrosComponent],
+  imports: [RouterLink, RouterLinkActive, ModalMembrosComponent,
+    LucideLayoutDashboard, LucideDollarSign, LucideListTodo, LucideHistory,
+    LucideBell, LucideUsers, LucideUser, LucideArrowLeft,
+  ],
   template: `
     <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 transition-colors"
       [class.bg-page]="theme.theme() === 'dark'"
@@ -36,8 +49,16 @@ import { NotificationService } from '../../services/notification-service';
              [class.hover:text-primary]="theme.theme() === 'light'"
              [class.hover:bg-white/5]="theme.theme() === 'dark'"
              [class.hover-bg]="theme.theme() === 'light'">
-            <span class="text-lg">{{ item.icon }}</span>
-            <span class="flex-1">{{ item.label }}</span>
+             <span class="text-lg leading-none">
+               @switch (item.label) {
+                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+                 @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+                 @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+                 @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+               }
+             </span>
+             <span class="flex-1">{{ item.label }}</span>
             @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
               <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
             }
@@ -51,7 +72,7 @@ import { NotificationService } from '../../services/notification-service';
           [class.hover:text-primary]="theme.theme() === 'light'"
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
-          <span class="text-lg">👥</span>
+          <svg lucideUsers class="w-5 h-5 shrink-0"></svg>
           Grupo
         </button>
       </nav>
@@ -68,7 +89,7 @@ import { NotificationService } from '../../services/notification-service';
           [class.hover:text-primary]="theme.theme() === 'light'"
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
-          <span class="text-lg">👤</span>
+          <svg lucideUser class="w-5 h-5 shrink-0"></svg>
           Perfil
         </a>
       </div>
@@ -84,7 +105,7 @@ import { NotificationService } from '../../services/notification-service';
           [class.hover:text-primary]="theme.theme() === 'light'"
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
-          <span class="text-lg">←</span>
+          <svg lucideArrowLeft class="w-5 h-5 shrink-0"></svg>
           Voltar aos grupos
         </a>
       </div>
@@ -103,30 +124,32 @@ import { NotificationService } from '../../services/notification-service';
         [class.text-secondary]="theme.theme() === 'light'"
         [class.hover:text-white]="theme.theme() === 'dark'"
         [class.hover:text-primary]="theme.theme() === 'light'">
-        <span class="text-lg">←</span>
-        Voltar
-      </a>
-      <div class="flex items-center gap-2">
+         <svg lucideArrowLeft class="w-5 h-5 shrink-0"></svg>
+         Voltar
+       </a>
+       <div class="flex items-center gap-2">
         <img src="doheem_logo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
         <span class="font-bold text-sm"
           [class.text-white]="theme.theme() === 'dark'"
           [class.text-primary]="theme.theme() === 'light'">Doheem</span>
       </div>
       <div class="flex items-center gap-3">
-        <a routerLink="/perfil"
-          class="transition text-lg cursor-pointer"
-          [class.text-white/60]="theme.theme() === 'dark'"
-          [class.text-secondary]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'">👤</a>
+         <a routerLink="/perfil"
+           class="transition cursor-pointer"
+           [class.text-white/60]="theme.theme() === 'dark'"
+           [class.text-secondary]="theme.theme() === 'light'"
+           [class.hover:text-white]="theme.theme() === 'dark'"
+           [class.hover:text-primary]="theme.theme() === 'light'">
+           <svg lucideUser class="w-5 h-5"></svg>
+         </a>
         <button (click)="showModal.set(true)"
           class="flex items-center gap-1 transition text-sm font-medium cursor-pointer"
           [class.text-white/60]="theme.theme() === 'dark'"
           [class.text-secondary]="theme.theme() === 'light'"
           [class.hover:text-white]="theme.theme() === 'dark'"
           [class.hover:text-primary]="theme.theme() === 'light'">
-          <span class="text-lg">👥</span>
-        </button>
+          <svg lucideUsers class="w-5 h-5"></svg>
+         </button>
       </div>
     </div>
 
@@ -148,7 +171,13 @@ import { NotificationService } from '../../services/notification-service';
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg leading-none relative">
-            {{ item.icon }}
+            @switch (item.label) {
+              @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+              @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+              @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+              @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+              @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+            }
             @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
               <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
             }
@@ -165,10 +194,10 @@ import { NotificationService } from '../../services/notification-service';
         [class.hover:text-primary]="theme.theme() === 'light'"
         [class.hover:bg-white/5]="theme.theme() === 'dark'"
         [class.hover-bg]="theme.theme() === 'light'">
-        <span class="text-lg leading-none">👤</span>
-        <span class="truncate w-full text-center">Perfil</span>
-      </a>
-    </nav>
+         <svg lucideUser class="w-5 h-5"></svg>
+         <span class="truncate w-full text-center">Perfil</span>
+       </a>
+     </nav>
 
     @if (showModal()) {
       <app-modal-membros (close)="showModal.set(false)" />
@@ -184,11 +213,11 @@ export class SidebarComponent {
 
   get navItems() {
     return [
-      { path: `/groups/${this.groupId}/dashboard`, label: 'Dashboard', icon: '📊', exact: true },
-      { path: `/groups/${this.groupId}/financeiro`, label: 'Financeiro', icon: '💰', exact: false },
-      { path: `/groups/${this.groupId}/tarefas`, label: 'Tarefas', icon: '✅', exact: false },
-      { path: `/groups/${this.groupId}/historico`, label: 'Histórico', icon: '📋', exact: false },
-      { path: `/groups/${this.groupId}/notificacoes`, label: 'Notificações', icon: '🔔', exact: false },
+      { path: `/groups/${this.groupId}/dashboard`, label: 'Dashboard', exact: true },
+      { path: `/groups/${this.groupId}/financeiro`, label: 'Financeiro', exact: false },
+      { path: `/groups/${this.groupId}/tarefas`, label: 'Tarefas', exact: false },
+      { path: `/groups/${this.groupId}/historico`, label: 'Histórico', exact: false },
+      { path: `/groups/${this.groupId}/notificacoes`, label: 'Notificações', exact: false },
     ];
   }
 }

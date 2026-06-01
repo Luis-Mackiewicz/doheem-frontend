@@ -37,7 +37,7 @@ const MOCK_GROUPS: Group[] = [
           </a>
 
           <div class="flex items-center justify-between mb-2">
-            <h2 class="text-2xl font-bold text-white">Grupos</h2>
+            <h2 class="text-2xl font-bold text-violet-800">Grupos</h2>
           </div>
 
           <div class="flex items-center gap-3 mb-6">
@@ -64,7 +64,7 @@ const MOCK_GROUPS: Group[] = [
                 <div class="flex items-center gap-4 min-w-0">
                   <span class="text-2xl shrink-0">🏠</span>
                   <div class="min-w-0">
-                    <p class="text-white font-semibold truncate">{{ group.name }}</p>
+                    <p class="text-violet-700/80 font-semibold truncate">{{ group.name }}</p>
                     <p class="text-secondary text-sm">{{ group.members }} membros · R$ {{ group.monthlyFee }}/mês</p>
                   </div>
                 </div>

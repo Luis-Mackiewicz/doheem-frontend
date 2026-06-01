@@ -50,7 +50,7 @@ import { ButtonComponent } from '../../components/button/button';
           <div class="flex flex-col gap-6">
             <h2 class="text-3xl md:text-4xl font-bold text-violet-900">O que é o Doheem?</h2>
             <p class="text-lg text-secondary leading-relaxed">
-              Doheem é uma plataforma completa para gestão de repúblicas estudantis.
+              Doheem é uma plataforma completa de gestão da casa voltado para repúblicas estudantis.
               Com ela, você organiza despesas, divide contas, coordena tarefas domésticas
               e mantém tudo transparente entre os moradores.
             </p>

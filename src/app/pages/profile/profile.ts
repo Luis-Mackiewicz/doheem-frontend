@@ -19,7 +19,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
             ← 
           </button>
           <div class="flex flex-col items-center gap-1 mb-8">
-            <div class="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-2">
+            <div class="w-24 h-24 rounded-full bg-neutral-900/10 border-2 border-white/20 flex items-center justify-center mb-2">
               <svg class="w-10 h-10 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
