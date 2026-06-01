@@ -6,9 +6,8 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive, ModalMembrosComponent],
   template: `
-    <!-- Desktop sidebar -->
-    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 bg-purple-dark/90 backdrop-blur-xl border-r border-white/10 flex-col z-40">
-      <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 bg-purple-dark/90 border-r border-white/10 flex-col z-40">
+      <div class="flex items-center gap-3 px-6 py-5 border-white/10">
         <img src="doheem_loogo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
         <span class="text-white font-bold text-lg tracking-tight">Doheem</span>
       </div>
