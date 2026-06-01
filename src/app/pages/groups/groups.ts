@@ -1,6 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
+import { ModalCriarGrupoComponent } from '../../components/modal-criar-grupo/modal-criar-grupo';
 
 interface Group {
   id: number;
@@ -24,7 +25,7 @@ const MOCK_GROUPS: Group[] = [
 
 @Component({
   selector: 'app-groups',
-  imports: [RouterLink, ButtonComponent],
+  imports: [RouterLink, ButtonComponent, ModalCriarGrupoComponent],
   template: `
     <section class="min-h-dvh flex flex-col justify-center bg-linear-to-br from-purple-dark to-purple-medium">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 py-24">
@@ -53,7 +54,7 @@ const MOCK_GROUPS: Group[] = [
                 class="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition"
                 (input)="onSearch(searchInput.value)" />
             </div>
-            <app-button variant="solid" type="button" label="+ Criar"></app-button>
+            <app-button variant="solid" type="button" label="+ Criar" (click)="showCriarModal.set(true)"></app-button>
             <app-button variant="outline" type="button" label="Entrar"></app-button>
           </div>
 
@@ -105,10 +106,15 @@ const MOCK_GROUPS: Group[] = [
 
       </div>
     </section>
+
+    @if (showCriarModal()) {
+      <app-modal-criar-grupo (close)="showCriarModal.set(false)" (created)="onGroupCreated($event)" />
+    }
   `,
 })
 export class GroupsPage {
   protected readonly totalGroups = MOCK_GROUPS.length;
+  protected readonly showCriarModal = signal(false);
   readonly pageSize = 5;
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
@@ -142,6 +148,10 @@ export class GroupsPage {
   onSearch(value: string): void {
     this.searchQuery.set(value);
     this.currentPage.set(1);
+  }
+
+  onGroupCreated(data: { nome: string; descricao: string; moeda: string }): void {
+    console.log('Grupo criado:', data);
   }
 
   goToPage(page: number): void {
