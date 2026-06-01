@@ -69,7 +69,7 @@ const MOCK_PAYMENTS: Payment[] = [
   selector: 'app-financeiro',
   imports: [FormsModule, ButtonComponent, DatePipe],
   template: `
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-8 h-full">
       <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -103,7 +103,7 @@ const MOCK_PAYMENTS: Payment[] = [
       </div>
 
       <!-- List -->
-      <div class="flex flex-col gap-4">
+      <div class="flex-1 flex flex-col gap-4 min-h-0">
         @for (e of paginatedExpenses(); track e.id) {
           <div class="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-5 shadow-lg shadow-black/10 hover:bg-white/[0.12] transition">
             <div class="flex items-start justify-between gap-4">
@@ -168,7 +168,7 @@ const MOCK_PAYMENTS: Payment[] = [
 
       <!-- Pagination -->
       @if (totalFilteredPages() > 1) {
-        <div class="flex items-center justify-center gap-1 mt-2 pt-4 border-t border-white/10">
+        <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-white/10">
           <button (click)="goToPage(currentPage() - 1)"
             [class.opacity-30]="currentPage() === 1"
             [disabled]="currentPage() === 1"
