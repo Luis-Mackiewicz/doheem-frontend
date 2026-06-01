@@ -8,7 +8,7 @@ import { SidebarComponent } from '../../components/sidebar/sidebar';
   template: `
     <div class="flex min-h-dvh bg-linear-to-br from-purple-dark to-purple-medium">
       <app-sidebar [groupId]="groupId" />
-      <main class="flex-1 ml-64 p-6 md:p-8 lg:p-10">
+      <main class="flex-1 lg:ml-64 pt-14 lg:pt-6 pb-16 lg:pb-0 p-6 md:p-8 lg:p-10">
         <router-outlet />
       </main>
     </div>
