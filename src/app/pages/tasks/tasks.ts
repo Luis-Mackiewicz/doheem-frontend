@@ -44,12 +44,9 @@ const STATUS_CONFIG = {
   imports: [FormsModule, DatePipe, ButtonComponent],
   template: `
     <div class="flex flex-col gap-8 h-full">
-      <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Tarefas</h1>
-          <p class="text-muted text-sm mt-1">Gerencie as tarefas da república</p>
-          <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
         </div>
         <app-button type="button" variant="solid" label="+ Nova Tarefa" (click)="openCreate()"></app-button>
       </div>

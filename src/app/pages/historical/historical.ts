@@ -55,14 +55,10 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
   imports: [DatePipe],
   template: `
     <div class="flex flex-col gap-8 h-full">
-      <!-- Header -->
       <div>
         <h1 class="text-3xl font-bold text-primary tracking-tight">Histórico</h1>
-        <p class="text-muted text-sm mt-1">Consulte todas as despesas desde a criação do grupo</p>
-        <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
-      </div>
+]      </div>
 
-      <!-- Month navigator -->
       <div class="flex items-center justify-between rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
         <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">◄</button>
         <div class="flex items-center gap-3">
@@ -72,7 +68,6 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         <button (click)="nextMonth()" class="text-secondary hover:text-primary transition text-lg px-2 cursor-pointer">►</button>
       </div>
 
-      <!-- Total do mês -->
       <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
@@ -86,7 +81,6 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         </div>
       </div>
 
-      <!-- List -->
       <div class="flex-1 flex flex-col gap-4 min-h-0">
         @if (monthlyExpenses().length > 0) {
           @for (e of monthlyExpenses(); track e.id) {
@@ -133,7 +127,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
 export class HistoricoPage {
   private readonly today = new Date();
   protected readonly selectedYear = signal(this.today.getFullYear());
-  protected readonly selectedMonth = signal(this.today.getMonth()); // 0-indexed
+  protected readonly selectedMonth = signal(this.today.getMonth()); 
 
   private readonly allExpenses = [...MOCK_EXPENSES];
 

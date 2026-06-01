@@ -9,7 +9,7 @@ import { NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
       <a *ngSwitchCase="'link'"
          [attr.href]="href"
          [class]="variant === 'solid'
-           ? 'inline-flex items-center justify-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg'
+           ? 'inline-flex items-center justify-center gap-3 bg-violet-900 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg'
            : 'inline-flex items-center justify-center gap-3 border-theme text-primary font-semibold px-8 py-3 rounded-xl hover-bg transition backdrop-blur-sm'">
         {{ label }}
       </a>

@@ -19,8 +19,6 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: s
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Notificações</h1>
-          <p class="text-secondary text-sm mt-1">Acompanhe novidades, lembretes e alertas</p>
-          <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
         </div>
         @if (filteredNotifications().length > 0) {
           <button (click)="svc.markAllAsRead()"
@@ -30,7 +28,6 @@ const TYPE_CONFIG: Record<NotificationType, { icon: string; color: string; bg: s
         }
       </div>
 
-      <!-- List -->
       <div class="flex-1 flex flex-col gap-3 min-h-0">
         @if (filteredNotifications().length > 0) {
           @for (n of filteredNotifications(); track n.id) {

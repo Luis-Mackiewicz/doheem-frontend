@@ -71,12 +71,9 @@ const MOCK_PAYMENTS: Payment[] = [
   imports: [FormsModule, ButtonComponent, DatePipe],
   template: `
     <div class="flex flex-col gap-8 h-full">
-      <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Financeiro</h1>
-          <p class="text-muted text-sm mt-1">Gerencie as despesas do grupo</p>
-          <div class="h-1 w-16 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 mt-3"></div>
         </div>
         <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
       </div>
@@ -235,7 +232,7 @@ const MOCK_PAYMENTS: Payment[] = [
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Data de competência
                   <input type="date" [(ngModel)]="form.competenceDate"
-                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
                   @if (submitted() && !form.competenceDate) {
                     <span class="text-rose-400 text-xs mt-1">A data de competência é obrigatória</span>
                   }
@@ -243,7 +240,7 @@ const MOCK_PAYMENTS: Payment[] = [
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.dueDate"
-                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
                   @if (submitted() && form.dueDate && form.dueDate < today) {
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
                   }
@@ -260,7 +257,7 @@ const MOCK_PAYMENTS: Payment[] = [
                   <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                     1ª data de vencimento
                     <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
-                      class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [color-scheme:dark]" />
+                      class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
                   </label>
                 }
               </div>
@@ -471,7 +468,7 @@ const MOCK_PAYMENTS: Payment[] = [
 
     <!-- Receipt expand -->
     @if (expandReceipt(); as url) {
-      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4" (click)="expandReceipt.set('')">
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-60 p-4" (click)="expandReceipt.set('')">
         <img [src]="url" class="max-w-full max-h-full object-contain rounded-2xl" (click)="$event.stopPropagation()" />
       </div>
     }
