@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, ElementRef, HostListener } from '@angular/core';
 
 interface Country {
   name: string;
@@ -21,14 +21,15 @@ const COUNTRIES: Country[] = [
   selector: 'app-phone-input',
   template: `
     <div class="relative flex items-stretch bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden focus-within:border-white/50 transition">
-      <button type="button" (click)="toggleDropdown()"
+      <button #trigger type="button" (click)="toggleDropdown()"
         class="flex items-center gap-1.5 px-3 py-3 text-white/70 hover:text-white hover:bg-white/5 transition cursor-pointer text-sm shrink-0 border-r border-white/10">
         <span>{{ selected().flag }}</span>
         <span class="text-xs">▾</span>
       </button>
 
       @if (open()) {
-        <div class="absolute top-full left-0 mt-1 w-56 bg-purple-dark border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden">
+        <div [style.top.px]="dropdownTop" [style.left.px]="dropdownLeft"
+          class="fixed mt-1 w-56 bg-purple-dark border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl z-50 overflow-hidden">
           <div class="max-h-48 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             @for (country of countries; track country.ddd + country.name) {
               <button type="button" (click)="select(country)"
@@ -45,7 +46,7 @@ const COUNTRIES: Country[] = [
 
       <span class="flex items-center px-3 text-white/50 text-sm shrink-0 border-r border-white/10">+{{ selected().ddd }}</span>
 
-      <input type="tel" [value]="numberValue" (input)="onNumberInput($event)" (blur)="onBlur()"
+      <input type="tel" [value]="numberValue" (input)="onNumberInput($event)"
         placeholder="(11) 99999-0000"
         class="flex-1 bg-transparent px-4 py-3 text-white placeholder-white/40 outline-none text-sm" />
     </div>
@@ -59,6 +60,10 @@ export class PhoneInputComponent {
   protected selected = signal(COUNTRIES[0]);
   protected open = signal(false);
   protected numberValue = '';
+  protected dropdownTop = 0;
+  protected dropdownLeft = 0;
+
+  constructor(private el: ElementRef) {}
 
   private parseInitial(value: string): void {
     if (!value) return;
@@ -77,8 +82,22 @@ export class PhoneInputComponent {
     this.parseInitial(this.value);
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent): void {
+    if (!this.el.nativeElement.contains(e.target)) {
+      this.open.set(false);
+    }
+  }
+
   toggleDropdown(): void {
-    this.open.update(v => !v);
+    const next = !this.open();
+    if (next) {
+      const btn = this.el.nativeElement.querySelector('button');
+      const rect = btn.getBoundingClientRect();
+      this.dropdownTop = rect.bottom;
+      this.dropdownLeft = rect.left;
+    }
+    this.open.set(next);
   }
 
   select(country: Country): void {
@@ -90,10 +109,6 @@ export class PhoneInputComponent {
   onNumberInput(e: Event): void {
     this.numberValue = (e.target as HTMLInputElement).value;
     this.emit();
-  }
-
-  onBlur(): void {
-    setTimeout(() => this.open.set(false), 200);
   }
 
   private emit(): void {

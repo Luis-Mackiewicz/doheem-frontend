@@ -25,7 +25,7 @@ import { CardComponent } from '../../components/card/card';
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
               Email ou telefone
-              <input formControlName="credential" type="text" placeholder="seu@email.com ou (11) 99999-0000"
+              <input formControlName="credential" type="text" placeholder="entrar com email ou telefone"
                 class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition" />
             </label>
 
