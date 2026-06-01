@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { ButtonComponent } from '../../components/button/button';
 
 @Component({
@@ -97,55 +97,14 @@ import { ButtonComponent } from '../../components/button/button';
           direto do seu navegador.
         </p>
 
-        @if (installEnabled()) {
-          <button (click)="install()"
-            class="inline-flex items-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg cursor-pointer text-lg">
-            📲 Instalar App
-          </button>
-          <p class="text-white/40 text-sm mt-4">Disponível para Android, iOS e Desktop</p>
-        } @else {
-          <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-8 py-6 max-w-md">
-            <p class="text-white/70 text-sm mb-3">
-              Para instalar, abra este site no seu navegador e utilize a opção
-            </p>
-            <div class="flex items-center justify-center gap-2 text-white/50 text-sm">
-              <span class="bg-white/10 rounded-lg px-3 py-1.5 font-mono text-xs">⋮</span>
-              <span class="text-white/40">ou</span>
-              <span class="bg-white/10 rounded-lg px-3 py-1.5 font-mono text-xs">⎇</span>
-              <span>→</span>
-              <span class="bg-white/10 rounded-lg px-3 py-1.5 font-mono text-xs">Instalar aplicativo</span>
-            </div>
-          </div>
-        }
+        <button
+          class="inline-flex items-center gap-3 bg-white text-purple-dark font-semibold px-8 py-3 rounded-xl hover:bg-white/90 transition shadow-lg cursor-pointer text-lg">
+          📲 Instalar App
+        </button>
+        <p class="text-white/40 text-sm mt-4">Disponível para Android, iOS e Desktop</p>
 
       </div>
     </section>
   `,
 })
-export class HomePage {
-  protected installEnabled = signal(false);
-  private deferredPrompt: any = null;
-
-  constructor() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      this.deferredPrompt = e;
-      this.installEnabled.set(true);
-    });
-
-    window.addEventListener('appinstalled', () => {
-      this.deferredPrompt = null;
-      this.installEnabled.set(false);
-    });
-  }
-
-  install(): void {
-    if (!this.deferredPrompt) return;
-    this.deferredPrompt.prompt();
-    this.deferredPrompt.userChoice.then((result: { outcome: string }) => {
-      if (result.outcome === 'accepted') console.log('App instalado');
-      this.deferredPrompt = null;
-      this.installEnabled.set(false);
-    });
-  }
-}
+export class HomePage {}
