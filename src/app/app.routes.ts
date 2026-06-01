@@ -4,6 +4,7 @@ import { LoginPage } from './pages/login/login';
 import { RegisterPage } from './pages/register/register';
 import { GroupsPage } from './pages/groups/groups';
 import { PerfilPage } from './pages/perfil/perfil';
+import { NotFoundPage } from './pages/not-found/not-found';
 import { GroupLayoutComponent } from './pages/group-layout/group-layout';
 import { DashboardPage } from './pages/dashboard/dashboard';
 import { FinanceiroPage } from './pages/financeiro/financeiro';
@@ -29,4 +30,5 @@ export const routes: Routes = [
       { path: 'notificacoes', component: NotificacoesPage },
     ],
   },
+  { path: '**', component: NotFoundPage },
 ];
