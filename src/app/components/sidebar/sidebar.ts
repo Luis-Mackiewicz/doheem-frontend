@@ -8,7 +8,7 @@ import { ModalMembrosComponent } from '../modal-membros/modal-membros';
   template: `
     <aside class="fixed left-0 top-0 h-dvh w-64 bg-purple-dark/90 backdrop-blur-xl border-r border-white/10 flex flex-col z-40">
       <div class="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-        <img src="doheem_loogo.png" alt="Doheem" class="h-7 w-auto" />
+        <img src="doheem_loogo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
         <span class="text-white font-bold text-lg tracking-tight">Doheem</span>
       </div>
 

@@ -8,7 +8,7 @@ import { Router, RouterLink } from '@angular/router';
     <header class="fixed top-0 left-0 w-full z-50 bg-purple-dark/60 backdrop-blur-xl border-b border-white/10">
       <div class="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-16 lg:px-24 py-4">
         <a routerLink="/" class="flex items-center gap-3">
-          <img src="doheem_loogo.png" alt="Doheem" class="h-8 w-auto" />
+          <img src="doheem_loogo.png" alt="Doheem" class="h-8 w-auto rounded-full" />
           <span class="text-white font-bold text-xl tracking-tight">Doheem</span>
         </a>
 
