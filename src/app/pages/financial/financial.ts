@@ -3,6 +3,27 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
+import {
+  LucideDollarSign,
+  LucideSearch,
+  LucidePin,
+  LucideBell,
+  LucideCheck,
+  LucideX,
+  LucidePen,
+  LucideTrash2,
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideHouse,
+  LucideZap,
+  LucideWifi,
+  LucideDroplets,
+  LucideShoppingCart,
+  LucideSparkles,
+  LucidePackage,
+  LucideClock,
+  LucideCircleCheck,
+} from '@lucide/angular';
 
 interface SplitValue {
   name: string;
@@ -39,13 +60,13 @@ interface Expense {
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const CATEGORIES = [
-  { value: 'aluguel', label: 'Aluguel', icon: '🔑' },
-  { value: 'energia', label: 'Energia', icon: '⚡' },
-  { value: 'internet', label: 'Internet', icon: '🌐' },
-  { value: 'agua', label: 'Água', icon: '💧' },
-  { value: 'compras', label: 'Compras', icon: '🛒' },
-  { value: 'limpeza', label: 'Limpeza', icon: '🧹' },
-  { value: 'outros', label: 'Outros', icon: '📦' },
+  { value: 'aluguel', label: 'Aluguel' },
+  { value: 'energia', label: 'Energia' },
+  { value: 'internet', label: 'Internet' },
+  { value: 'agua', label: 'Água' },
+  { value: 'compras', label: 'Compras' },
+  { value: 'limpeza', label: 'Limpeza' },
+  { value: 'outros', label: 'Outros' },
 ];
 
 const MOCK_EXPENSES: Expense[] = [
@@ -68,7 +89,12 @@ const MOCK_PAYMENTS: Payment[] = [
 
 @Component({
   selector: 'app-financeiro',
-  imports: [FormsModule, ButtonComponent, DatePipe],
+  imports: [FormsModule, ButtonComponent, DatePipe,
+    LucideDollarSign, LucideSearch, LucidePin, LucideBell, LucideCheck,
+    LucideX, LucidePen, LucideTrash2, LucideChevronLeft, LucideChevronRight,
+    LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
+    LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
+  ],
   template: `
     <div class="flex flex-col gap-8 h-full">
       <div class="flex items-start justify-between gap-4 flex-wrap">
@@ -82,7 +108,7 @@ const MOCK_PAYMENTS: Payment[] = [
       <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-lg">💰</div>
+            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideDollarSign class="w-5 h-5 text-purple-300"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
               <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ totalAmount().toFixed(2) }}</p>
@@ -94,7 +120,7 @@ const MOCK_PAYMENTS: Payment[] = [
 
       <!-- Search -->
       <div class="relative">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none">🔍</span>
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted select-none"><svg lucideSearch class="w-4 h-4"></svg></span>
         <input #searchInput type="text" placeholder="Pesquisar por descrição, categoria ou responsável..."
           class="w-full bg-input border border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
           (input)="onSearch(searchInput.value)" />
@@ -106,7 +132,17 @@ const MOCK_PAYMENTS: Payment[] = [
           <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-4 min-w-0 flex-1">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-lg shrink-0">{{ categoryIcon(e.category) }}</div>
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                  @switch (e.category) {
+                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-purple-300"></svg> }
+                    @default { <svg lucidePackage class="w-5 h-5 text-purple-300"></svg> }
+                  }
+                </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
                     <p class="text-primary font-semibold truncate">{{ e.description }}</p>
@@ -115,7 +151,7 @@ const MOCK_PAYMENTS: Payment[] = [
                         <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
                       }
                       @if (e.fixed) {
-                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">📌 Fixa</span>
+                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
                       }
                     </div>
                   </div>
@@ -124,7 +160,12 @@ const MOCK_PAYMENTS: Payment[] = [
                     <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
                       <span class="flex items-center gap-1 text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">
-                        {{ paymentStatusDot(e.id, sv.name) }} {{ sv.name }} R$ {{ sv.value.toFixed(2) }}
+                        @switch (paymentStatus(e.id, sv.name)) {
+                          @case ('pending') { <span class="w-2 h-2 rounded-full bg-white/30"></span> }
+                          @case ('awaiting') { <span class="w-2 h-2 rounded-full bg-amber-400"></span> }
+                          @case ('approved') { <span class="w-2 h-2 rounded-full bg-emerald-400"></span> }
+                        }
+                        {{ sv.name }} R$ {{ sv.value.toFixed(2) }}
                       </span>
                     }
                   </div>
@@ -137,21 +178,21 @@ const MOCK_PAYMENTS: Payment[] = [
                     @if (p.status === 'pending') {
                       <button (click)="openPayModal(e)" class="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full hover:bg-emerald-500/30 transition cursor-pointer">Pagar</button>
                     } @else if (p.status === 'awaiting') {
-                      <span class="text-[10px] text-amber-400 flex items-center gap-1">🟡 Aguardando</span>
+                      <span class="text-[10px] text-amber-400 flex items-center gap-1"><svg lucideClock class="w-3 h-3"></svg> Aguardando</span>
                     } @else if (p.status === 'approved') {
-                      <span class="text-[10px] text-emerald-400 flex items-center gap-1">🟢 Pago</span>
+                      <span class="text-[10px] text-emerald-400 flex items-center gap-1"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
                     }
                   }
                 </div>
                 @if (e.paidBy === CURRENT_USER) {
                   <div class="flex flex-col gap-1">
                     @if (pendingPaymentsForCreator(e).length; as count) {
-                      <button (click)="openApproveModal(e)" class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full hover:bg-amber-500/30 transition cursor-pointer whitespace-nowrap">
-                        🔔 {{ count }} pendente{{ count > 1 ? 's' : '' }}
+                      <button (click)="openApproveModal(e)" class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full hover:bg-amber-500/30 transition cursor-pointer whitespace-nowrap flex items-center gap-1">
+                        <svg lucideBell class="w-3 h-3"></svg> {{ count }} pendente{{ count > 1 ? 's' : '' }}
                       </button>
                     }
-                    <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer text-sm">✏️</button>
-                    <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer text-sm">🗑️</button>
+                    <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucidePen class="w-4 h-4"></svg></button>
+                    <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
                   </div>
                 }
               </div>
@@ -171,7 +212,7 @@ const MOCK_PAYMENTS: Payment[] = [
             [class.opacity-30]="currentPage() === 1"
             [disabled]="currentPage() === 1"
             class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
-            ◄
+            <svg lucideChevronLeft class="w-4 h-4"></svg>
           </button>
           @for (page of visiblePages(); track page) {
             <button (click)="goToPage(page)"
@@ -185,7 +226,7 @@ const MOCK_PAYMENTS: Payment[] = [
             [class.opacity-30]="currentPage() === totalFilteredPages()"
             [disabled]="currentPage() === totalFilteredPages()"
             class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
-            ►
+            <svg lucideChevronRight class="w-4 h-4"></svg>
           </button>
         </div>
       }
@@ -198,7 +239,7 @@ const MOCK_PAYMENTS: Payment[] = [
           <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-6">
               <h2 class="text-primary font-bold text-lg">{{ editingId() ? 'Editar despesa' : 'Nova despesa' }}</h2>
-              <button (click)="closeModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
+              <button (click)="closeModal()" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
             </div>
 
             <div class="flex flex-col gap-4">
@@ -222,7 +263,7 @@ const MOCK_PAYMENTS: Payment[] = [
                   <select [(ngModel)]="form.category"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
                     @for (c of categories; track c.value) {
-                      <option [value]="c.value" class="bg-purple-dark text-white">{{ c.icon }} {{ c.label }}</option>
+                      <option [value]="c.value" class="bg-purple-dark text-white">{{ c.label }}</option>
                     }
                   </select>
                 </label>
@@ -333,7 +374,7 @@ const MOCK_PAYMENTS: Payment[] = [
                           [class.border-purple-400]="isSomeSelected(m)"
                           [class.border-soft]="!isSomeSelected(m)">
                           @if (isSomeSelected(m)) {
-                            <span class="text-purple-400 text-[10px]">✓</span>
+                            <svg lucideCheck class="w-3 h-3 text-purple-400"></svg>
                           }
                         </div>
                         <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
@@ -399,7 +440,7 @@ const MOCK_PAYMENTS: Payment[] = [
           <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-primary font-bold text-lg">Pagar despesa</h2>
-              <button (click)="closePayModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
+              <button (click)="closePayModal()" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
             </div>
             <p class="text-secondary text-sm mb-1">{{ e.description }}</p>
             @for (sv of e.splitValues; track sv.name) {
@@ -433,7 +474,7 @@ const MOCK_PAYMENTS: Payment[] = [
           <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-primary font-bold text-lg">Pagamentos pendentes</h2>
-              <button (click)="closeApproveModal()" class="text-muted hover:text-primary transition cursor-pointer text-xl leading-none">&times;</button>
+              <button (click)="closeApproveModal()" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
             </div>
             <p class="text-secondary text-sm mb-4">{{ e.description }}</p>
             @for (p of pendingPaymentsForCreator(e); track p.memberName) {
@@ -451,8 +492,8 @@ const MOCK_PAYMENTS: Payment[] = [
                   <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-theme mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
                 }
                 <div class="flex gap-2 mt-3">
-                  <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer">✓ Aprovar</button>
-                  <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer">✗ Rejeitar</button>
+                  <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideCheck class="w-3 h-3"></svg> Aprovar</button>
+                  <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideX class="w-3 h-3"></svg> Rejeitar</button>
                 </div>
               </div>
             } @empty {
@@ -587,10 +628,6 @@ export class FinanceiroPage {
     return CATEGORIES.find(c => c.value === value)?.label ?? value;
   }
 
-  categoryIcon(value: string): string {
-    return CATEGORIES.find(c => c.value === value)?.icon ?? '📦';
-  }
-
   /* Mode A: equal split computed */
   protected computedSplitValues = () => {
     const total = this.form.amount;
@@ -664,11 +701,10 @@ export class FinanceiroPage {
     return this.payments().find(p => p.expenseId === expenseId && p.memberName === CURRENT_USER);
   }
 
-  paymentStatusDot(expenseId: number, memberName: string): string {
+  paymentStatus(expenseId: number, memberName: string): 'pending' | 'awaiting' | 'approved' {
     const p = this.payments().find(p => p.expenseId === expenseId && p.memberName === memberName);
-    if (!p || p.status === 'pending') return '⚪';
-    if (p.status === 'awaiting') return '🟡';
-    return '🟢';
+    if (!p) return 'pending';
+    return p.status;
   }
 
   openPayModal(e: Expense): void {
