@@ -8,8 +8,9 @@ interface Expense {
   description: string;
   amount: number;
   category: string;
-  createdAt: string;
+  competenceDate: string;
   dueDate: string;
+  paidBy: string;
   participants: string[];
   fixed: boolean;
 }
@@ -17,22 +18,21 @@ interface Expense {
 const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
 
 const CATEGORIES = [
-  { value: 'moradia', label: 'Moradia', icon: '🏠' },
-  { value: 'agua', label: 'Água', icon: '💧' },
-  { value: 'luz', label: 'Luz', icon: '⚡' },
-  { value: 'internet', label: 'Internet', icon: '🌐' },
   { value: 'aluguel', label: 'Aluguel', icon: '🔑' },
-  { value: 'mercado', label: 'Mercado', icon: '🛒' },
-  { value: 'lazer', label: 'Lazer', icon: '🎮' },
+  { value: 'energia', label: 'Energia', icon: '⚡' },
+  { value: 'internet', label: 'Internet', icon: '🌐' },
+  { value: 'agua', label: 'Água', icon: '💧' },
+  { value: 'compras', label: 'Compras', icon: '🛒' },
+  { value: 'limpeza', label: 'Limpeza', icon: '🧹' },
   { value: 'outros', label: 'Outros', icon: '📦' },
 ];
 
 const MOCK_EXPENSES: Expense[] = [
-  { id: 1, description: 'Conta de luz', amount: 320, category: 'luz', createdAt: '2026-05-01', dueDate: '2026-06-10', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
-  { id: 2, description: 'Água', amount: 150, category: 'agua', createdAt: '2026-05-01', dueDate: '2026-06-15', participants: ['Ana', 'Carlos', 'Pedro'], fixed: false },
-  { id: 3, description: 'Internet', amount: 200, category: 'internet', createdAt: '2026-05-01', dueDate: '2026-06-05', participants: ['Mariana', 'João'], fixed: true },
-  { id: 4, description: 'Mercado', amount: 580, category: 'mercado', createdAt: '2026-05-20', dueDate: '2026-06-01', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
-  { id: 5, description: 'Gás', amount: 95, category: 'moradia', createdAt: '2026-05-18', dueDate: '2026-06-20', participants: ['Ana', 'Pedro'], fixed: false },
+  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
+  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', participants: ['Ana', 'Carlos', 'Pedro'], fixed: false },
+  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', participants: ['Mariana', 'João'], fixed: true },
+  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', participants: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'], fixed: false },
+  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', participants: ['Ana', 'Pedro'], fixed: false },
 ];
 
 @Component({
@@ -78,7 +78,7 @@ const MOCK_EXPENSES: Expense[] = [
                       <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">📌 Fixa</span>
                     }
                   </div>
-                  <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · Vence {{ e.dueDate | date:'dd/MM' }}</p>
+                  <p class="text-white/40 text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                     @for (p of e.participants; track p) {
                       <span class="text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">{{ p }}</span>
@@ -122,7 +122,7 @@ const MOCK_EXPENSES: Expense[] = [
 
               <div class="grid grid-cols-2 gap-4">
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
-                  Valor
+                  Valor total
                   <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.amount" (keydown)="preventNegative($event)"
                     class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 outline-none focus:border-white/50 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   @if (submitted() && form.amount <= 0) {
@@ -140,7 +140,16 @@ const MOCK_EXPENSES: Expense[] = [
                 </label>
               </div>
 
-              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+              <div class="grid grid-cols-2 gap-4">
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                  Data de competência
+                  <input type="date" [(ngModel)]="form.competenceDate"
+                    class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
+                  @if (submitted() && !form.competenceDate) {
+                    <span class="text-rose-400 text-xs mt-1">A data de competência é obrigatória</span>
+                  }
+                </label>
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.dueDate"
                     class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full [color-scheme:dark]" />
@@ -148,6 +157,21 @@ const MOCK_EXPENSES: Expense[] = [
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
                   }
                 </label>
+              </div>
+
+              <label class="flex flex-col gap-1.5 text-sm font-medium text-white/70">
+                Pago por
+                <select [(ngModel)]="form.paidBy"
+                  class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-3 text-white outline-none focus:border-white/50 transition w-full appearance-none cursor-pointer">
+                  <option value="" disabled class="bg-purple-dark text-white/40">Selecione...</option>
+                  @for (m of members; track m) {
+                    <option [value]="m" class="bg-purple-dark text-white">{{ m }}</option>
+                  }
+                </select>
+                @if (submitted() && !form.paidBy) {
+                  <span class="text-rose-400 text-xs mt-1">Selecione quem pagou</span>
+                }
+              </label>
 
               <label class="flex items-center justify-between text-sm font-medium text-white/70 py-2">
                 <span>Despesa fixa</span>
@@ -226,8 +250,9 @@ export class FinanceiroPage {
       description: '',
       amount: 0,
       category: 'outros',
-      createdAt: '',
+      competenceDate: '',
       dueDate: '',
+      paidBy: '',
       participants: [] as string[],
       fixed: false,
     };
@@ -257,7 +282,7 @@ export class FinanceiroPage {
   openCreate(): void {
     this.editingId.set(null);
     this.submitted.set(false);
-    this.form = { ...this.emptyForm(), createdAt: new Date().toISOString().slice(0, 10) };
+    this.form = { ...this.emptyForm() };
     this.showModal.set(true);
   }
 
@@ -280,14 +305,15 @@ export class FinanceiroPage {
 
   save(): void {
     this.submitted.set(true);
-    if (!this.form.description.trim() || this.form.amount <= 0 || (this.form.dueDate && this.form.dueDate < this.today)) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || (this.form.dueDate && this.form.dueDate < this.today)) return;
     const expense: Expense = {
       id: this.editingId() ?? Date.now(),
       description: this.form.description.trim(),
       amount: this.form.amount,
       category: this.form.category,
-      createdAt: this.form.createdAt || new Date().toISOString().slice(0, 10),
-      dueDate: this.form.dueDate || new Date().toISOString().slice(0, 10),
+      competenceDate: this.form.competenceDate,
+      dueDate: this.form.dueDate,
+      paidBy: this.form.paidBy,
       participants: this.form.participants.length ? this.form.participants : [...this.members],
       fixed: this.form.fixed,
     };
