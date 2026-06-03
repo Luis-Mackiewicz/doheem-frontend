@@ -33,7 +33,7 @@ import {
     LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Financeiro</h1>

@@ -9,6 +9,7 @@ import {
   LucideHistory,
   LucideBell,
   LucideUsers,
+  LucideWallet,
   LucideUser,
   LucideArrowLeft,
 } from '@lucide/angular';
@@ -17,7 +18,7 @@ import {
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive,
     LucideLayoutDashboard, LucideDollarSign, LucideListTodo, LucideHistory,
-    LucideBell, LucideUsers, LucideUser, LucideArrowLeft,
+    LucideBell, LucideUsers, LucideWallet, LucideUser, LucideArrowLeft,
   ],
   template: `
     <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 transition-colors"
@@ -53,6 +54,7 @@ import {
                   @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                   @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
                   @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                  @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
                   @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
                   @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
                   @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
@@ -156,6 +158,7 @@ import {
                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
                 @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
                 @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
                 @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
                 @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
@@ -192,6 +195,7 @@ export class SidebarComponent {
   get navItems() {
     return [
       { path: `/groups/${this.groupId}/dashboard`, label: 'Dashboard', exact: true },
+      { path: `/groups/${this.groupId}/saldos`, label: 'Saldos', exact: false },
       { path: `/groups/${this.groupId}/financeiro`, label: 'Financeiro', exact: false },
       { path: `/groups/${this.groupId}/membros`, label: 'Membros', exact: false },
       { path: `/groups/${this.groupId}/tarefas`, label: 'Tarefas', exact: false },

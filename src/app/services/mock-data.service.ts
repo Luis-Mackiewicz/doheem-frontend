@@ -51,6 +51,12 @@ export interface Task {
   dueDate: string;
 }
 
+export interface ResidentBalance {
+  name: string;
+  owes: number;
+  toReceive: number;
+}
+
 const MEMBROS_INICIAIS: Membro[] = [
   { nome: 'Carlos Silva', telefone: '(11) 99999-0001', admin: false },
   { nome: 'Ana Oliveira', telefone: '(11) 99999-0002', admin: true },
@@ -129,6 +135,14 @@ export class MockDataService {
   readonly tasks = this.tasksSignal.asReadonly();
 
   readonly historicalExpenses = [...MOCK_HISTORICAL_EXPENSES];
+
+  readonly residents = [
+    { name: 'Carlos Silva', owes: 150, toReceive: 0 },
+    { name: 'Ana Oliveira', owes: 0, toReceive: 200 },
+    { name: 'Pedro Santos', owes: 80, toReceive: 50 },
+    { name: 'Mariana Costa', owes: 0, toReceive: 120 },
+    { name: 'João Pereira', owes: 300, toReceive: 0 },
+  ];
 
   temDividasPendentes(nome: string): boolean {
     for (const expense of this.expensesSignal()) {

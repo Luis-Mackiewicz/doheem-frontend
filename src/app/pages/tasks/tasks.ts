@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 import { MockDataService, Task, TaskStatus } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
+import { ThemeService } from '../../services/theme-service';
 import {
   LucideClipboardList,
   LucideRefreshCw,
@@ -11,6 +12,7 @@ import {
   LucideChevronLeft,
   LucideChevronRight,
   LucideTrash2,
+  LucidePen,
   LucideTriangleAlert,
   LucideX,
 } from '@lucide/angular';
@@ -25,11 +27,11 @@ const STATUS_CONFIG = {
   selector: 'app-tasks',
   imports: [FormsModule, DatePipe, ButtonComponent,
     LucideClipboardList, LucideRefreshCw, LucideCircleCheck,
-    LucideChevronLeft, LucideChevronRight, LucideTrash2,
+    LucideChevronLeft, LucideChevronRight, LucideTrash2, LucidePen,
     LucideTriangleAlert, LucideX,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Tarefas</h1>
@@ -74,21 +76,60 @@ const STATUS_CONFIG = {
                            <span class="text-[11px] text-muted">{{ t.createdAt | date:'dd/MM' }}</span>
                          </div>
                        </div>
-                      <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
-                        @if (s !== 'todo') {
-                          <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer"><svg lucideChevronLeft class="w-4 h-4"></svg></button>
-                        }
-                        @if (s !== 'done') {
-                          <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition cursor-pointer"><svg lucideChevronRight class="w-4 h-4"></svg></button>
-                        }
-                        @if (canDelete(t)) {
-                          <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 hover:text-red-300 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
-                        }
-                      </div>
-                    </div>
-                  </div>
-                }
-              } @else {
+                       <div class="flex flex-col items-center gap-0.5 shrink-0" (click)="$event.stopPropagation()">
+                          <div class="flex items-center gap-1">
+                            @if (canEdit(t)) {
+                              <button (click)="openEdit(t)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                                [class.bg-white/10]="theme.theme() === 'dark'"
+                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
+                                [class.text-white/60]="theme.theme() === 'dark'"
+                                [class.hover:text-white]="theme.theme() === 'dark'"
+                                [class.bg-gray-100]="theme.theme() === 'light'"
+                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
+                                [class.text-gray-600]="theme.theme() === 'light'"
+                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
+                            }
+                            @if (canDelete(t)) {
+                              <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                                [class.bg-red-500/10]="theme.theme() === 'dark'"
+                                [class.hover:bg-red-500/25]="theme.theme() === 'dark'"
+                                [class.text-red-400]="theme.theme() === 'dark'"
+                                [class.hover:text-red-300]="theme.theme() === 'dark'"
+                                [class.bg-red-100]="theme.theme() === 'light'"
+                                [class.hover:bg-red-200]="theme.theme() === 'light'"
+                                [class.text-red-600]="theme.theme() === 'light'"
+                                [class.hover:text-red-700]="theme.theme() === 'light'"><svg lucideTrash2 class="w-4 h-4"></svg></button>
+                             }
+                          </div>
+                          <div class="flex items-center gap-1">
+                            @if (s !== 'todo') {
+                              <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                                [class.bg-white/10]="theme.theme() === 'dark'"
+                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
+                                [class.text-white/60]="theme.theme() === 'dark'"
+                                [class.hover:text-white]="theme.theme() === 'dark'"
+                                [class.bg-gray-100]="theme.theme() === 'light'"
+                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
+                                [class.text-gray-600]="theme.theme() === 'light'"
+                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucideChevronLeft class="w-4 h-4"></svg></button>
+                            }
+                            @if (s !== 'done') {
+                              <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                                [class.bg-white/10]="theme.theme() === 'dark'"
+                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
+                                [class.text-white/60]="theme.theme() === 'dark'"
+                                [class.hover:text-white]="theme.theme() === 'dark'"
+                                [class.bg-gray-100]="theme.theme() === 'light'"
+                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
+                                [class.text-gray-600]="theme.theme() === 'light'"
+                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucideChevronRight class="w-4 h-4"></svg></button>
+                            }
+                          </div>
+                       </div>
+                     </div>
+                   </div>
+                 }
+               } @else {
                 <div class="flex-1 flex items-center justify-center">
                   <p class="text-muted text-sm text-center">Nenhuma tarefa</p>
                 </div>
@@ -102,7 +143,7 @@ const STATUS_CONFIG = {
     <!-- Create modal -->
     @if (showModal()) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="showModal.set(false)">
-        <div class="w-full max-w-md rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+        <div class="w-full max-w-md rounded-2xl bg-card border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-6">
             <h2 class="text-lg font-bold text-primary">Nova Tarefa</h2>
             <button (click)="showModal.set(false)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
@@ -133,7 +174,7 @@ const STATUS_CONFIG = {
                 class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm" />
             </div>
             <div class="flex justify-end gap-3 mt-2">
-              <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl text-secondary hover:text-primary transition text-sm cursor-pointer">Cancelar</button>
+              <button (click)="showModal.set(false)" class="px-4 py-2 rounded-xl border border-theme text-primary font-medium text-sm hover:text-secondary hover-bg transition cursor-pointer">Cancelar</button>
               <button (click)="confirmCreate(titleInput.value, descInput.value, memberSelect.value, dueDateInput.value)" class="px-6 py-2 rounded-xl bg-linear-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Criar</button>
             </div>
           </div>
@@ -144,7 +185,7 @@ const STATUS_CONFIG = {
     <!-- Detail modal -->
     @if (selectedTask(); as t) {
       <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="selectedTask.set(undefined)">
-        <div class="w-full max-w-lg rounded-2xl bg-purple-dark border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+        <div class="w-full max-w-lg rounded-2xl bg-card border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
           <div class="flex items-center justify-between mb-5">
             <div class="flex items-center gap-3 min-w-0">
               @switch (t.status) {
@@ -191,10 +232,74 @@ const STATUS_CONFIG = {
         </div>
       </div>
     }
+
+    <!-- Edit modal -->
+    @if (editingTask(); as t) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="editingTask.set(undefined)">
+        <div class="w-full max-w-md rounded-2xl bg-card border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-primary">Editar Tarefa</h2>
+            <button (click)="editingTask.set(undefined)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <div>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Título</label>
+              <input #editTitle type="text" [value]="t.title" placeholder="Ex: Limpar a cozinha"
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm">
+            </div>
+            <div>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Descrição <span class="text-muted">(opcional)</span></label>
+              <textarea #editDesc rows="3" [value]="t.description" placeholder="Descreva a tarefa..."
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Responsável</label>
+                <select #editMember class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer">
+                  @for (m of members; track m) {
+                    <option class="bg-card text-primary" [value]="m" [selected]="m === t.assignedTo">{{ m }}</option>
+                  }
+                </select>
+            </div>
+            <div>
+              <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
+              <input #editDueDate type="date" [value]="t.dueDate" [min]="today"
+                class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm" />
+            </div>
+            <div class="flex justify-end gap-3 mt-2">
+              <button (click)="editingTask.set(undefined)" class="px-4 py-2 rounded-xl border border-theme text-primary font-medium text-sm hover:text-secondary hover-bg transition cursor-pointer">Cancelar</button>
+              <button (click)="confirmEdit(t, editTitle.value, editDesc.value, editMember.value, editDueDate.value)" class="px-6 py-2 rounded-xl bg-linear-to-r from-purple-500 to-purple-700 text-white font-medium text-sm hover:brightness-110 transition cursor-pointer">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Delete confirmation -->
+    @if (taskToDelete(); as id) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="cancelDelete()">
+        <div class="w-full max-w-sm rounded-2xl bg-card border border-theme p-6 shadow-2xl shadow-black/40" (click)="$event.stopPropagation()">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center">
+              <svg lucideTriangleAlert class="w-5 h-5 text-red-400"></svg>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-primary">Excluir tarefa</h2>
+              <p class="text-secondary text-sm">Tem certeza? Esta ação não pode ser desfeita.</p>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button (click)="cancelDelete()" class="px-4 py-2 rounded-xl border border-theme text-primary font-medium text-sm hover:text-secondary hover-bg transition cursor-pointer">Cancelar</button>
+            <button (click)="confirmDelete()" class="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-medium text-sm transition cursor-pointer">Excluir</button>
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class TarefasPage {
   protected mockData = inject(MockDataService);
+  protected theme = inject(ThemeService);
   protected readonly members = this.mockData.MEMBROS;
   protected readonly STATUS_CONFIG = STATUS_CONFIG;
   protected readonly statuses: TaskStatus[] = ['todo', 'doing', 'done'];
@@ -207,6 +312,8 @@ export class TarefasPage {
 
   protected showModal = signal(false);
   protected selectedTask = signal<Task | undefined>(undefined);
+  protected editingTask = signal<Task | undefined>(undefined);
+  protected taskToDelete = signal<number | undefined>(undefined);
 
   constructor() {
     this.checkOverdueTasks();
@@ -284,7 +391,38 @@ export class TarefasPage {
     return task.createdBy === this.CURRENT_USER || this.CURRENT_USER === this.ADMIN_USER;
   }
 
+  canEdit(task: Task): boolean {
+    return task.createdBy === this.CURRENT_USER || this.CURRENT_USER === this.ADMIN_USER;
+  }
+
+  openEdit(task: Task): void {
+    this.editingTask.set({ ...task });
+  }
+
+  confirmEdit(task: Task, title: string, description: string, assignedTo: string, dueDate: string): void {
+    if (!title.trim()) return;
+    this.tasksSignal.update(list =>
+      list.map(t =>
+        t.id === task.id
+          ? { ...t, title: title.trim(), description: description.trim(), assignedTo, dueDate }
+          : t
+      )
+    );
+    this.editingTask.set(undefined);
+  }
+
   deleteTask(id: number): void {
+    this.taskToDelete.set(id);
+  }
+
+  confirmDelete(): void {
+    const id = this.taskToDelete();
+    if (id === undefined) return;
     this.tasksSignal.update(list => list.filter(t => t.id !== id));
+    this.taskToDelete.set(undefined);
+  }
+
+  cancelDelete(): void {
+    this.taskToDelete.set(undefined);
   }
 }

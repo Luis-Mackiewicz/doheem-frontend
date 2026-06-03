@@ -26,7 +26,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
     LucideDollarSign, LucideClock, LucideListTodo, LucideTriangleAlert, LucideBell,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <!-- Header -->
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>

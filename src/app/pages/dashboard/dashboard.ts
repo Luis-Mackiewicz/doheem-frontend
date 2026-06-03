@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   LucideArrowDown,
   LucideArrowUp,
@@ -67,6 +67,7 @@ const MOCK_TASKS: TaskItem[] = [
 @Component({
   selector: 'app-dashboard',
   imports: [
+    RouterLink,
     LucideArrowDown,
     LucideArrowUp,
     LucideWallet,
@@ -75,20 +76,20 @@ const MOCK_TASKS: TaskItem[] = [
     LucideReceipt,
   ],
   template: `
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 transition-colors duration-150">
       <h1 class="text-2xl font-bold text-primary">{{ groupName }}</h1>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideArrowDown class="w-4 h-4 text-red-400"></svg>
+            <svg lucideArrowDown class="w-4 h-4 text-primary"></svg>
             <p class="text-secondary text-sm font-medium">Você deve</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ 150,00</p>
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideArrowUp class="w-4 h-4 text-green-400"></svg>
+            <svg lucideArrowUp class="w-4 h-4 text-primary"></svg>
             <p class="text-secondary text-sm font-medium">Você tem a receber</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ 120,00</p>
@@ -104,7 +105,8 @@ const MOCK_TASKS: TaskItem[] = [
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <a [routerLink]="['/groups', groupId, 'saldos']"
+           class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300">
           <div class="flex items-center gap-2 mb-4">
             <svg lucideUsers class="w-5 h-5 text-violet-400"></svg>
             <h2 class="text-primary font-semibold">Saldo dos Moradores</h2>
@@ -124,14 +126,14 @@ const MOCK_TASKS: TaskItem[] = [
                     <td class="py-3 text-primary font-medium">{{ r.name }}</td>
                     <td class="py-3 text-right">
                       @if (r.owes > 0) {
-                        <span class="text-orange-400">R$ {{ r.owes.toFixed(2) }}</span>
+                        <span class="text-primary">R$ {{ r.owes.toFixed(2) }}</span>
                       } @else {
                         <span class="text-muted">—</span>
                       }
                     </td>
                     <td class="py-3 text-right">
                       @if (r.toReceive > 0) {
-                        <span class="text-green-400">R$ {{ r.toReceive.toFixed(2) }}</span>
+                        <span class="text-primary">R$ {{ r.toReceive.toFixed(2) }}</span>
                       } @else {
                         <span class="text-muted">—</span>
                       }
@@ -141,10 +143,11 @@ const MOCK_TASKS: TaskItem[] = [
               </tbody>
             </table>
           </div>
-        </div>
+        </a>
 
         <div class="flex flex-col gap-4">
-          <div class="rounded-2xl bg-card border-theme p-5">
+          <a [routerLink]="['/groups', groupId, 'tarefas']"
+             class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300">
             <div class="flex items-center gap-2 mb-4">
               <svg lucideClipboardList class="w-5 h-5 text-violet-400"></svg>
               <h2 class="text-primary font-semibold">Tarefas a Fazer</h2>
@@ -160,9 +163,10 @@ const MOCK_TASKS: TaskItem[] = [
                 </div>
               }
             </div>
-          </div>
+          </a>
 
-          <div class="rounded-2xl bg-card border-theme p-5">
+          <a [routerLink]="['/groups', groupId, 'financeiro']"
+             class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300">
             <div class="flex items-center gap-2 mb-4">
               <svg lucideReceipt class="w-5 h-5 text-violet-400"></svg>
               <h2 class="text-primary font-semibold">Despesas Recentes</h2>
@@ -178,7 +182,7 @@ const MOCK_TASKS: TaskItem[] = [
                 </div>
               }
             </div>
-          </div>
+          </a>
         </div>
       </div>
     </div>
@@ -186,9 +190,11 @@ const MOCK_TASKS: TaskItem[] = [
 })
 export class DashboardPage {
   protected groupName: string;
+  protected groupId: string;
 
   constructor(route: ActivatedRoute) {
-    const id = Number(route.parent?.snapshot.paramMap.get('id'));
+    this.groupId = route.parent?.snapshot.paramMap.get('id') ?? '';
+    const id = Number(this.groupId);
     this.groupName = MOCK_GROUPS.find(g => g.id === id)?.name ?? 'Dashboard';
   }
 

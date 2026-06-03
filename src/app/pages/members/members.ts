@@ -18,7 +18,7 @@ import {
     LucideCopy, LucideCheck, LucideShield, LucideTrash2, LucideLogOut, LucideUsers,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center">

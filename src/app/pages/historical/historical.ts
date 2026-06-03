@@ -28,7 +28,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
     LucideHistory, LucidePin, LucideInbox,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <div>
         <h1 class="text-3xl font-bold text-primary tracking-tight">Histórico</h1>
       </div>
