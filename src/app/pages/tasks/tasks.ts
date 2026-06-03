@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
+import { MockDataService, Task, TaskStatus } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
 import {
   LucideClipboardList,
@@ -13,35 +14,6 @@ import {
   LucideTriangleAlert,
   LucideX,
 } from '@lucide/angular';
-
-type TaskStatus = 'todo' | 'doing' | 'done';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  assignedTo: string;
-  createdBy: string;
-  status: TaskStatus;
-  createdAt: string;
-  dueDate: string;
-}
-
-const CURRENT_USER: string = 'Carlos';
-const ADMIN_USER: string = 'Ana';
-
-const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
-
-const MOCK_TASKS: Task[] = [
-  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos', createdBy: 'Carlos', status: 'todo', createdAt: '2026-05-28', dueDate: '2026-06-05' },
-  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana', createdBy: 'Ana', status: 'todo', createdAt: '2026-05-29', dueDate: '2026-06-02' },
-  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro', createdBy: 'Pedro', status: 'todo', createdAt: '2026-05-30', dueDate: '2026-06-10' },
-  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana', createdBy: 'Mariana', status: 'doing', createdAt: '2026-05-25', dueDate: '2026-06-01' },
-  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João', createdBy: 'João', status: 'doing', createdAt: '2026-05-26', dueDate: '2026-06-03' },
-  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro', createdBy: 'Ana', status: 'done', createdAt: '2026-05-20', dueDate: '2026-05-25' },
-  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana', createdBy: 'Ana', status: 'done', createdAt: '2026-05-22', dueDate: '2026-05-28' },
-  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos', createdBy: 'Ana', status: 'done', createdAt: '2026-05-23', dueDate: '2026-05-30' },
-];
 
 const STATUS_CONFIG = {
   todo: { label: 'A Fazer', color: 'from-blue-400 to-blue-600', border: 'border-blue-500/30', bg: 'bg-blue-500/10', badge: 'bg-blue-500/20 text-blue-300' },
@@ -149,11 +121,11 @@ const STATUS_CONFIG = {
             </div>
             <div>
               <label class="text-secondary text-xs font-medium mb-1.5 block">Responsável</label>
-              <select #memberSelect class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer">
-                @for (m of MOCK_MEMBERS; track m) {
-                  <option class="bg-purple-dark text-white" [value]="m">{{ m }}</option>
-                }
-              </select>
+                <select #memberSelect class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer">
+                  @for (m of members; track m) {
+                    <option class="bg-purple-dark text-white" [value]="m">{{ m }}</option>
+                  }
+                </select>
             </div>
             <div>
               <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
@@ -222,14 +194,15 @@ const STATUS_CONFIG = {
   `,
 })
 export class TarefasPage {
-  protected readonly MOCK_MEMBERS = MOCK_MEMBERS;
+  protected mockData = inject(MockDataService);
+  protected readonly members = this.mockData.MEMBROS;
   protected readonly STATUS_CONFIG = STATUS_CONFIG;
   protected readonly statuses: TaskStatus[] = ['todo', 'doing', 'done'];
-  protected readonly CURRENT_USER = CURRENT_USER;
-  protected readonly ADMIN_USER = ADMIN_USER;
+  protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
+  protected readonly ADMIN_USER = this.mockData.ADMIN_USER;
   protected readonly today = new Date().toISOString().slice(0, 10);
 
-  private tasksSignal = signal<Task[]>([...MOCK_TASKS]);
+  private tasksSignal = signal<Task[]>([...this.mockData.tasks()]);
   private notif = inject(NotificationService);
 
   protected showModal = signal(false);
@@ -247,7 +220,7 @@ export class TarefasPage {
       if (due < today) {
         this.notif.add('task_overdue', 'Tarefa atrasada',
           `${task.title} — atribuída a ${task.assignedTo}`,
-          ADMIN_USER, task.id);
+          this.ADMIN_USER, task.id);
       }
     }
   }
@@ -290,7 +263,7 @@ export class TarefasPage {
       title: title.trim(),
       description: description.trim(),
       assignedTo,
-      createdBy: CURRENT_USER,
+      createdBy: this.CURRENT_USER,
       status: 'todo',
       createdAt: new Date().toISOString().slice(0, 10),
       dueDate,
@@ -308,7 +281,7 @@ export class TarefasPage {
   }
 
   canDelete(task: Task): boolean {
-    return task.createdBy === CURRENT_USER || CURRENT_USER === ADMIN_USER;
+    return task.createdBy === this.CURRENT_USER || this.CURRENT_USER === this.ADMIN_USER;
   }
 
   deleteTask(id: number): void {

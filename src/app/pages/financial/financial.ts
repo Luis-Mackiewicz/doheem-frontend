@@ -4,6 +4,7 @@ import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { BuscaComponent } from '../../components/busca/busca';
+import { MockDataService, SplitValue, SplitMode, PaymentStatus, Payment, Expense } from '../../services/mock-data.service';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 import {
   LucideDollarSign,
@@ -23,68 +24,6 @@ import {
   LucideClock,
   LucideCircleCheck,
 } from '@lucide/angular';
-
-interface SplitValue {
-  name: string;
-  value: number;
-}
-
-type SplitMode = 'equal' | 'some' | 'custom';
-
-type PaymentStatus = 'pending' | 'awaiting' | 'approved';
-
-interface Payment {
-  expenseId: number;
-  memberName: string;
-  status: PaymentStatus;
-  paidAt?: string;
-  receiptBase64?: string;
-}
-
-interface Expense {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  competenceDate: string;
-  dueDate: string;
-  paidBy: string;
-  splitMode: SplitMode;
-  splitValues: SplitValue[];
-  installments: number;
-  firstDueDate: string;
-  fixed: boolean;
-}
-
-const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
-
-const CATEGORIES = [
-  { value: 'aluguel', label: 'Aluguel' },
-  { value: 'energia', label: 'Energia' },
-  { value: 'internet', label: 'Internet' },
-  { value: 'agua', label: 'Água' },
-  { value: 'compras', label: 'Compras' },
-  { value: 'limpeza', label: 'Limpeza' },
-  { value: 'outros', label: 'Outros' },
-];
-
-const MOCK_EXPENSES: Expense[] = [
-  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 64 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2026-05-01', dueDate: '2026-06-15', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 50 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-01', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), installments: 3, firstDueDate: '2026-06-05', fixed: true },
-  { id: 4, description: 'Mercado do mês', amount: 580, category: 'compras', competenceDate: '2026-05-20', dueDate: '2026-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'].map(n => ({ name: n, value: 116 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 5, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2026-05-18', dueDate: '2026-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), installments: 2, firstDueDate: '2026-06-20', fixed: false },
-];
-
-const CURRENT_USER = 'Carlos';
-
-const MOCK_PAYMENTS: Payment[] = [
-  { expenseId: 1, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-28' },
-  { expenseId: 1, memberName: 'Mariana', status: 'awaiting', paidAt: '2026-05-30', receiptBase64: '' },
-  { expenseId: 3, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-25' },
-  { expenseId: 4, memberName: 'Carlos', status: 'approved', paidAt: '2026-05-25' },
-  { expenseId: 2, memberName: 'Ana', status: 'awaiting', paidAt: '2026-06-01', receiptBase64: '' },
-];
 
 @Component({
   selector: 'app-financeiro',
@@ -149,11 +88,11 @@ const MOCK_PAYMENTS: Payment[] = [
                   </div>
                   <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                    <span class="text-[11px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
+                    <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
-                      <span class="flex items-center gap-1 text-[11px] bg-white/10 text-white/70 px-2 py-0.5 rounded-full">
+                      <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
                         @switch (paymentStatus(e.id, sv.name)) {
-                          @case ('pending') { <span class="w-2 h-2 rounded-full bg-white/30"></span> }
+                          @case ('pending') { <span class="w-2 h-2 rounded-full bg-gray-400"></span> }
                           @case ('awaiting') { <span class="w-2 h-2 rounded-full bg-amber-400"></span> }
                           @case ('approved') { <span class="w-2 h-2 rounded-full bg-emerald-400"></span> }
                         }
@@ -183,8 +122,10 @@ const MOCK_PAYMENTS: Payment[] = [
                         <svg lucideBell class="w-3 h-3"></svg> {{ count }} pendente{{ count > 1 ? 's' : '' }}
                       </button>
                     }
-                    <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucidePen class="w-4 h-4"></svg></button>
-                    <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
+                    <div class="flex gap-1">
+                      <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucidePen class="w-4 h-4"></svg></button>
+                      <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
+                    </div>
                   </div>
                 }
               </div>
@@ -484,8 +425,9 @@ const MOCK_PAYMENTS: Payment[] = [
   `,
 })
 export class FinanceiroPage {
-  protected readonly members = MOCK_MEMBERS;
-  protected readonly categories = CATEGORIES;
+  protected mockData = inject(MockDataService);
+  protected readonly members = this.mockData.MEMBROS;
+  protected readonly categories = this.mockData.CATEGORIES;
   protected readonly today = new Date().toISOString().slice(0, 10);
   protected readonly splitOptions = [
     { value: 'equal', label: 'Todos' },
@@ -493,10 +435,10 @@ export class FinanceiroPage {
     { value: 'custom', label: 'Personalizado' },
   ] as const;
 
-  protected readonly CURRENT_USER = CURRENT_USER;
+  protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
 
-  protected expenses = signal<Expense[]>([...MOCK_EXPENSES]);
-  protected payments = signal<Payment[]>([...MOCK_PAYMENTS]);
+  protected expenses = signal<Expense[]>([...this.mockData.expenses()]);
+  protected payments = signal<Payment[]>([...this.mockData.payments()]);
   protected showModal = signal(false);
   protected editingId = signal<number | null>(null);
   protected deleting = signal<Expense | null>(null);
@@ -547,7 +489,7 @@ export class FinanceiroPage {
       fixed: false,
       installments: 1,
       firstDueDate: '',
-      splitCustom: Object.fromEntries(MOCK_MEMBERS.map(m => [m, 0])) as Record<string, number>,
+      splitCustom: Object.fromEntries(this.members.map(m => [m, 0])) as Record<string, number>,
     };
   }
 
@@ -583,7 +525,7 @@ export class FinanceiroPage {
   }
 
   categoryLabel(value: string): string {
-    return CATEGORIES.find(c => c.value === value)?.label ?? value;
+    return this.mockData.CATEGORIES.find(c => c.value === value)?.label ?? value;
   }
 
   /* Mode A: equal split computed */
@@ -656,7 +598,7 @@ export class FinanceiroPage {
   };
 
   myPaymentStatus(expenseId: number): Payment | undefined {
-    return this.payments().find(p => p.expenseId === expenseId && p.memberName === CURRENT_USER);
+    return this.payments().find(p => p.expenseId === expenseId && p.memberName === this.CURRENT_USER);
   }
 
   paymentStatus(expenseId: number, memberName: string): 'pending' | 'awaiting' | 'approved' {
@@ -687,10 +629,10 @@ export class FinanceiroPage {
     const expense = this.payingExpense();
     if (!expense) return;
     this.payments.update(list => {
-      const idx = list.findIndex(p => p.expenseId === expense.id && p.memberName === CURRENT_USER);
+      const idx = list.findIndex(p => p.expenseId === expense.id && p.memberName === this.CURRENT_USER);
       const payment: Payment = {
         expenseId: expense.id,
-        memberName: CURRENT_USER,
+        memberName: this.CURRENT_USER,
         status: 'awaiting',
         paidAt: new Date().toISOString().slice(0, 10),
         receiptBase64: this.payReceiptBase64() || undefined,
@@ -706,7 +648,7 @@ export class FinanceiroPage {
   }
 
   pendingPaymentsForCreator(expense: Expense): Payment[] {
-    if (expense.paidBy !== CURRENT_USER) return [];
+    if (expense.paidBy !== this.CURRENT_USER) return [];
     return this.payments().filter(p => p.expenseId === expense.id && p.status === 'awaiting');
   }
 

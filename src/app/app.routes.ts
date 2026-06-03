@@ -11,6 +11,7 @@ import { FinanceiroPage } from './pages/financial/financial';
 import { TarefasPage } from './pages/tasks/tasks';
 import { HistoricoPage } from './pages/historical/historical';
 import { NotificacoesPage } from './pages/notifications/notifications';
+import { MembrosPage } from './pages/members/members';
 
 export const routes: Routes = [
   { path: '', component: HomePage },
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: 'tarefas', component: TarefasPage },
       { path: 'historico', component: HistoricoPage },
       { path: 'notificacoes', component: NotificacoesPage },
+      { path: 'membros', component: MembrosPage },
     ],
   },
   { path: '**', component: NotFoundPage },

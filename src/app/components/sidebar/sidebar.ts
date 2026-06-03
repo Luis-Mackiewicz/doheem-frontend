@@ -1,6 +1,5 @@
-import { Component, Input, inject, signal } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ModalMembrosComponent } from '../modal-members/modal-members';
 import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
 import {
@@ -16,7 +15,7 @@ import {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, ModalMembrosComponent,
+  imports: [RouterLink, RouterLinkActive,
     LucideLayoutDashboard, LucideDollarSign, LucideListTodo, LucideHistory,
     LucideBell, LucideUsers, LucideUser, LucideArrowLeft,
   ],
@@ -50,32 +49,22 @@ import {
              [class.hover:bg-white/5]="theme.theme() === 'dark'"
              [class.hover-bg]="theme.theme() === 'light'">
              <span class="text-lg leading-none">
-               @switch (item.label) {
-                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
-                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-                 @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
-                 @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
-                 @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
-               }
-             </span>
-             <span class="flex-1">{{ item.label }}</span>
-            @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
-              <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
-            }
-          </a>
-        }
-        <button (click)="showModal.set(true)"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium cursor-pointer w-full text-left"
-          [class.text-white/60]="theme.theme() === 'dark'"
-          [class.text-secondary]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'"
-          [class.hover:bg-white/5]="theme.theme() === 'dark'"
-          [class.hover-bg]="theme.theme() === 'light'">
-          <svg lucideUsers class="w-5 h-5 shrink-0"></svg>
-          Grupo
-        </button>
-      </nav>
+                @switch (item.label) {
+                  @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+                  @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+                  @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                  @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+                  @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+                  @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+                }
+              </span>
+              <span class="flex-1">{{ item.label }}</span>
+             @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
+               <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
+             }
+           </a>
+         }
+       </nav>
 
       <hr class="mx-4"
         [class.border-white/10]="theme.theme() === 'dark'"
@@ -142,15 +131,7 @@ import {
            [class.hover:text-primary]="theme.theme() === 'light'">
            <svg lucideUser class="w-5 h-5"></svg>
          </a>
-        <button (click)="showModal.set(true)"
-          class="flex items-center gap-1 transition text-sm font-medium cursor-pointer"
-          [class.text-white/60]="theme.theme() === 'dark'"
-          [class.text-secondary]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'">
-          <svg lucideUsers class="w-5 h-5"></svg>
-         </button>
-      </div>
+       </div>
     </div>
 
     <!-- Mobile bottom nav -->
@@ -171,13 +152,14 @@ import {
           [class.hover:bg-white/5]="theme.theme() === 'dark'"
           [class.hover-bg]="theme.theme() === 'light'">
           <span class="text-lg leading-none relative">
-            @switch (item.label) {
-              @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
-              @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-              @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
-              @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
-              @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
-            }
+              @switch (item.label) {
+                @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+                @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+                @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+                @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+                @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+              }
             @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
               <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
             }
@@ -199,15 +181,11 @@ import {
        </a>
      </nav>
 
-    @if (showModal()) {
-      <app-modal-members (close)="showModal.set(false)" />
-    }
   `,
 })
 export class SidebarComponent {
   @Input() groupId!: string;
 
-  protected showModal = signal(false);
   protected theme = inject(ThemeService);
   protected notif = inject(NotificationService);
 
@@ -215,6 +193,7 @@ export class SidebarComponent {
     return [
       { path: `/groups/${this.groupId}/dashboard`, label: 'Dashboard', exact: true },
       { path: `/groups/${this.groupId}/financeiro`, label: 'Financeiro', exact: false },
+      { path: `/groups/${this.groupId}/membros`, label: 'Membros', exact: false },
       { path: `/groups/${this.groupId}/tarefas`, label: 'Tarefas', exact: false },
       { path: `/groups/${this.groupId}/historico`, label: 'Histórico', exact: false },
       { path: `/groups/${this.groupId}/notificacoes`, label: 'Notificações', exact: false },

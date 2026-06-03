@@ -1,7 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { BuscaComponent } from '../../components/busca/busca';
+import { MockDataService } from '../../services/mock-data.service';
 import {
   LucideHouse,
   LucideZap,
@@ -16,53 +17,6 @@ import {
   LucidePin,
   LucideInbox,
 } from '@lucide/angular';
-
-interface SplitValue {
-  name: string;
-  value: number;
-}
-
-type SplitMode = 'equal' | 'some' | 'custom';
-
-interface Expense {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  competenceDate: string;
-  dueDate: string;
-  paidBy: string;
-  splitMode: SplitMode;
-  splitValues: SplitValue[];
-  installments: number;
-  firstDueDate: string;
-  fixed: boolean;
-}
-
-const MOCK_MEMBERS = ['Ana', 'Carlos', 'Pedro', 'Mariana', 'João'];
-
-const CATEGORIES = [
-  { value: 'aluguel', label: 'Aluguel' },
-  { value: 'energia', label: 'Energia' },
-  { value: 'internet', label: 'Internet' },
-  { value: 'agua', label: 'Água' },
-  { value: 'compras', label: 'Compras' },
-  { value: 'limpeza', label: 'Limpeza' },
-  { value: 'outros', label: 'Outros' },
-];
-
-const MOCK_EXPENSES: Expense[] = [
-  { id: 1, description: 'Conta de luz', amount: 320, category: 'energia', competenceDate: '2025-03-10', dueDate: '2025-04-10', paidBy: 'Ana', splitMode: 'equal', splitValues: MOCK_MEMBERS.map(n => ({ name: n, value: 64 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 2, description: 'Água', amount: 150, category: 'agua', competenceDate: '2025-04-01', dueDate: '2025-05-01', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 50 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 3, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2025-04-05', dueDate: '2025-05-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), installments: 3, firstDueDate: '2025-04-05', fixed: true },
-  { id: 4, description: 'Aluguel', amount: 1800, category: 'aluguel', competenceDate: '2025-05-01', dueDate: '2026-06-05', paidBy: 'Pedro', splitMode: 'equal', splitValues: MOCK_MEMBERS.map(n => ({ name: n, value: 360 })), installments: 1, firstDueDate: '', fixed: true },
-  { id: 5, description: 'Compras mercado', amount: 580, category: 'compras', competenceDate: '2025-05-20', dueDate: '2025-06-01', paidBy: 'Pedro', splitMode: 'equal', splitValues: MOCK_MEMBERS.map(n => ({ name: n, value: 116 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 6, description: 'Material de limpeza', amount: 95, category: 'limpeza', competenceDate: '2025-05-22', dueDate: '2025-06-20', paidBy: 'Ana', splitMode: 'some', splitValues: ['Ana', 'Pedro'].map(n => ({ name: n, value: 47.5 })), installments: 2, firstDueDate: '2025-05-22', fixed: false },
-  { id: 7, description: 'Conta de luz', amount: 340, category: 'energia', competenceDate: '2026-05-01', dueDate: '2026-06-10', paidBy: 'Ana', splitMode: 'equal', splitValues: MOCK_MEMBERS.map(n => ({ name: n, value: 68 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 8, description: 'Água', amount: 155, category: 'agua', competenceDate: '2026-05-05', dueDate: '2026-06-15', paidBy: 'Carlos', splitMode: 'some', splitValues: ['Ana', 'Carlos', 'Pedro'].map(n => ({ name: n, value: 51.67 })), installments: 1, firstDueDate: '', fixed: false },
-  { id: 9, description: 'Internet', amount: 200, category: 'internet', competenceDate: '2026-05-10', dueDate: '2026-06-05', paidBy: 'Mariana', splitMode: 'some', splitValues: ['Mariana', 'João'].map(n => ({ name: n, value: 100 })), installments: 3, firstDueDate: '2026-05-10', fixed: true },
-  { id: 10, description: 'Mercado do mês', amount: 620, category: 'compras', competenceDate: '2026-06-01', dueDate: '2026-06-25', paidBy: 'Pedro', splitMode: 'equal', splitValues: MOCK_MEMBERS.map(n => ({ name: n, value: 124 })), installments: 1, firstDueDate: '', fixed: false },
-];
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -158,11 +112,12 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
   `,
 })
 export class HistoricoPage {
+  private mockData = inject(MockDataService);
   private readonly today = new Date();
   protected readonly selectedYear = signal(this.today.getFullYear());
   protected readonly selectedMonth = signal(this.today.getMonth()); 
 
-  private readonly allExpenses = [...MOCK_EXPENSES];
+  private readonly allExpenses = this.mockData.historicalExpenses;
 
   private readonly minDate = new Date(Math.min(...this.allExpenses.map(e => new Date(e.competenceDate + 'T00:00:00').getTime())));
   private readonly minYear = this.minDate.getFullYear();
@@ -245,11 +200,11 @@ export class HistoricoPage {
   }
 
   categoryLabel(value: string): string {
-    return CATEGORIES.find(c => c.value === value)?.label ?? value;
+    return this.mockData.CATEGORIES.find(c => c.value === value)?.label ?? value;
   }
 
-  splitModeLabel(mode: SplitMode): string {
-    const map: Record<SplitMode, string> = { equal: 'Igualitário', some: 'Parcial', custom: 'Personalizado' };
+  splitModeLabel(mode: string): string {
+    const map: Record<string, string> = { equal: 'Igualitário', some: 'Parcial', custom: 'Personalizado' };
     return map[mode] ?? '';
   }
 }

@@ -13,18 +13,18 @@ export interface Notification {
   relatedId?: number;
 }
 
-export const CURRENT_USER = 'Carlos';
-export const ADMIN_USER = 'Ana';
+export const CURRENT_USER = 'Carlos Silva';
+export const ADMIN_USER = 'Ana Oliveira';
 
 const MOCK_NOTIFICATIONS: Notification[] = [
-  { id: 1, type: 'expense', title: 'Nova despesa', message: 'Conta de luz — sua parte: R$ 64,00', read: false, createdAt: '2026-06-01T10:00:00', recipient: 'Carlos', relatedId: 1 },
-  { id: 2, type: 'expense', title: 'Nova despesa', message: 'Água — sua parte: R$ 50,00', read: false, createdAt: '2026-06-01T09:00:00', recipient: 'Carlos', relatedId: 2 },
-  { id: 3, type: 'debt_reminder', title: 'Lembrete de dívida', message: 'Conta de luz venceu há 3 dias. Sua parte: R$ 64,00', read: false, createdAt: '2026-05-31T08:00:00', recipient: 'Carlos', relatedId: 1 },
-  { id: 4, type: 'task_reminder', title: 'Tarefa próxima do prazo', message: 'Limpar a cozinha vence amanhã!', read: false, createdAt: '2026-06-01T07:00:00', recipient: 'Carlos', relatedId: 1 },
-  { id: 5, type: 'task_overdue', title: 'Tarefa atrasada', message: 'Limpar área externa está atrasada — atribuída a Pedro', read: true, createdAt: '2026-05-30T06:00:00', recipient: 'Ana', relatedId: 6 },
-  { id: 6, type: 'expense', title: 'Nova despesa', message: 'Internet — sua parte: R$ 100,00', read: true, createdAt: '2026-05-28T14:00:00', recipient: 'Carlos', relatedId: 3 },
-  { id: 7, type: 'expense', title: 'Nova despesa', message: 'Mercado do mês — sua parte: R$ 116,00', read: true, createdAt: '2026-05-25T11:00:00', recipient: 'Pedro', relatedId: 4 },
-  { id: 8, type: 'debt_reminder', title: 'Lembrete de dívida', message: 'Água venceu há 5 dias. Sua parte: R$ 50,00', read: true, createdAt: '2026-05-28T08:00:00', recipient: 'Carlos', relatedId: 2 },
+  { id: 1, type: 'expense', title: 'Nova despesa', message: 'Conta de luz — sua parte: R$ 64,00', read: false, createdAt: '2026-06-01T10:00:00', recipient: 'Carlos Silva', relatedId: 1 },
+  { id: 2, type: 'expense', title: 'Nova despesa', message: 'Água — sua parte: R$ 50,00', read: false, createdAt: '2026-06-01T09:00:00', recipient: 'Carlos Silva', relatedId: 2 },
+  { id: 3, type: 'debt_reminder', title: 'Lembrete de dívida', message: 'Conta de luz venceu há 3 dias. Sua parte: R$ 64,00', read: false, createdAt: '2026-05-31T08:00:00', recipient: 'Carlos Silva', relatedId: 1 },
+  { id: 4, type: 'task_reminder', title: 'Tarefa próxima do prazo', message: 'Limpar a cozinha vence amanhã!', read: false, createdAt: '2026-06-01T07:00:00', recipient: 'Carlos Silva', relatedId: 1 },
+  { id: 5, type: 'task_overdue', title: 'Tarefa atrasada', message: 'Limpar área externa está atrasada — atribuída a Pedro Santos', read: true, createdAt: '2026-05-30T06:00:00', recipient: 'Ana Oliveira', relatedId: 6 },
+  { id: 6, type: 'expense', title: 'Nova despesa', message: 'Internet — sua parte: R$ 100,00', read: true, createdAt: '2026-05-28T14:00:00', recipient: 'Carlos Silva', relatedId: 3 },
+  { id: 7, type: 'expense', title: 'Nova despesa', message: 'Mercado do mês — sua parte: R$ 116,00', read: true, createdAt: '2026-05-25T11:00:00', recipient: 'Pedro Santos', relatedId: 4 },
+  { id: 8, type: 'debt_reminder', title: 'Lembrete de dívida', message: 'Água venceu há 5 dias. Sua parte: R$ 50,00', read: true, createdAt: '2026-05-28T08:00:00', recipient: 'Carlos Silva', relatedId: 2 },
 ];
 
 export const NOTIFICATION_CONFIG = {

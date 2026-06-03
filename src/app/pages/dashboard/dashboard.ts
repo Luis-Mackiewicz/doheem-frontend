@@ -42,11 +42,11 @@ const MOCK_GROUPS: { id: number; name: string }[] = [
 ];
 
 const MOCK_RESIDENTS: ResidentBalance[] = [
-  { name: 'Carlos', owes: 150, toReceive: 0 },
-  { name: 'Ana', owes: 0, toReceive: 200 },
-  { name: 'Pedro', owes: 80, toReceive: 50 },
-  { name: 'Mariana', owes: 0, toReceive: 120 },
-  { name: 'João', owes: 300, toReceive: 0 },
+  { name: 'Carlos Silva', owes: 150, toReceive: 0 },
+  { name: 'Ana Oliveira', owes: 0, toReceive: 200 },
+  { name: 'Pedro Santos', owes: 80, toReceive: 50 },
+  { name: 'Mariana Costa', owes: 0, toReceive: 120 },
+  { name: 'João Pereira', owes: 300, toReceive: 0 },
 ];
 
 const MOCK_EXPENSES: RecentExpense[] = [
@@ -81,7 +81,7 @@ const MOCK_TASKS: TaskItem[] = [
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideArrowDown class="w-4 h-4 text-orange-400"></svg>
+            <svg lucideArrowDown class="w-4 h-4 text-red-400"></svg>
             <p class="text-secondary text-sm font-medium">Você deve</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ 150,00</p>
