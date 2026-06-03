@@ -116,7 +116,7 @@ const MOCK_PAYMENTS: Payment[] = [
         </div>
       </div>
 
-      <app-busca placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
+      <app-search placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
 
       <!-- List -->
       <div class="flex-1 flex flex-col gap-4 min-h-0">
@@ -197,7 +197,7 @@ const MOCK_PAYMENTS: Payment[] = [
         }
       </div>
 
-      <app-paginacao [currentPage]="currentPage()" [totalPages]="totalFilteredPages()" (pageChange)="goToPage($event)" />
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalFilteredPages()" (pageChange)="goToPage($event)" />
     </div>
 
     <!-- Modal -->

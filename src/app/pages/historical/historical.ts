@@ -101,7 +101,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         </div>
       </div>
 
-      <app-busca placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
+      <app-search placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-4 min-h-0">
         @if (searchedExpenses().length > 0) {
@@ -143,7 +143,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
               </div>
             </div>
           }
-          <app-paginacao [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+          <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">

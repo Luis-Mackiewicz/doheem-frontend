@@ -108,7 +108,7 @@ const MOCK_GROUPS: Group[] = [
     </section>
 
     @if (showCriarModal()) {
-      <app-modal-criar-grupo (close)="showCriarModal.set(false)" (created)="onGroupCreated($event)" />
+      <app-modal-create-group (close)="showCriarModal.set(false)" (created)="onGroupCreated($event)" />
     }
   `,
 })

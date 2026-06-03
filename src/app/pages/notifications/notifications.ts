@@ -40,7 +40,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
         }
       </div>
 
-      <app-busca placeholder="Pesquisar notificações..." (searchChange)="onSearch($event)" />
+      <app-search placeholder="Pesquisar notificações..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-3 min-h-0">
         @if (filteredNotifications().length > 0) {
@@ -79,7 +79,7 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
               </div>
             </div>
           }
-          <app-paginacao [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
+          <app-paginator [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
         } @else {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">

@@ -4,7 +4,7 @@ import { CardComponent } from '../card/card';
 import { ButtonComponent } from '../button/button';
 
 @Component({
-  selector: 'app-modal-criar-grupo',
+  selector: 'app-modal-create-group',
   imports: [FormsModule, CardComponent, ButtonComponent],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">

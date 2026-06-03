@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
 
 @Component({
-  selector: 'app-paginacao',
+  selector: 'app-paginator',
   imports: [LucideChevronLeft, LucideChevronRight],
   template: `
     @if (totalPages > 1) {

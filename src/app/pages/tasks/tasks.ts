@@ -50,7 +50,7 @@ const STATUS_CONFIG = {
 };
 
 @Component({
-  selector: 'app-tarefas',
+  selector: 'app-tasks',
   imports: [FormsModule, DatePipe, ButtonComponent,
     LucideClipboardList, LucideRefreshCw, LucideCircleCheck,
     LucideChevronLeft, LucideChevronRight, LucideTrash2,

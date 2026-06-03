@@ -8,7 +8,7 @@ import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 
 @Component({
-  selector: 'app-perfil',
+  selector: 'app-profile',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
   template: `
     <section class="h-dvh bg-page overflow-y-auto">

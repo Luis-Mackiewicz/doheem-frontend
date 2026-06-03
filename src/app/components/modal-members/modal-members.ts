@@ -19,7 +19,7 @@ const MEMBROS: Membro[] = [
 ];
 
 @Component({
-  selector: 'app-modal-membros',
+  selector: 'app-modal-members',
   imports: [LucideSearch, LucideCopy, LucideCheck, LucideX],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">

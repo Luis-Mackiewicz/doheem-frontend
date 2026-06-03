@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { LucideSearch } from '@lucide/angular';
 
 @Component({
-  selector: 'app-busca',
+  selector: 'app-search',
   imports: [LucideSearch],
   template: `
     <div class="relative">

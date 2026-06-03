@@ -200,7 +200,7 @@ import {
      </nav>
 
     @if (showModal()) {
-      <app-modal-membros (close)="showModal.set(false)" />
+      <app-modal-members (close)="showModal.set(false)" />
     }
   `,
 })

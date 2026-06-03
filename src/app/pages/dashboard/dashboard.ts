@@ -84,14 +84,14 @@ const MOCK_TASKS: TaskItem[] = [
             <svg lucideArrowDown class="w-4 h-4 text-orange-400"></svg>
             <p class="text-secondary text-sm font-medium">Você deve</p>
           </div>
-          <p class="text-2xl font-bold text-orange-400">R$ 150,00</p>
+          <p class="text-2xl font-bold text-primary">R$ 150,00</p>
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
             <svg lucideArrowUp class="w-4 h-4 text-green-400"></svg>
             <p class="text-secondary text-sm font-medium">Você tem a receber</p>
           </div>
-          <p class="text-2xl font-bold text-green-400">R$ 120,00</p>
+          <p class="text-2xl font-bold text-primary">R$ 120,00</p>
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
