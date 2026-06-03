@@ -3,7 +3,9 @@ import { Injectable, signal } from '@angular/core';
 export interface Membro {
   nome: string;
   telefone: string;
+  email: string;
   admin: boolean;
+  fotoBase64?: string;
 }
 
 export interface SplitValue {
@@ -58,14 +60,22 @@ export interface ResidentBalance {
   toReceive: number;
 }
 
+export interface Group {
+  id: number;
+  name: string;
+  members: number;
+  monthlyFee: number;
+  imagemBase64?: string;
+}
+
 const MEMBROS_INICIAIS: Membro[] = [
-  { nome: 'Carlos Silva', telefone: '(11) 99999-0001', admin: false },
-  { nome: 'Ana Oliveira', telefone: '(11) 99999-0002', admin: true },
-  { nome: 'Pedro Santos', telefone: '(11) 99999-0003', admin: false },
-  { nome: 'Mariana Costa', telefone: '(11) 99999-0004', admin: false },
-  { nome: 'João Pereira', telefone: '(11) 99999-0005', admin: false },
-  { nome: 'Fernanda Lima', telefone: '(11) 99999-0006', admin: false },
-  { nome: 'Rafael Souza', telefone: '(11) 99999-0007', admin: false },
+  { nome: 'Carlos Silva', telefone: '(11) 99999-0001', email: 'carlos.silva@email.com', admin: false },
+  { nome: 'Ana Oliveira', telefone: '(11) 99999-0002', email: 'ana.oliveira@email.com', admin: true },
+  { nome: 'Pedro Santos', telefone: '(11) 99999-0003', email: 'pedro.santos@email.com', admin: false },
+  { nome: 'Mariana Costa', telefone: '(11) 99999-0004', email: 'mariana.costa@email.com', admin: false },
+  { nome: 'João Pereira', telefone: '(11) 99999-0005', email: 'joao.pereira@email.com', admin: false },
+  { nome: 'Fernanda Lima', telefone: '(11) 99999-0006', email: 'fernanda.lima@email.com', admin: false },
+  { nome: 'Rafael Souza', telefone: '(11) 99999-0007', email: 'rafael.souza@email.com', admin: false },
 ];
 
 const MOCK_EXPENSES: Expense[] = [
@@ -112,6 +122,19 @@ const MOCK_TASKS: Task[] = [
   { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos Silva', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-23', dueDate: '2026-05-30' },
 ];
 
+const MOCK_GROUPS: Group[] = [
+  { id: 1, name: 'República Solaris', members: 12, monthlyFee: 450 },
+  { id: 2, name: 'Casa do Estudante', members: 8, monthlyFee: 320 },
+  { id: 3, name: 'Alojamento Universitário', members: 5, monthlyFee: 280 },
+  { id: 4, name: 'República Bela Vista', members: 10, monthlyFee: 520 },
+  { id: 5, name: 'Pensionato Central', members: 6, monthlyFee: 390 },
+  { id: 6, name: 'Kitnet Compartilhada', members: 4, monthlyFee: 250 },
+  { id: 7, name: 'Casa da Praia', members: 7, monthlyFee: 600 },
+  { id: 8, name: 'República Aurora', members: 9, monthlyFee: 410 },
+  { id: 9, name: 'Alojamento Rural', members: 3, monthlyFee: 200 },
+  { id: 10, name: 'Vila Estudantil', members: 15, monthlyFee: 350 },
+];
+
 @Injectable({ providedIn: 'root' })
 export class MockDataService {
   readonly CURRENT_USER: string = 'Carlos Silva';
@@ -149,6 +172,21 @@ export class MockDataService {
     { name: 'João Pereira', owes: 300, toReceive: 0 },
   ];
 
+  readonly groupsSignal = signal<Group[]>([...MOCK_GROUPS]);
+  readonly groups = this.groupsSignal.asReadonly();
+
+  criarGrupo(data: { nome: string; descricao: string; moeda: string; imagemBase64: string }): number {
+    const newId = Math.max(...this.groupsSignal().map(g => g.id), 0) + 1;
+    this.groupsSignal.update(list => [...list, {
+      id: newId,
+      name: data.nome,
+      members: 1,
+      monthlyFee: 0,
+      imagemBase64: data.imagemBase64 || undefined,
+    }]);
+    return newId;
+  }
+
   temDividasPendentes(nome: string): boolean {
     for (const expense of this.expensesSignal()) {
       if (expense.paidBy === nome) continue;
@@ -178,6 +216,24 @@ export class MockDataService {
   promoverParaAdmin(nome: string): void {
     this.membrosSignal.update(list =>
       list.map(m => m.nome === nome ? { ...m, admin: true } : m)
+    );
+  }
+
+  atualizarTelefone(nome: string, telefone: string): void {
+    this.membrosSignal.update(list =>
+      list.map(m => m.nome === nome ? { ...m, telefone } : m)
+    );
+  }
+
+  atualizarEmail(nome: string, email: string): void {
+    this.membrosSignal.update(list =>
+      list.map(m => m.nome === nome ? { ...m, email } : m)
+    );
+  }
+
+  atualizarFoto(nome: string, fotoBase64: string): void {
+    this.membrosSignal.update(list =>
+      list.map(m => m.nome === nome ? { ...m, fotoBase64 } : m)
     );
   }
 }

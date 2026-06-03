@@ -55,7 +55,7 @@ import {
       <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideDollarSign class="w-5 h-5 text-purple-300"></svg></div>
+            <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center"><svg lucideDollarSign class="w-5 h-5"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
               <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
@@ -75,13 +75,13 @@ import {
               <div class="flex items-start gap-4 min-w-0 flex-1">
                 <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
                   @switch (e.category) {
-                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-purple-300"></svg> }
-                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-purple-300"></svg> }
-                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-purple-300"></svg> }
-                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-purple-300"></svg> }
-                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-purple-300"></svg> }
-                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-purple-300"></svg> }
-                    @default { <svg lucidePackage class="w-5 h-5 text-purple-300"></svg> }
+                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @default { <svg lucidePackage class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
                   }
                 </div>
                 <div class="min-w-0 flex-1">
@@ -89,10 +89,10 @@ import {
                     <p class="text-primary font-semibold truncate">{{ e.description }}</p>
                     <div class="flex items-center gap-1.5">
                       @if (e.installments > 1) {
-                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
+                        <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
                       }
                       @if (e.fixed) {
-                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
+                        <span class="text-[10px] font-medium badge-amber px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
                       }
                     </div>
                   </div>
@@ -108,7 +108,7 @@ import {
                         }
                         {{ sv.name }} R$ {{ fmt(sv.value) }}
                         @if (getPayment(e.id, sv.name)?.receiptBase64) {
-                          <button (click)="expandReceipt.set(getPayment(e.id, sv.name)!.receiptBase64!)" class="text-purple-400 hover:text-purple-300 transition cursor-pointer"><svg lucideImage class="w-3 h-3"></svg></button>
+                          <button (click)="expandReceipt.set(getPayment(e.id, sv.name)!.receiptBase64!)" class="text-[var(--badge-purple)] hover:text-[var(--badge-purple)] transition cursor-pointer"><svg lucideImage class="w-3 h-3"></svg></button>
                         }
                       </span>
                     }
@@ -417,8 +417,8 @@ import {
                           <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-theme mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
                         }
                         <div class="flex gap-2 mt-3">
-                          <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideCheck class="w-3 h-3"></svg> Aprovar</button>
-                          <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideX class="w-3 h-3"></svg> Rejeitar</button>
+                          <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium badge-emerald px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideCheck class="w-3 h-3"></svg> Aprovar</button>
+                          <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium badge-rose px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideX class="w-3 h-3"></svg> Rejeitar</button>
                         </div>
                       </div>
                     }

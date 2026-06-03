@@ -1,7 +1,8 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, computed, input, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
+import { MockDataService } from '../../services/mock-data.service';
 import {
   LucideLayoutDashboard,
   LucideDollarSign,
@@ -18,38 +19,28 @@ import {
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive,
     LucideLayoutDashboard, LucideDollarSign, LucideListTodo, LucideHistory,
-    LucideBell, LucideUsers, LucideWallet, LucideUser, LucideArrowLeft,
+  LucideBell, LucideUsers, LucideWallet,
+  LucideArrowLeft,
   ],
   template: `
-    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 transition-colors"
-      [class.bg-page]="theme.theme() === 'dark'"
-      [class.bg-card]="theme.theme() === 'light'"
-      [class.border-r]="true"
-      [class.border-white/10]="theme.theme() === 'dark'"
-      [class.border-theme]="theme.theme() === 'light'">
-      <a routerLink="/" class="flex items-center gap-3 px-6 py-5 cursor-pointer"
-        [class.border-b]="true"
-        [class.border-white/10]="theme.theme() === 'dark'"
-        [class.border-theme]="theme.theme() === 'light'">
-        <img src="doheem_logo.png" alt="Doheem" class="h-7 w-auto rounded-full" />
-        <span class="font-bold text-lg tracking-tight"
-          [class.text-white]="theme.theme() === 'dark'"
-          [class.text-primary]="theme.theme() === 'light'">Doheem</span>
+    <!-- Desktop sidebar -->
+    <aside class="hidden lg:flex fixed left-0 top-0 h-dvh w-64 flex-col z-40 bg-page border-r border-theme transition-colors">
+      <a routerLink="/" class="flex items-center gap-3 px-6 py-5 cursor-pointer border-b border-theme">
+        <img src="doheem_logo.png" alt="Doheem" class="h-7 w-auto rounded-xl" />
+        <div class="min-w-0">
+          <span class="font-bold text-lg tracking-tight text-primary block truncate">Doheem</span>
+          <span class="text-muted text-[10px] font-medium truncate block">{{ groupName() }}</span>
+        </div>
       </a>
 
-      <nav class="flex flex-col gap-1 p-3">
-        @for (item of navItems; track item.path) {
+      <nav aria-label="Navegação principal" class="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
+        @for (item of navItems(); track item.path) {
           <a [routerLink]="item.path"
              [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
              [routerLinkActiveOptions]="{exact: item.exact}"
-             class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
-             [class.text-white/60]="theme.theme() === 'dark'"
-             [class.text-secondary]="theme.theme() === 'light'"
-             [class.hover:text-white]="theme.theme() === 'dark'"
-             [class.hover:text-primary]="theme.theme() === 'light'"
-             [class.hover:bg-white/5]="theme.theme() === 'dark'"
-             [class.hover-bg]="theme.theme() === 'light'">
-             <span class="text-lg leading-none">
+             aria-current="page"
+             class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-secondary hover-text-primary hover-bg">
+             <span class="text-lg leading-none" aria-hidden="true">
                 @switch (item.label) {
                   @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                   @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
@@ -68,92 +59,52 @@ import {
          }
        </nav>
 
-      <hr class="mx-4"
-        [class.border-white/10]="theme.theme() === 'dark'"
-        [class.border-theme]="theme.theme() === 'light'" />
+      <hr class="mx-4 border-theme" />
       <div class="p-3">
         <a routerLink="/perfil"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
-          [class.text-white/60]="theme.theme() === 'dark'"
-          [class.text-secondary]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'"
-          [class.hover:bg-white/5]="theme.theme() === 'dark'"
-          [class.hover-bg]="theme.theme() === 'light'">
-          <svg lucideUser class="w-5 h-5 shrink-0"></svg>
-          Perfil
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-secondary hover-text-primary hover-bg">
+          <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold shrink-0" aria-hidden="true">{{ userInitials }}</div>
+          <span>{{ CURRENT_USER }}</span>
         </a>
       </div>
-      <hr class="mx-4"
-        [class.border-white/10]="theme.theme() === 'dark'"
-        [class.border-theme]="theme.theme() === 'light'" />
+      <hr class="mx-4 border-theme" />
       <div class="p-3">
         <a [routerLink]="['/groups']"
-          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium"
-          [class.text-white/40]="theme.theme() === 'dark'"
-          [class.text-muted]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'"
-          [class.hover:bg-white/5]="theme.theme() === 'dark'"
-          [class.hover-bg]="theme.theme() === 'light'">
-          <svg lucideArrowLeft class="w-5 h-5 shrink-0"></svg>
+          class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-muted hover-text-primary hover-bg">
+          <svg lucideArrowLeft class="w-5 h-5 shrink-0" aria-hidden="true"></svg>
           Voltar aos grupos
         </a>
       </div>
     </aside>
 
     <!-- Mobile top bar -->
-    <div class="flex lg:hidden fixed top-0 left-0 right-0 z-40 backdrop-blur-xl items-center justify-between px-4 py-3 transition-colors"
-      [class.bg-page/95]="theme.theme() === 'dark'"
-      [class.bg-page/95]="theme.theme() === 'light'"
-      [class.border-b]="true"
-      [class.border-white/10]="theme.theme() === 'dark'"
-      [class.border-theme]="theme.theme() === 'light'">
+    <div class="flex lg:hidden fixed top-0 left-0 right-0 z-40 bg-page/95 backdrop-blur-xl items-center justify-between px-4 py-3 border-b border-theme transition-colors">
       <a [routerLink]="['/groups']"
-        class="flex items-center gap-2 transition text-sm font-medium"
-        [class.text-white/60]="theme.theme() === 'dark'"
-        [class.text-secondary]="theme.theme() === 'light'"
-        [class.hover:text-white]="theme.theme() === 'dark'"
-        [class.hover:text-primary]="theme.theme() === 'light'">
-         <svg lucideArrowLeft class="w-5 h-5 shrink-0"></svg>
+        class="flex items-center gap-2 transition text-sm font-medium text-secondary hover-text-primary">
+         <svg lucideArrowLeft class="w-5 h-5 shrink-0" aria-hidden="true"></svg>
          Voltar
        </a>
        <div class="flex items-center gap-2">
         <img src="doheem_logo.png" alt="Doheem" class="h-6 w-auto rounded-full" />
-        <span class="font-bold text-sm"
-          [class.text-white]="theme.theme() === 'dark'"
-          [class.text-primary]="theme.theme() === 'light'">Doheem</span>
+        <span class="font-bold text-sm text-primary">Doheem</span>
       </div>
       <div class="flex items-center gap-3">
          <a routerLink="/perfil"
-           class="transition cursor-pointer"
-           [class.text-white/60]="theme.theme() === 'dark'"
-           [class.text-secondary]="theme.theme() === 'light'"
-           [class.hover:text-white]="theme.theme() === 'dark'"
-           [class.hover:text-primary]="theme.theme() === 'light'">
-           <svg lucideUser class="w-5 h-5"></svg>
+           class="transition cursor-pointer text-secondary hover-text-primary">
+           <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold" aria-hidden="true">{{ userInitials }}</div>
          </a>
        </div>
     </div>
 
     <!-- Mobile bottom nav -->
-    <nav class="flex lg:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t px-1 pb-[env(safe-area-inset-bottom,0px)] transition-colors"
-      [class.bg-page/95]="theme.theme() === 'dark'"
-      [class.bg-page/95]="theme.theme() === 'light'"
-      [class.border-white/10]="theme.theme() === 'dark'"
-      [class.border-theme]="theme.theme() === 'light'">
-      @for (item of navItems; track item.path; let i = $index) {
+    <nav aria-label="Navegação principal" class="flex lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-page/95 backdrop-blur-xl border-t border-theme px-1 pb-[env(safe-area-inset-bottom,0px)] transition-colors">
+      @for (item of navItems(); track item.path; let i = $index) {
         <a [routerLink]="item.path"
           [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
           [routerLinkActiveOptions]="{exact: item.exact}"
-          class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0"
-          [class.text-white/50]="theme.theme() === 'dark'"
-          [class.text-muted]="theme.theme() === 'light'"
-          [class.hover:text-white]="theme.theme() === 'dark'"
-          [class.hover:text-primary]="theme.theme() === 'light'"
-          [class.hover:bg-white/5]="theme.theme() === 'dark'"
-          [class.hover-bg]="theme.theme() === 'light'">
-          <span class="text-lg leading-none relative">
+          aria-current="page"
+          class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0 text-muted hover-text-primary hover-bg">
+          <span class="text-lg leading-none relative" aria-hidden="true">
               @switch (item.label) {
                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
@@ -172,14 +123,9 @@ import {
       }
       <a routerLink="/perfil"
         [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
-        class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0"
-        [class.text-white/50]="theme.theme() === 'dark'"
-        [class.text-muted]="theme.theme() === 'light'"
-        [class.hover:text-white]="theme.theme() === 'dark'"
-        [class.hover:text-primary]="theme.theme() === 'light'"
-        [class.hover:bg-white/5]="theme.theme() === 'dark'"
-        [class.hover-bg]="theme.theme() === 'light'">
-         <svg lucideUser class="w-5 h-5"></svg>
+        aria-current="page"
+        class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0 text-muted hover-text-primary hover-bg">
+         <div class="w-5 h-5 rounded-full badge-purple flex items-center justify-center text-[9px] font-bold" aria-hidden="true">{{ userInitials }}</div>
          <span class="truncate w-full text-center">Perfil</span>
        </a>
      </nav>
@@ -187,20 +133,26 @@ import {
   `,
 })
 export class SidebarComponent {
-  @Input() groupId!: string;
+  readonly groupId = input('');
 
   protected theme = inject(ThemeService);
   protected notif = inject(NotificationService);
 
-  get navItems() {
-    return [
-      { path: `/groups/${this.groupId}/dashboard`, label: 'Dashboard', exact: true },
-      { path: `/groups/${this.groupId}/saldos`, label: 'Saldos', exact: false },
-      { path: `/groups/${this.groupId}/financeiro`, label: 'Financeiro', exact: false },
-      { path: `/groups/${this.groupId}/membros`, label: 'Membros', exact: false },
-      { path: `/groups/${this.groupId}/tarefas`, label: 'Tarefas', exact: false },
-      { path: `/groups/${this.groupId}/historico`, label: 'Histórico', exact: false },
-      { path: `/groups/${this.groupId}/notificacoes`, label: 'Notificações', exact: false },
-    ];
+  protected readonly CURRENT_USER = inject(MockDataService).CURRENT_USER;
+
+  protected get userInitials(): string {
+    return this.CURRENT_USER.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
+
+  protected readonly groupName = computed(() => `Grupo ${this.groupId()}`);
+
+  protected readonly navItems = computed(() => [
+    { path: `/groups/${this.groupId()}/dashboard`, label: 'Dashboard', exact: true },
+    { path: `/groups/${this.groupId()}/saldos`, label: 'Saldos', exact: false },
+    { path: `/groups/${this.groupId()}/financeiro`, label: 'Financeiro', exact: false },
+    { path: `/groups/${this.groupId()}/membros`, label: 'Membros', exact: false },
+    { path: `/groups/${this.groupId()}/tarefas`, label: 'Tarefas', exact: false },
+    { path: `/groups/${this.groupId()}/historico`, label: 'Histórico', exact: false },
+    { path: `/groups/${this.groupId()}/notificacoes`, label: 'Notificações', exact: false },
+  ]);
 }

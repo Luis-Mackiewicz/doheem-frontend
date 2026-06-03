@@ -1,26 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
+import { NotificationService } from '../../services/notification-service';
 
 @Component({
   selector: 'app-register',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
   template: `
-    <section class="h-dvh bg-page overflow-y-auto">
+    <section class="min-h-dvh bg-page overflow-y-auto transition-colors duration-150">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
 
         <app-card>
-          <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
-            ←
+          <a routerLink="/" aria-label="Voltar" class="text-secondary hover-text-primary text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
+            ← Voltar
           </a>
 
-          <div class="flex gap-1 bg-violet-900/10 rounded-xl p-1 mb-8">
-            <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover:text-primary hover:bg-white/5 transition">Login</a>
-            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Registrar</span>
+          <div class="flex gap-1 bg-card border border-theme rounded-xl p-1 mb-8">
+            <a routerLink="/login" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover-text-primary hover-bg transition">Login</a>
+            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-page text-primary">Registrar</span>
           </div>
 
           <button type="button" class="inline-flex items-center justify-center gap-3 border border-theme text-primary font-semibold px-8 py-3 rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer w-full mb-4">
@@ -30,7 +31,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Entrar com Google
+            Criar conta com Google
           </button>
 
           <div class="flex items-center gap-3 mb-4">
@@ -44,35 +45,47 @@ import { PasswordInputComponent } from '../../components/password-input/password
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Nome
               <input formControlName="name" type="text" placeholder="Seu nome"
-                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition" />
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition" />
             </label>
+            @if (submitted() && form.controls['name'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Nome deve ter ao menos 3 caracteres</p>
+            }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Telefone
-              <app-phone-input (phoneChange)="onPhoneChange($event)" />
+              <app-phone-input [value]="phone()" (phoneChange)="onPhoneChange($event)" />
             </label>
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Email
               <input formControlName="email" type="email" placeholder="seu@email.com"
-                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition" />
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition" />
             </label>
+            @if (submitted() && form.controls['email'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe um email válido</p>
+            }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Senha
               <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
             </label>
+            @if (submitted() && form.controls['password'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Senha deve ter no mínimo 6 caracteres</p>
+            }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Confirmar senha
               <app-password-input [value]="form.get('confirmPassword')?.value ?? ''" (valueChange)="form.get('confirmPassword')?.setValue($event)" />
             </label>
+            @if (submitted() && form.errors?.['mismatch']) {
+              <p class="text-red-400 text-xs -mt-3">Senhas não conferem</p>
+            }
 
-            <app-button type="submit" variant="solid" label="Criar conta"></app-button>
+            <app-button type="submit" variant="solid" label="Criar conta" [disabled]="submitted() && form.invalid || loading()" [loading]="loading()"></app-button>
 
             <p class="text-center text-secondary text-sm">
               Já tem conta?
-              <a routerLink="/login" class="text-violet-900 font-semibold hover:underline">Entrar</a>
+              <a routerLink="/login" class="text-purple-300 font-semibold hover:underline">Entrar</a>
             </p>
 
           </form>
@@ -84,11 +97,17 @@ import { PasswordInputComponent } from '../../components/password-input/password
 })
 export class RegisterPage {
   protected form;
-  protected phone = '';
+  protected readonly phone = signal('');
+  protected readonly loading = signal(false);
+  protected readonly submitted = signal(false);
 
-  constructor(private fb: FormBuilder) {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private notif = inject(NotificationService);
+
+  constructor() {
     this.form = this.fb.group({
-      name: ['', Validators.required],
+      name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
@@ -102,11 +121,20 @@ export class RegisterPage {
   }
 
   onPhoneChange(value: string): void {
-    this.phone = value;
+    this.phone.set(value);
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    console.log('Register:', { ...this.form.value, phone: this.phone });
+    this.submitted.set(true);
+    if (this.form.invalid || this.loading()) return;
+
+    this.loading.set(true);
+    this.notif.add('info', 'Conta criada',
+      `Bem-vindo, ${this.form.value.name}! Sua conta foi criada com sucesso.`,
+      this.form.value.name ?? '');
+    setTimeout(() => {
+      this.loading.set(false);
+      this.router.navigate(['/groups']);
+    }, 600);
   }
 }

@@ -1,25 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CardComponent } from '../../components/card/card';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
+import { NotificationService } from '../../services/notification-service';
 
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PasswordInputComponent],
   template: `
-    <section class="h-dvh bg-page overflow-y-auto">
+    <section class="min-h-dvh bg-page overflow-y-auto transition-colors duration-150">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
 
         <app-card>
-          <a routerLink="/" class="text-secondary hover:text-primary text-sm flex items-center gap-1.5 mb-6 transition">
-            ← 
+          <a routerLink="/" aria-label="Voltar" class="text-secondary hover-text-primary text-sm flex items-center gap-1.5 mb-6 transition cursor-pointer">
+            ← Voltar
           </a>
 
-          <div class="flex gap-1 bg-violet-900/10 rounded-xl p-1 mb-8">
-            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-white/65 text-purple-dark">Login</span>
-            <a routerLink="/register" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover:text-primary hover:bg-white/5 transition">Registrar</a>
+          <div class="flex gap-1 bg-card border border-theme rounded-xl p-1 mb-8">
+            <span class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold bg-page text-primary">Login</span>
+            <a routerLink="/register" class="flex-1 text-center rounded-lg px-4 py-2 text-sm font-semibold text-secondary hover-text-primary hover-bg transition">Registrar</a>
           </div>
 
           <button type="button" class="inline-flex items-center justify-center gap-3 border border-theme text-primary font-semibold px-8 py-3 rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer w-full mb-4">
@@ -43,19 +44,25 @@ import { PasswordInputComponent } from '../../components/password-input/password
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Email ou telefone
               <input formControlName="credential" type="text" placeholder="entrar com email ou telefone"
-                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-white/50 transition" />
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition" />
             </label>
+            @if (submitted() && form.controls['credential'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe seu email ou telefone</p>
+            }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Senha
               <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
             </label>
+            @if (submitted() && form.controls['password'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe sua senha</p>
+            }
 
-            <app-button type="submit" variant="solid" label="Entrar"></app-button>
+            <app-button type="submit" variant="solid" label="Entrar" [disabled]="submitted() && form.invalid || loading()" [loading]="loading()"></app-button>
 
             <p class="text-center text-secondary text-sm">
               Não tem conta?
-              <a routerLink="/register" class="text-violet-600 font-semibold hover:underline">Registrar</a>
+              <a routerLink="/register" class="text-purple-300 font-semibold hover:underline">Registrar</a>
             </p>
 
           </form>
@@ -67,8 +74,14 @@ import { PasswordInputComponent } from '../../components/password-input/password
 })
 export class LoginPage {
   protected form;
+  protected readonly loading = signal(false);
+  protected readonly submitted = signal(false);
 
-  constructor(private fb: FormBuilder) {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private notif = inject(NotificationService);
+
+  constructor() {
     this.form = this.fb.group({
       credential: ['', Validators.required],
       password: ['', Validators.required],
@@ -76,7 +89,14 @@ export class LoginPage {
   }
 
   onSubmit(): void {
-    if (this.form.invalid) return;
-    console.log('Login:', this.form.value);
+    this.submitted.set(true);
+    if (this.form.invalid || this.loading()) return;
+
+    this.loading.set(true);
+    this.notif.add('info', 'Bem-vindo de volta', 'Login realizado com sucesso', 'Carlos Silva');
+    setTimeout(() => {
+      this.loading.set(false);
+      this.router.navigate(['/groups']);
+    }, 600);
   }
 }

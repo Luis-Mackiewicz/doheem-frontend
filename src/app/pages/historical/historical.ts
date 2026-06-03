@@ -1,5 +1,4 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { BuscaComponent } from '../../components/busca/busca';
 import { MockDataService, Payment } from '../../services/mock-data.service';
@@ -20,11 +19,9 @@ import {
   LucideImage,
 } from '@lucide/angular';
 
-const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
 @Component({
   selector: 'app-historico',
-  imports: [DatePipe, PaginacaoComponent, BuscaComponent,
+  imports: [PaginacaoComponent, BuscaComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
     LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage,
@@ -36,18 +33,20 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
       </div>
 
       <div class="flex items-center justify-between rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
-        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" [class.hover:text-white/60]="atMinMonth()" class="text-secondary hover:text-primary transition px-2 cursor-pointer"><svg lucideChevronLeft class="w-5 h-5"></svg></button>
+        <button (click)="prevMonth()" [class.opacity-40]="atMinMonth()" [class.cursor-not-allowed]="atMinMonth()" aria-label="Mês anterior"
+          class="text-secondary hover-text-primary transition px-2 cursor-pointer"><svg lucideChevronLeft class="w-5 h-5"></svg></button>
         <div class="flex items-center gap-3">
           <span class="text-primary font-bold text-lg">{{ selectedMonthName() }}</span>
           <span class="text-secondary text-sm">{{ selectedYear() }}</span>
         </div>
-        <button (click)="nextMonth()" class="text-secondary hover:text-primary transition px-2 cursor-pointer"><svg lucideChevronRight class="w-5 h-5"></svg></button>
+        <button (click)="nextMonth()" aria-label="Próximo mês"
+          class="text-secondary hover-text-primary transition px-2 cursor-pointer"><svg lucideChevronRight class="w-5 h-5"></svg></button>
       </div>
 
       <div class="rounded-2xl bg-card border border-theme p-6 shadow-lg shadow-black/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideHistory class="w-5 h-5 text-purple-300"></svg></div>
+            <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center"><svg lucideHistory class="w-5 h-5"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
               <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(monthlyTotal()) }}</p>
@@ -60,73 +59,70 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
       <app-search placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-4 min-h-0">
-        @if (searchedExpenses().length > 0) {
-          @for (e of paginatedExpenses(); track e.id) {
-            <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex items-start gap-4 min-w-0 flex-1">
-                  <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
-                    @switch (e.category) {
-                      @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-purple-300"></svg> }
-                      @case ('energia') { <svg lucideZap class="w-5 h-5 text-purple-300"></svg> }
-                      @case ('internet') { <svg lucideWifi class="w-5 h-5 text-purple-300"></svg> }
-                      @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-purple-300"></svg> }
-                      @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-purple-300"></svg> }
-                      @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-purple-300"></svg> }
-                      @default { <svg lucidePackage class="w-5 h-5 text-purple-300"></svg> }
-                    }
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <p class="text-primary font-semibold truncate">{{ e.description }}</p>
-                      @if (e.installments > 1) {
-                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
-                      }
-                      @if (e.fixed) {
-                        <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
-                      }
-                    </div>
-                    <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'dd/MM/yyyy' }} · Pago por {{ e.paidBy }}</p>
-                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-                      <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
-                      @for (sv of e.splitValues; track sv.name) {
-                        <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ fmt(sv.value) }}</span>
-                      }
-                    </div>
-                  </div>
-                </div>
-                <span class="text-primary font-bold text-lg shrink-0">R$ {{ fmt(e.amount) }}</span>
-              </div>
-              @if (paymentsForExpense(e.id).length > 0) {
-                <div class="border-t border-theme mt-4 pt-4">
-                  <p class="text-secondary text-xs font-medium mb-3 flex items-center gap-1.5"><svg lucideCheckCircle class="w-3.5 h-3.5 text-emerald-400"></svg> Comprovantes</p>
-                  @for (p of paymentsForExpense(e.id); track p.memberName) {
-                    <div class="flex items-start gap-3 rounded-xl bg-card-strong p-3 mb-2 last:mb-0">
-                      @if (p.receiptBase64) {
-                        <img [src]="p.receiptBase64" class="w-12 h-12 rounded-lg object-cover border border-theme shrink-0 cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(p.receiptBase64)" />
-                      } @else {
-                        <div class="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-dashed border-amber-500/30"><svg lucideImage class="w-5 h-5 text-amber-400/60"></svg></div>
-                      }
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="text-primary text-sm font-semibold">{{ p.memberName }}</span>
-                          <span class="text-muted text-[11px]">{{ p.paidAt }}</span>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap mt-0.5">
-                          <span class="text-secondary text-xs">R$ {{ fmt(paymentAmount(e, p)) }}</span>
-                          @if (p.approvedBy) {
-                            <span class="text-[11px] text-emerald-400/80">Aprovado por {{ p.approvedBy }}</span>
-                          }
-                        </div>
-                      </div>
-                    </div>
+        @for (e of paginatedExpenses(); track e.id) {
+          <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 hover:bg-card-hover transition">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start gap-4 min-w-0 flex-1">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
+                  @switch (e.category) {
+                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @default { <svg lucidePackage class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
                   }
                 </div>
-              }
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <p class="text-primary font-semibold truncate">{{ e.description }}</p>
+                    @if (e.installments > 1) {
+                      <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
+                    }
+                    @if (e.fixed) {
+                      <span class="text-[10px] font-medium badge-amber px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
+                    }
+                  </div>
+                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ monthLabel(e.competenceDate) }} · Pago por {{ e.paidBy }}</p>
+                  <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span class="text-[11px] bg-card-hover text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
+                    @for (sv of e.splitValues; track sv.name) {
+                      <span class="text-[11px] bg-card-hover text-secondary px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ fmt(sv.value) }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+              <span class="text-primary font-bold text-lg shrink-0">R$ {{ fmt(e.amount) }}</span>
             </div>
-          }
-          <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
-        } @else {
+            @if (paymentsByExpense().get(e.id)?.length) {
+              <div class="border-t border-theme mt-4 pt-4">
+                <p class="text-secondary text-xs font-medium mb-3 flex items-center gap-1.5"><svg lucideCheckCircle class="w-3.5 h-3.5 text-emerald-400"></svg> Comprovantes</p>
+                @for (p of paymentsByExpense().get(e.id)!; track p.memberName) {
+                  <div class="flex items-start gap-3 rounded-xl bg-card-strong p-3 mb-2 last:mb-0">
+                    @if (p.receiptBase64) {
+                      <img [src]="p.receiptBase64" class="w-12 h-12 rounded-lg object-cover border border-theme shrink-0 cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(p.receiptBase64)" />
+                    } @else {
+                      <div class="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-dashed border-amber-500/30"><svg lucideImage class="w-5 h-5 text-amber-400/60"></svg></div>
+                    }
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-primary text-sm font-semibold">{{ p.memberName }}</span>
+                        <span class="text-muted text-[11px]">{{ p.paidAt }}</span>
+                      </div>
+                      <div class="flex items-center gap-2 flex-wrap mt-0.5">
+                        <span class="text-secondary text-xs">R$ {{ fmt(paymentAmount(e, p)) }}</span>
+                        @if (p.approvedBy) {
+                          <span class="text-[11px] text-emerald-400/80">Aprovado por {{ p.approvedBy }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @empty {
           <div class="flex-1 flex items-center justify-center">
             <div class="text-center">
               <svg lucideInbox class="w-10 h-10 text-muted mb-3 mx-auto"></svg>
@@ -134,6 +130,9 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
               <p class="text-muted text-sm mt-1">Não houve despesas registradas em {{ selectedMonthName() }} de {{ selectedYear() }}</p>
             </div>
           </div>
+        }
+        @if (paginatedExpenses().length > 0) {
+          <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
         }
       </div>
     </div>
@@ -157,9 +156,16 @@ export class HistoricoPage {
   protected expandReceipt = signal('');
   protected readonly payments = this.mockData.payments;
 
-  protected paymentsForExpense(expenseId: number): Payment[] {
-    return this.payments().filter(p => p.expenseId === expenseId && (p.status === 'approved' || p.status === 'awaiting'));
-  }
+  protected readonly paymentsByExpense = computed(() => {
+    const map = new Map<number, Payment[]>();
+    for (const p of this.payments()) {
+      if (p.status !== 'approved' && p.status !== 'awaiting') continue;
+      const list = map.get(p.expenseId) ?? [];
+      list.push(p);
+      map.set(p.expenseId, list);
+    }
+    return map;
+  });
 
   protected paymentAmount(expense: { splitValues: { name: string; value: number }[] }, payment: Payment): number {
     return expense.splitValues.find(sv => sv.name === payment.memberName)?.value ?? 0;
@@ -176,7 +182,10 @@ export class HistoricoPage {
 
   protected readonly atMinMonth = computed(() => this.selectedYear() === this.minYear && this.selectedMonth() === this.minMonth);
 
-  protected readonly selectedMonthName = computed(() => MONTHS[this.selectedMonth()]);
+  protected readonly selectedMonthName = computed(() => {
+    const d = new Date(this.selectedYear(), this.selectedMonth());
+    return d.toLocaleDateString('pt-BR', { month: 'long' });
+  });
 
   protected readonly monthlyExpenses = computed(() => {
     return this.allExpenses.filter(e => {
@@ -217,6 +226,11 @@ export class HistoricoPage {
   protected readonly totalPages = computed(() =>
     Math.ceil(this.searchedExpenses().length / this.pageSize)
   );
+
+  protected monthLabel(dateStr: string): string {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
 
   protected onSearch(value: string): void {
     this.searchQuery.set(value);
