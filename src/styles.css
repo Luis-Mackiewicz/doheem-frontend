@@ -16,10 +16,13 @@
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.50);
   --text-muted: rgba(255, 255, 255, 0.30);
+  --text-accent: #a78bfa;
   --border-theme: rgba(255, 255, 255, 0.15);
   --border-soft: rgba(255, 255, 255, 0.07);
   --bg-input: rgba(255, 255, 255, 0.10);
   --hover-bg: rgba(255, 255, 255, 0.05);
+  --btn-disabled-bg: rgba(255, 255, 255, 0.10);
+  --btn-disabled-text: rgba(255, 255, 255, 0.30);
   --badge-amber: #fcd34d;
   --badge-amber-bg: rgba(245, 158, 11, 0.15);
   --badge-purple: #c4b5fd;
@@ -40,10 +43,13 @@
   --text-primary: #1a1a2e;
   --text-secondary: #6b6b80;
   --text-muted: #9ca3af;
+  --text-accent: #5b21b6;
   --border-theme: rgba(139, 92, 246, 0.30);
   --border-soft: rgba(139, 92, 246, 0.12);
   --bg-input: #ede9fe;
   --hover-bg: rgba(139, 92, 246, 0.06);
+  --btn-disabled-bg: rgba(0, 0, 0, 0.06);
+  --btn-disabled-text: rgba(0, 0, 0, 0.30);
   --badge-amber: #92400e;
   --badge-amber-bg: rgba(245, 158, 11, 0.15);
   --badge-purple: #6d28d9;
@@ -63,9 +69,12 @@
 .text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
+.text-accent { color: var(--text-accent); }
 .border-theme { border-color: var(--border-theme); }
 .border-soft { border-color: var(--border-soft); }
 .bg-input { background-color: var(--bg-input); }
+.bg-btn-disabled { background-color: var(--btn-disabled-bg); }
+.text-btn-disabled { color: var(--btn-disabled-text); }
 .hover-bg:hover { background-color: var(--hover-bg); }
 .hover-text-primary:hover { color: var(--text-primary); }
 
@@ -76,6 +85,45 @@
 .badge-blue { color: var(--badge-blue); background-color: var(--badge-blue-bg); }
 
 [data-theme="light"] .shadow-custom { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05); }
+
+/* skip to content */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--text-accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  transition: top 0.15s;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+/* scroll animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
 
 /* sticky pagination helper */
 .min-h-page { min-height: calc(100% - 2rem); }

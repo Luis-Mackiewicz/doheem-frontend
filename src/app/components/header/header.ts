@@ -7,7 +7,7 @@ import { ThemeService } from '../../services/theme-service';
   imports: [RouterLink],
   template: `
     <header class="fixed top-0 left-0 w-full z-50 backdrop-blur-xl border-b"
-      [class.bg-neutal-950]="theme.theme() === 'dark'"
+      [class.bg-neutral-950]="theme.theme() === 'dark'"
       [class.bg-violet-950]="theme.theme() === 'light'"
       [class.border-white/10]="theme.theme() === 'dark'"
       [class.border-black/10]="theme.theme() === 'light'">
@@ -42,6 +42,7 @@ export class HeaderComponent {
   protected navLinks = [
     { id: 'inicio', label: 'Início' },
     { id: 'sobre', label: 'Sobre' },
+    { id: 'depoimentos', label: 'Depoimentos' },
     { id: 'app', label: 'App' },
   ];
 
