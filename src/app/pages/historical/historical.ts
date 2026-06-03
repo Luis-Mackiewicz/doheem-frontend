@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { PaginacaoComponent } from '../../components/paginator/paginator';
 import { BuscaComponent } from '../../components/busca/busca';
-import { MockDataService } from '../../services/mock-data.service';
+import { MockDataService, Payment } from '../../services/mock-data.service';
 import {
   LucideHouse,
   LucideZap,
@@ -16,6 +16,8 @@ import {
   LucideHistory,
   LucidePin,
   LucideInbox,
+  LucideCheckCircle,
+  LucideImage,
 } from '@lucide/angular';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -25,7 +27,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
   imports: [DatePipe, PaginacaoComponent, BuscaComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
-    LucideHistory, LucidePin, LucideInbox,
+    LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full transition-colors duration-150">
@@ -48,7 +50,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideHistory class="w-5 h-5 text-purple-300"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
-              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ monthlyTotal().toFixed(2) }}</p>
+              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(monthlyTotal()) }}</p>
             </div>
           </div>
           <span class="text-muted text-xs border border-theme rounded-lg px-2.5 py-1">{{ monthlyExpenses().length }} despesas</span>
@@ -78,7 +80,7 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
                     <div class="flex items-center gap-2 flex-wrap">
                       <p class="text-primary font-semibold truncate">{{ e.description }}</p>
                       @if (e.installments > 1) {
-                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
+                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
                       }
                       @if (e.fixed) {
                         <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
@@ -88,13 +90,39 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
                     <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                       <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                       @for (sv of e.splitValues; track sv.name) {
-                        <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ sv.value.toFixed(2) }}</span>
+                        <span class="text-[11px] bg-white/10 text-secondary px-2 py-0.5 rounded-full">{{ sv.name }} R$ {{ fmt(sv.value) }}</span>
                       }
                     </div>
                   </div>
                 </div>
-                <span class="text-primary font-bold text-lg shrink-0">R$ {{ e.amount.toFixed(2) }}</span>
+                <span class="text-primary font-bold text-lg shrink-0">R$ {{ fmt(e.amount) }}</span>
               </div>
+              @if (paymentsForExpense(e.id).length > 0) {
+                <div class="border-t border-theme mt-4 pt-4">
+                  <p class="text-secondary text-xs font-medium mb-3 flex items-center gap-1.5"><svg lucideCheckCircle class="w-3.5 h-3.5 text-emerald-400"></svg> Comprovantes</p>
+                  @for (p of paymentsForExpense(e.id); track p.memberName) {
+                    <div class="flex items-start gap-3 rounded-xl bg-card-strong p-3 mb-2 last:mb-0">
+                      @if (p.receiptBase64) {
+                        <img [src]="p.receiptBase64" class="w-12 h-12 rounded-lg object-cover border border-theme shrink-0 cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(p.receiptBase64)" />
+                      } @else {
+                        <div class="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-dashed border-amber-500/30"><svg lucideImage class="w-5 h-5 text-amber-400/60"></svg></div>
+                      }
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="text-primary text-sm font-semibold">{{ p.memberName }}</span>
+                          <span class="text-muted text-[11px]">{{ p.paidAt }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap mt-0.5">
+                          <span class="text-secondary text-xs">R$ {{ fmt(paymentAmount(e, p)) }}</span>
+                          @if (p.approvedBy) {
+                            <span class="text-[11px] text-emerald-400/80">Aprovado por {{ p.approvedBy }}</span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
           <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
@@ -109,11 +137,34 @@ const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Jul
         }
       </div>
     </div>
+
+    <!-- Receipt expand -->
+    @if (expandReceipt(); as url) {
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-60 p-4" (click)="expandReceipt.set('')">
+        <img [src]="url" class="max-w-full max-h-full object-contain rounded-2xl" (click)="$event.stopPropagation()" />
+      </div>
+    }
   `,
 })
 export class HistoricoPage {
   private mockData = inject(MockDataService);
   private readonly today = new Date();
+
+  protected fmt(val: number): string {
+    return val.toFixed(2).replace('.', ',');
+  }
+
+  protected expandReceipt = signal('');
+  protected readonly payments = this.mockData.payments;
+
+  protected paymentsForExpense(expenseId: number): Payment[] {
+    return this.payments().filter(p => p.expenseId === expenseId && (p.status === 'approved' || p.status === 'awaiting'));
+  }
+
+  protected paymentAmount(expense: { splitValues: { name: string; value: number }[] }, payment: Payment): number {
+    return expense.splitValues.find(sv => sv.name === payment.memberName)?.value ?? 0;
+  }
+
   protected readonly selectedYear = signal(this.today.getFullYear());
   protected readonly selectedMonth = signal(this.today.getMonth()); 
 

@@ -126,14 +126,15 @@ const MOCK_TASKS: TaskItem[] = [
                     <td class="py-3 text-primary font-medium">{{ r.name }}</td>
                     <td class="py-3 text-right">
                       @if (r.owes > 0) {
-                        <span class="text-primary">R$ {{ r.owes.toFixed(2) }}</span>
+                        <span class="text-primary">R$ {{ fmt(r.owes) }}</span>
+
                       } @else {
                         <span class="text-muted">—</span>
                       }
                     </td>
                     <td class="py-3 text-right">
                       @if (r.toReceive > 0) {
-                        <span class="text-primary">R$ {{ r.toReceive.toFixed(2) }}</span>
+                        <span class="text-primary">R$ {{ fmt(r.toReceive) }}</span>
                       } @else {
                         <span class="text-muted">—</span>
                       }
@@ -178,7 +179,7 @@ const MOCK_TASKS: TaskItem[] = [
                     <p class="text-primary text-sm">{{ e.description }}</p>
                     <p class="text-muted text-xs">{{ e.paidBy }} · {{ e.date }}</p>
                   </div>
-                  <span class="text-primary font-medium text-sm">R$ {{ e.amount.toFixed(2) }}</span>
+                  <span class="text-primary font-medium text-sm">R$ {{ fmt(e.amount) }}</span>
                 </div>
               }
             </div>
@@ -196,6 +197,10 @@ export class DashboardPage {
     this.groupId = route.parent?.snapshot.paramMap.get('id') ?? '';
     const id = Number(this.groupId);
     this.groupName = MOCK_GROUPS.find(g => g.id === id)?.name ?? 'Dashboard';
+  }
+
+  protected fmt(val: number): string {
+    return val.toFixed(2).replace('.', ',');
   }
 
   protected residents = MOCK_RESIDENTS;

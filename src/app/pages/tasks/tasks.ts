@@ -9,8 +9,6 @@ import {
   LucideClipboardList,
   LucideRefreshCw,
   LucideCircleCheck,
-  LucideChevronLeft,
-  LucideChevronRight,
   LucideTrash2,
   LucidePen,
   LucideTriangleAlert,
@@ -27,7 +25,7 @@ const STATUS_CONFIG = {
   selector: 'app-tasks',
   imports: [FormsModule, DatePipe, ButtonComponent,
     LucideClipboardList, LucideRefreshCw, LucideCircleCheck,
-    LucideChevronLeft, LucideChevronRight, LucideTrash2, LucidePen,
+    LucideTrash2, LucidePen,
     LucideTriangleAlert, LucideX,
   ],
   template: `
@@ -57,11 +55,17 @@ const STATUS_CONFIG = {
             </div>
 
             <!-- Column body -->
-            <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
+            <div class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto"
+              (dragover)="onDragOver($event)" (dragenter)="onDragEnter(s)" (dragleave)="onDragLeave(s, $event)" (drop)="onDrop(s)"
+              [class.ring-2]="dragOverStatus() === s"
+              [class.ring-purple-500/50]="dragOverStatus() === s"
+              [class.rounded-xl]="dragOverStatus() === s">
               @if (tasksByStatus(s).length > 0) {
                 @for (t of tasksByStatus(s); track t.id) {
-                    <div (click)="openDetail(t)" class="rounded-xl bg-card-strong border border-theme p-4 hover:bg-card-hover transition shadow-md cursor-pointer"
-                      [class.border-rose-500/40]="isOverdue(t)">
+                    <div draggable="true" (dragstart)="onDragStart(t.id, $event)" (dragend)="onDragEnd()"
+                      (click)="openDetail(t)" class="rounded-xl bg-card-strong border border-theme p-4 hover:bg-card-hover transition shadow-md cursor-pointer"
+                      [class.border-rose-500/40]="isOverdue(t)"
+                      [class.opacity-40]="draggedTaskId() === t.id">
                      <div class="flex items-start justify-between gap-3">
                        <div class="min-w-0 flex-1">
                          <p class="text-primary font-medium text-sm leading-snug">{{ t.title }}</p>
@@ -76,58 +80,32 @@ const STATUS_CONFIG = {
                            <span class="text-[11px] text-muted">{{ t.createdAt | date:'dd/MM' }}</span>
                          </div>
                        </div>
-                       <div class="flex flex-col items-center gap-0.5 shrink-0" (click)="$event.stopPropagation()">
-                          <div class="flex items-center gap-1">
-                            @if (canEdit(t)) {
-                              <button (click)="openEdit(t)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
-                                [class.bg-white/10]="theme.theme() === 'dark'"
-                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
-                                [class.text-white/60]="theme.theme() === 'dark'"
-                                [class.hover:text-white]="theme.theme() === 'dark'"
-                                [class.bg-gray-100]="theme.theme() === 'light'"
-                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
-                                [class.text-gray-600]="theme.theme() === 'light'"
-                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
-                            }
-                            @if (canDelete(t)) {
-                              <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
-                                [class.bg-red-500/10]="theme.theme() === 'dark'"
-                                [class.hover:bg-red-500/25]="theme.theme() === 'dark'"
-                                [class.text-red-400]="theme.theme() === 'dark'"
-                                [class.hover:text-red-300]="theme.theme() === 'dark'"
-                                [class.bg-red-100]="theme.theme() === 'light'"
-                                [class.hover:bg-red-200]="theme.theme() === 'light'"
-                                [class.text-red-600]="theme.theme() === 'light'"
-                                [class.hover:text-red-700]="theme.theme() === 'light'"><svg lucideTrash2 class="w-4 h-4"></svg></button>
-                             }
-                          </div>
-                          <div class="flex items-center gap-1">
-                            @if (s !== 'todo') {
-                              <button (click)="moveTask(t.id, -1)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
-                                [class.bg-white/10]="theme.theme() === 'dark'"
-                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
-                                [class.text-white/60]="theme.theme() === 'dark'"
-                                [class.hover:text-white]="theme.theme() === 'dark'"
-                                [class.bg-gray-100]="theme.theme() === 'light'"
-                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
-                                [class.text-gray-600]="theme.theme() === 'light'"
-                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucideChevronLeft class="w-4 h-4"></svg></button>
-                            }
-                            @if (s !== 'done') {
-                              <button (click)="moveTask(t.id, 1)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
-                                [class.bg-white/10]="theme.theme() === 'dark'"
-                                [class.hover:bg-white/20]="theme.theme() === 'dark'"
-                                [class.text-white/60]="theme.theme() === 'dark'"
-                                [class.hover:text-white]="theme.theme() === 'dark'"
-                                [class.bg-gray-100]="theme.theme() === 'light'"
-                                [class.hover:bg-gray-200]="theme.theme() === 'light'"
-                                [class.text-gray-600]="theme.theme() === 'light'"
-                                [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucideChevronRight class="w-4 h-4"></svg></button>
-                            }
-                          </div>
+                       <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
+                         @if (canEdit(t)) {
+                           <button (click)="openEdit(t)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                             [class.bg-white/10]="theme.theme() === 'dark'"
+                             [class.hover:bg-white/20]="theme.theme() === 'dark'"
+                             [class.text-white/60]="theme.theme() === 'dark'"
+                             [class.hover:text-white]="theme.theme() === 'dark'"
+                             [class.bg-gray-100]="theme.theme() === 'light'"
+                             [class.hover:bg-gray-200]="theme.theme() === 'light'"
+                             [class.text-gray-600]="theme.theme() === 'light'"
+                             [class.hover:text-gray-900]="theme.theme() === 'light'"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
+                         }
+                         @if (canDelete(t)) {
+                           <button (click)="deleteTask(t.id)" class="w-7 h-7 flex items-center justify-center rounded-lg transition cursor-pointer"
+                             [class.bg-red-500/10]="theme.theme() === 'dark'"
+                             [class.hover:bg-red-500/25]="theme.theme() === 'dark'"
+                             [class.text-red-400]="theme.theme() === 'dark'"
+                             [class.hover:text-red-300]="theme.theme() === 'dark'"
+                             [class.bg-red-100]="theme.theme() === 'light'"
+                             [class.hover:bg-red-200]="theme.theme() === 'light'"
+                             [class.text-red-600]="theme.theme() === 'light'"
+                             [class.hover:text-red-700]="theme.theme() === 'light'"><svg lucideTrash2 class="w-4 h-4"></svg></button>
+                         }
                        </div>
                      </div>
-                   </div>
+                    </div>
                  }
                } @else {
                 <div class="flex-1 flex items-center justify-center">
@@ -263,7 +241,7 @@ const STATUS_CONFIG = {
             </div>
             <div>
               <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
-              <input #editDueDate type="date" [value]="t.dueDate" [min]="today"
+              <input #editDueDate type="date" [value]="t.dueDate" [min]="t.createdAt"
                 class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm" />
             </div>
             <div class="flex justify-end gap-3 mt-2">
@@ -314,6 +292,8 @@ export class TarefasPage {
   protected selectedTask = signal<Task | undefined>(undefined);
   protected editingTask = signal<Task | undefined>(undefined);
   protected taskToDelete = signal<number | undefined>(undefined);
+  protected draggedTaskId = signal<number | null>(null);
+  protected dragOverStatus = signal<TaskStatus | null>(null);
 
   constructor() {
     this.checkOverdueTasks();
@@ -343,16 +323,41 @@ export class TarefasPage {
 
   private nextId = computed(() => Math.max(...this.tasksSignal().map(t => t.id), 0) + 1);
 
-  moveTask(id: number, direction: -1 | 1): void {
-    this.tasksSignal.update(list => {
-      const order: TaskStatus[] = ['todo', 'doing', 'done'];
-      return list.map(t => {
-        if (t.id !== id) return t;
-        const idx = order.indexOf(t.status);
-        const newIdx = Math.max(0, Math.min(order.length - 1, idx + direction));
-        return { ...t, status: order[newIdx] };
-      });
-    });
+  protected onDragStart(id: number, e: DragEvent): void {
+    this.draggedTaskId.set(id);
+    e.dataTransfer?.setData('text/plain', String(id));
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+  }
+
+  protected onDragEnd(): void {
+    this.draggedTaskId.set(null);
+    this.dragOverStatus.set(null);
+  }
+
+  protected onDragOver(e: DragEvent): void {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+  }
+
+  protected onDragEnter(status: TaskStatus): void {
+    this.dragOverStatus.set(status);
+  }
+
+  protected onDragLeave(status: TaskStatus, e: DragEvent): void {
+    const container = e.currentTarget as HTMLElement | null;
+    const related = e.relatedTarget as HTMLElement | null;
+    if (container && related && container.contains(related)) return;
+    if (this.dragOverStatus() === status) this.dragOverStatus.set(null);
+  }
+
+  protected onDrop(targetStatus: TaskStatus): void {
+    const id = this.draggedTaskId();
+    if (id === null) return;
+    this.tasksSignal.update(list =>
+      list.map(t => t.id === id ? { ...t, status: targetStatus } : t)
+    );
+    this.draggedTaskId.set(null);
+    this.dragOverStatus.set(null);
   }
 
   openCreate(): void {

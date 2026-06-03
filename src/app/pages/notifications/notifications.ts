@@ -33,10 +33,16 @@ const TYPE_CONFIG: Record<NotificationType, { color: string; bg: string }> = {
           <h1 class="text-3xl font-bold text-primary tracking-tight">Notificações</h1>
         </div>
         @if (filteredNotifications().length > 0) {
-          <button (click)="markAllAsRead()"
-            class="text-xs font-medium text-secondary hover:text-primary border border-theme rounded-lg px-3 py-1.5 transition cursor-pointer">
-            Marcar todas como lidas
-          </button>
+          <div class="flex gap-2">
+            <button (click)="markAllAsRead()"
+              class="text-xs font-medium text-secondary hover:text-primary border border-theme rounded-lg px-3 py-1.5 transition cursor-pointer">
+              Marcar todas como lidas
+            </button>
+            <button (click)="clearAll()"
+              class="text-xs font-medium text-rose-400 hover:text-rose-300 border border-theme rounded-lg px-3 py-1.5 transition cursor-pointer">
+              Limpar todas
+            </button>
+          </div>
         }
       </div>
 
@@ -134,6 +140,11 @@ export class NotificacoesPage {
 
   protected markAllAsRead(): void {
     this.svc.markAllAsRead();
+    this.currentPage.set(1);
+  }
+
+  protected clearAll(): void {
+    this.svc.clearAll();
     this.currentPage.set(1);
   }
 }

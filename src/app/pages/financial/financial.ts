@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
@@ -23,6 +23,7 @@ import {
   LucidePackage,
   LucideClock,
   LucideCircleCheck,
+  LucideImage,
 } from '@lucide/angular';
 
 @Component({
@@ -30,15 +31,24 @@ import {
   imports: [FormsModule, ButtonComponent, DatePipe, PaginacaoComponent, BuscaComponent,
     LucideDollarSign, LucidePin, LucideBell, LucideCheck,
     LucideX, LucidePen, LucideTrash2, LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
-    LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
+    LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck, LucideImage,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Financeiro</h1>
+          <p class="text-muted text-sm mt-0.5">{{ monthLabel() }}</p>
         </div>
-        <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
+        <div class="flex items-center gap-2">
+          @if (totalPendingCount() > 0) {
+            <button (click)="showPendingModal.set(true)" class="relative w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center hover:bg-amber-500/25 transition cursor-pointer">
+              <svg lucideBell class="w-5 h-5 text-amber-400"></svg>
+              <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ totalPendingCount() }}</span>
+            </button>
+          }
+          <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
+        </div>
       </div>
 
       <!-- Total -->
@@ -48,7 +58,7 @@ import {
             <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center"><svg lucideDollarSign class="w-5 h-5 text-purple-300"></svg></div>
             <div>
               <p class="text-secondary text-sm font-medium">Total do mês</p>
-              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ totalAmount().toFixed(2) }}</p>
+              <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
             </div>
           </div>
           <span class="text-muted text-xs border border-theme rounded-lg px-2.5 py-1">{{ expenses().length }} despesas</span>
@@ -79,14 +89,14 @@ import {
                     <p class="text-primary font-semibold truncate">{{ e.description }}</p>
                     <div class="flex items-center gap-1.5">
                       @if (e.installments > 1) {
-                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ (e.amount / e.installments).toFixed(2) }}</span>
+                        <span class="text-[10px] font-medium bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
                       }
                       @if (e.fixed) {
                         <span class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
                       }
                     </div>
                   </div>
-                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'MMM/yyyy' }} · Pago por {{ e.paidBy }}</p>
+                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ e.competenceDate | date:'dd/MM/yyyy' }} · Pago por {{ e.paidBy }}</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                     <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
@@ -96,7 +106,10 @@ import {
                           @case ('awaiting') { <span class="w-2 h-2 rounded-full bg-amber-400"></span> }
                           @case ('approved') { <span class="w-2 h-2 rounded-full bg-emerald-400"></span> }
                         }
-                        {{ sv.name }} R$ {{ sv.value.toFixed(2) }}
+                        {{ sv.name }} R$ {{ fmt(sv.value) }}
+                        @if (getPayment(e.id, sv.name)?.receiptBase64) {
+                          <button (click)="expandReceipt.set(getPayment(e.id, sv.name)!.receiptBase64!)" class="text-purple-400 hover:text-purple-300 transition cursor-pointer"><svg lucideImage class="w-3 h-3"></svg></button>
+                        }
                       </span>
                     }
                   </div>
@@ -104,28 +117,21 @@ import {
               </div>
               <div class="flex items-center gap-3 shrink-0">
                 <div class="flex flex-col items-end gap-1">
-                  <span class="text-primary font-bold text-lg">R$ {{ e.amount.toFixed(2) }}</span>
+                  <span class="text-primary font-bold text-lg">R$ {{ fmt(e.amount) }}</span>
                   @if (myPaymentStatus(e.id); as p) {
-                    @if (p.status === 'pending') {
-                      <button (click)="openPayModal(e)" class="text-[10px] font-medium bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full hover:bg-emerald-500/30 transition cursor-pointer">Pagar</button>
-                    } @else if (p.status === 'awaiting') {
+                    @if (p.status === 'awaiting') {
                       <span class="text-[10px] text-amber-400 flex items-center gap-1"><svg lucideClock class="w-3 h-3"></svg> Aguardando</span>
                     } @else if (p.status === 'approved') {
                       <span class="text-[10px] text-emerald-400 flex items-center gap-1"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
                     }
+                  } @else {
+                    <app-button type="button" variant="solid" size="small" label="Pagar" (click)="openPayModal(e)"></app-button>
                   }
                 </div>
                 @if (e.paidBy === CURRENT_USER) {
-                  <div class="flex flex-col gap-1">
-                    @if (pendingPaymentsForCreator(e).length; as count) {
-                      <button (click)="openApproveModal(e)" class="text-[10px] font-medium bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full hover:bg-amber-500/30 transition cursor-pointer whitespace-nowrap flex items-center gap-1">
-                        <svg lucideBell class="w-3 h-3"></svg> {{ count }} pendente{{ count > 1 ? 's' : '' }}
-                      </button>
-                    }
-                    <div class="flex gap-1">
-                      <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucidePen class="w-4 h-4"></svg></button>
-                      <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
-                    </div>
+                  <div class="flex gap-1">
+                    <button (click)="openEdit(e)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucidePen class="w-4 h-4"></svg></button>
+                    <button (click)="confirmDelete(e)" class="text-muted hover:text-rose-400 transition cursor-pointer"><svg lucideTrash2 class="w-4 h-4"></svg></button>
                   </div>
                 }
               </div>
@@ -156,6 +162,9 @@ import {
                 Descrição
                 <input type="text" placeholder="Ex: Conta de luz" [(ngModel)]="form.description"
                   class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full" />
+                @if (submitted() && !form.description.trim()) {
+                  <span class="text-rose-400 text-xs mt-1">A descrição é obrigatória</span>
+                }
               </label>
 
               <div class="grid grid-cols-2 gap-4">
@@ -202,6 +211,9 @@ import {
                   Parcelas
                   <input type="number" min="1" step="1" [(ngModel)]="form.installments" (input)="onInstallmentsChange()"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                  @if (form.installments < 1) {
+                    <span class="text-rose-400 text-xs mt-1">O número de parcelas deve ser no mínimo 1</span>
+                  }
                 </label>
                 @if (form.installments > 1) {
                   <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
@@ -212,7 +224,7 @@ import {
                 }
               </div>
               @if (form.installments > 1 && form.amount > 0) {
-                <p class="text-secondary text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ (form.amount / form.installments).toFixed(2) }}</p>
+                <p class="text-secondary text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ fmt(form.amount / form.installments) }}</p>
               }
 
               <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
@@ -263,7 +275,7 @@ import {
                     @for (sv of computedSplitValues(); track sv.name) {
                       <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
                         <span class="text-primary text-sm">{{ sv.name }}</span>
-                        <span class="text-secondary text-sm font-medium">R$ {{ sv.value.toFixed(2) }}</span>
+                        <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
                       </div>
                     }
                   </div>
@@ -288,7 +300,7 @@ import {
                         </div>
                         <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
                         <span class="text-primary flex-1">{{ m }}</span>
-                        <span class="text-secondary text-xs">R$ {{ someValue(m).toFixed(2) }}</span>
+                        <span class="text-secondary text-xs">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
                       </label>
                     }
                   </div>
@@ -300,7 +312,7 @@ import {
                   <span>Valores por morador</span>
                   @if (submitted() && customTotal() !== form.amount) {
                     <span class="text-rose-400 text-xs">
-                      A soma (R$ {{ customTotal().toFixed(2) }}) deve ser igual ao valor total (R$ {{ form.amount.toFixed(2) }})
+                      A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
                     </span>
                   }
                   <div class="grid grid-cols-2 gap-2 mt-1">
@@ -354,7 +366,7 @@ import {
             <p class="text-secondary text-sm mb-1">{{ e.description }}</p>
             @for (sv of e.splitValues; track sv.name) {
               @if (sv.name === CURRENT_USER) {
-                <p class="text-primary font-semibold text-lg">Sua cota: R$ {{ sv.value.toFixed(2) }}</p>
+                <p class="text-primary font-semibold text-lg">Sua cota: R$ {{ fmt(sv.value) }}</p>
               }
             }
             <div class="mt-4 flex flex-col gap-2">
@@ -376,40 +388,48 @@ import {
       </div>
     }
 
-    <!-- Approval modal -->
-    @if (approveExpense(); as e) {
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeApproveModal()">
-        <div (click)="$event.stopPropagation()" class="w-full max-w-md">
+    <!-- Global approval modal -->
+    @if (showPendingModal()) {
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="showPendingModal.set(false)">
+        <div (click)="$event.stopPropagation()" class="w-full max-w-lg">
           <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-primary font-bold text-lg">Pagamentos pendentes</h2>
-              <button (click)="closeApproveModal()" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
+              <button (click)="showPendingModal.set(false)" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
             </div>
-            <p class="text-secondary text-sm mb-4">{{ e.description }}</p>
-            @for (p of pendingPaymentsForCreator(e); track p.memberName) {
-              <div class="rounded-xl bg-card-strong p-4 mb-3 last:mb-0">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-primary font-semibold">{{ p.memberName }}</span>
-                  <span class="text-secondary text-xs">Pago em {{ p.paidAt }}</span>
-                </div>
-                @for (sv of e.splitValues; track sv.name) {
-                  @if (sv.name === p.memberName) {
-                    <p class="text-secondary text-sm">Valor: R$ {{ sv.value.toFixed(2) }}</p>
-                  }
+            @if (totalPendingCount() > 0) {
+              @for (e of expenses(); track e.id) {
+                @if (pendingPaymentsForCreator(e).length > 0) {
+                  <div class="mb-4 last:mb-0">
+                    <p class="text-secondary text-sm font-medium mb-2">{{ e.description }}</p>
+                    @for (p of pendingPaymentsForCreator(e); track p.memberName) {
+                      <div class="rounded-xl bg-card-strong p-4 mb-2 last:mb-0">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-primary font-semibold">{{ p.memberName }}</span>
+                          <span class="text-secondary text-xs">Pago em {{ p.paidAt }}</span>
+                        </div>
+                        @for (sv of e.splitValues; track sv.name) {
+                          @if (sv.name === p.memberName) {
+                            <p class="text-secondary text-sm">Valor: R$ {{ fmt(sv.value) }}</p>
+                          }
+                        }
+                        @if (p.receiptBase64) {
+                          <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-theme mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
+                        }
+                        <div class="flex gap-2 mt-3">
+                          <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideCheck class="w-3 h-3"></svg> Aprovar</button>
+                          <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideX class="w-3 h-3"></svg> Rejeitar</button>
+                        </div>
+                      </div>
+                    }
+                  </div>
                 }
-                @if (p.receiptBase64) {
-                  <img [src]="p.receiptBase64" class="w-full h-40 object-cover rounded-xl border border-theme mt-2 cursor-pointer" (click)="expandReceipt.set(p.receiptBase64)" />
-                }
-                <div class="flex gap-2 mt-3">
-                  <button (click)="approvePayment(p)" class="flex-1 text-xs font-medium bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg hover:bg-emerald-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideCheck class="w-3 h-3"></svg> Aprovar</button>
-                  <button (click)="rejectPayment(p)" class="flex-1 text-xs font-medium bg-rose-500/20 text-rose-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/30 transition cursor-pointer flex items-center justify-center gap-1"><svg lucideX class="w-3 h-3"></svg> Rejeitar</button>
-                </div>
-              </div>
-            } @empty {
+              }
+            } @else {
               <p class="text-muted text-center py-6">Nenhum pagamento pendente</p>
             }
             <div class="mt-4">
-              <app-button type="button" variant="outline" label="Fechar" (click)="closeApproveModal()"></app-button>
+              <app-button type="button" variant="outline" label="Fechar" (click)="showPendingModal.set(false)"></app-button>
             </div>
           </div>
         </div>
@@ -436,6 +456,21 @@ export class FinanceiroPage {
   ] as const;
 
   protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
+  protected readonly isAdmin = computed(() =>
+    this.mockData.membros().find(m => m.nome === this.CURRENT_USER)?.admin ?? false
+  );
+
+  protected fmt(val: number): string {
+    return val.toFixed(2).replace('.', ',');
+  }
+
+  protected monthLabel(): string {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date());
+  }
 
   protected expenses = signal<Expense[]>([...this.mockData.expenses()]);
   protected payments = signal<Payment[]>([...this.mockData.payments()]);
@@ -443,13 +478,19 @@ export class FinanceiroPage {
   protected editingId = signal<number | null>(null);
   protected deleting = signal<Expense | null>(null);
   protected payingExpense = signal<Expense | null>(null);
-  protected approveExpense = signal<Expense | null>(null);
+  protected showPendingModal = signal(false);
   protected payReceiptBase64 = signal('');
   protected expandReceipt = signal('');
   protected submitted = signal(false);
   protected searchQuery = signal('');
   readonly pageSize = 3;
   readonly currentPage = signal(1);
+
+  protected totalPendingCount = computed(() => {
+    return this.expenses()
+      .filter(e => this.isAdmin || e.paidBy === this.CURRENT_USER)
+      .reduce((sum, e) => sum + this.payments().filter(p => p.expenseId === e.id && p.status === 'awaiting').length, 0);
+  });
 
   readonly filteredExpenses = () => {
     const query = this.searchQuery().toLowerCase();
@@ -513,7 +554,7 @@ export class FinanceiroPage {
         if (payment && payment.status !== 'pending') continue;
         if (!this.notif.canSendReminder(expense.id, sv.name)) continue;
         this.notif.add('debt_reminder', 'Lembrete de dívida',
-          `${expense.description} — venceu há ${daysOverdue} dia(s). Sua parte: R$ ${sv.value.toFixed(2)}`,
+          `${expense.description} — venceu há ${daysOverdue} dia(s). Sua parte: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
           sv.name, expense.id);
         this.notif.registerReminder(expense.id, sv.name);
       }
@@ -582,6 +623,7 @@ export class FinanceiroPage {
 
   onInstallmentsChange(): void {
     if (this.form.installments < 1) this.form.installments = 1;
+    this.form.installments = Math.round(this.form.installments);
     if (this.form.installments <= 1) this.form.firstDueDate = '';
   }
 
@@ -605,6 +647,10 @@ export class FinanceiroPage {
     const p = this.payments().find(p => p.expenseId === expenseId && p.memberName === memberName);
     if (!p) return 'pending';
     return p.status;
+  }
+
+  getPayment(expenseId: number, memberName: string): Payment | undefined {
+    return this.payments().find(p => p.expenseId === expenseId && p.memberName === memberName);
   }
 
   openPayModal(e: Expense): void {
@@ -648,14 +694,14 @@ export class FinanceiroPage {
   }
 
   pendingPaymentsForCreator(expense: Expense): Payment[] {
-    if (expense.paidBy !== this.CURRENT_USER) return [];
+    if (!this.isAdmin && expense.paidBy !== this.CURRENT_USER) return [];
     return this.payments().filter(p => p.expenseId === expense.id && p.status === 'awaiting');
   }
 
   approvePayment(p: Payment): void {
     this.payments.update(list =>
       list.map(p2 => p2.expenseId === p.expenseId && p2.memberName === p.memberName
-        ? { ...p2, status: 'approved' as PaymentStatus } : p2)
+        ? { ...p2, status: 'approved' as PaymentStatus, approvedBy: this.CURRENT_USER } : p2)
     );
   }
 
@@ -670,11 +716,11 @@ export class FinanceiroPage {
   }
 
   openApproveModal(e: Expense): void {
-    this.approveExpense.set(e);
+    this.showPendingModal.set(true);
   }
 
   closeApproveModal(): void {
-    this.approveExpense.set(null);
+    this.showPendingModal.set(false);
   }
 
   onSearch(value: string): void {
@@ -736,7 +782,7 @@ export class FinanceiroPage {
   save(): void {
     this.submitted.set(true);
 
-    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || (this.form.dueDate && this.form.dueDate < this.today)) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || this.form.installments < 1 || (this.form.dueDate && this.form.dueDate < this.today)) return;
 
     let splitValues: SplitValue[] = [];
 
@@ -801,7 +847,7 @@ export class FinanceiroPage {
       for (const sv of splitValues) {
         if (sv.name === expense.paidBy) continue;
         this.notif.add('expense', 'Nova despesa',
-          `${expense.description} — sua parte: R$ ${sv.value.toFixed(2)}`,
+          `${expense.description} — sua parte: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
           sv.name, expense.id);
       }
     }

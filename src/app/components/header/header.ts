@@ -13,7 +13,7 @@ import { ThemeService } from '../../services/theme-service';
       [class.border-black/10]="theme.theme() === 'light'">
       <div class="max-w-6xl mx-auto flex items-center justify-between px-8 py-2">
         <a routerLink="/" class="flex items-center gap-3">
-          <img src="doheem_logo.png" alt="Doheem" class="h-8 w-auto rounded-full" />
+          <img src="doheem_logo.png" alt="Doheem" class="h-8 w-auto rounded-xl" />
           <span class="text-white font-bold text-xl tracking-tight">Doheem</span>
         </a>
 

@@ -60,6 +60,10 @@ export class NotificationService {
     );
   }
 
+  clearAll(): void {
+    this.notificationsSignal.set([]);
+  }
+
   canSendReminder(expenseId: number, memberName: string): boolean {
     const key = `${expenseId}_${memberName}`;
     const entry = this.reminderTracker()[key];

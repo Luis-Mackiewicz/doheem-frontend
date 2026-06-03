@@ -40,14 +40,14 @@ import { LucideUsers } from '@lucide/angular';
                     <td class="py-3.5 text-primary font-medium">{{ r.name }}</td>
                     <td class="py-3.5 text-right">
                       @if (r.owes > 0) {
-                        <span class="text-primary font-medium">R$ {{ r.owes.toFixed(2) }}</span>
+                        <span class="text-primary font-medium">R$ {{ fmt(r.owes) }}</span>
                       } @else {
                         <span class="text-muted">—</span>
                       }
                     </td>
                     <td class="py-3.5 text-right">
                       @if (r.toReceive > 0) {
-                        <span class="text-primary font-medium">R$ {{ r.toReceive.toFixed(2) }}</span>
+                        <span class="text-primary font-medium">R$ {{ fmt(r.toReceive) }}</span>
                       } @else {
                         <span class="text-muted">—</span>
                       }
@@ -70,6 +70,10 @@ import { LucideUsers } from '@lucide/angular';
 export class BalancesPage {
   private mockData = inject(MockDataService);
   protected readonly pageSize = 5;
+
+  protected fmt(val: number): string {
+    return val.toFixed(2).replace('.', ',');
+  }
 
   protected readonly searchQuery = signal('');
   protected readonly currentPage = signal(1);
