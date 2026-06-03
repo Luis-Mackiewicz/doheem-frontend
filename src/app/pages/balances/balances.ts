@@ -8,7 +8,7 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
   selector: 'app-balances',
   imports: [BuscaComponent, PaginacaoComponent, LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet],
   template: `
-    <div class="flex flex-col gap-6 transition-colors duration-150">
+    <div class="flex flex-col gap-6 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center">
@@ -48,45 +48,46 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
 
       <app-search placeholder="Pesquisar por nome..." (searchChange)="onSearch($event)" />
 
-      <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-muted border-b border-theme">
-                <th scope="col" class="text-left pb-3 font-medium">Morador</th>
-                <th scope="col" class="text-right pb-3 font-medium">Deve</th>
-                <th scope="col" class="text-right pb-3 font-medium">A receber</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (r of paginated(); track r.name) {
-                <tr class="border-b border-soft last:border-b-0">
-                  <td class="py-3.5 text-primary font-medium">{{ r.name }}</td>
-                  <td class="py-3.5 text-right">
-                    @if (r.owes > 0) {
-                      <span class="text-primary font-medium">R$ {{ fmt(r.owes) }}</span>
-                    } @else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
-                  <td class="py-3.5 text-right">
-                    @if (r.toReceive > 0) {
-                      <span class="text-primary font-medium">R$ {{ fmt(r.toReceive) }}</span>
-                    } @else {
-                      <span class="text-muted">—</span>
-                    }
-                  </td>
+      <div class="flex-1 flex flex-col min-h-0">
+        <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-muted border-b border-theme">
+                  <th scope="col" class="text-left pb-3 font-medium">Morador</th>
+                  <th scope="col" class="text-right pb-3 font-medium">Deve</th>
+                  <th scope="col" class="text-right pb-3 font-medium">A receber</th>
                 </tr>
-              } @empty {
-                <tr>
-                  <td colspan="3" class="text-center py-8 text-muted">Nenhum morador encontrado</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (r of paginated(); track r.name) {
+                  <tr class="border-b border-soft last:border-b-0">
+                    <td class="py-3.5 text-primary font-medium">{{ r.name }}</td>
+                    <td class="py-3.5 text-right">
+                      @if (r.owes > 0) {
+                        <span class="text-primary font-medium">R$ {{ fmt(r.owes) }}</span>
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td class="py-3.5 text-right">
+                      @if (r.toReceive > 0) {
+                        <span class="text-primary font-medium">R$ {{ fmt(r.toReceive) }}</span>
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="3" class="text-center py-8 text-muted">Nenhum morador encontrado</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-
       <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
     </div>
   `,

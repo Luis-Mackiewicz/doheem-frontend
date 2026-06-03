@@ -131,10 +131,8 @@ import {
             </div>
           </div>
         }
-        @if (paginatedExpenses().length > 0) {
-          <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
-        }
       </div>
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
     </div>
 
     <!-- Receipt expand -->

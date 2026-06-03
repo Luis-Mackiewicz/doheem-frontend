@@ -99,10 +99,8 @@ import {
             <p class="text-muted text-lg">Nenhum membro encontrado</p>
           </div>
         }
-        @if (paginated().length > 0) {
-          <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
-        }
       </div>
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
     </div>
 
     <!-- Remove confirmation -->

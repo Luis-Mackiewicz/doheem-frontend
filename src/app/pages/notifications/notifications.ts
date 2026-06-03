@@ -96,10 +96,8 @@ const TYPE_BADGE: Record<NotificationType, string> = {
             </div>
           </div>
         }
-        @if (paginatedNotifications().length > 0) {
-          <app-paginator [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
-        }
       </div>
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
     </div>
   `,
 })

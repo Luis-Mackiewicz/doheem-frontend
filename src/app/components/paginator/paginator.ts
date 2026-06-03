@@ -5,8 +5,8 @@ import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
   selector: 'app-paginator',
   imports: [LucideChevronLeft, LucideChevronRight],
   template: `
-    @if (totalPages > 1) {
-      <div class="flex items-center justify-center gap-1 mt-auto pt-4 border-t border-theme">
+    <div class="flex items-center justify-center gap-1 mt-auto px-4 py-3 border-t border-theme">
+      @if (totalPages > 1) {
         <button (click)="goTo(currentPage - 1)"
           [class.opacity-30]="currentPage === 1"
           [disabled]="currentPage === 1"
@@ -27,8 +27,8 @@ import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
           class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
           <svg lucideChevronRight class="w-4 h-4"></svg>
         </button>
-      </div>
-    }
+      }
+    </div>
   `,
 })
 export class PaginacaoComponent {
