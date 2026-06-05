@@ -44,7 +44,7 @@ import {
                 @switch (item.label) {
                   @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                   @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-                  @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                  @case ('Grupo') { <svg lucideUsers class="w-5 h-5"></svg> }
                   @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
                   @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
                   @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
@@ -108,7 +108,7 @@ import {
               @switch (item.label) {
                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-                @case ('Membros') { <svg lucideUsers class="w-5 h-5"></svg> }
+                @case ('Grupo') { <svg lucideUsers class="w-5 h-5"></svg> }
                 @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
                 @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
                 @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
@@ -150,7 +150,7 @@ export class SidebarComponent {
     { path: `/groups/${this.groupId()}/dashboard`, label: 'Dashboard', exact: true },
     { path: `/groups/${this.groupId()}/saldos`, label: 'Saldos', exact: false },
     { path: `/groups/${this.groupId()}/financeiro`, label: 'Financeiro', exact: false },
-    { path: `/groups/${this.groupId()}/membros`, label: 'Membros', exact: false },
+    { path: `/groups/${this.groupId()}/grupo`, label: 'Grupo', exact: false },
     { path: `/groups/${this.groupId()}/tarefas`, label: 'Tarefas', exact: false },
     { path: `/groups/${this.groupId()}/historico`, label: 'Histórico', exact: false },
     { path: `/groups/${this.groupId()}/notificacoes`, label: 'Notificações', exact: false },

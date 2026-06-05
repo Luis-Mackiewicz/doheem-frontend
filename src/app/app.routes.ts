@@ -11,7 +11,7 @@ import { FinanceiroPage } from './pages/financial/financial';
 import { TarefasPage } from './pages/tasks/tasks';
 import { HistoricoPage } from './pages/historical/historical';
 import { NotificacoesPage } from './pages/notifications/notifications';
-import { MembrosPage } from './pages/members/members';
+import { GrupoPage } from './pages/grupo/grupo';
 import { BalancesPage } from './pages/balances/balances';
 
 export const routes: Routes = [
@@ -30,7 +30,7 @@ export const routes: Routes = [
       { path: 'tarefas', component: TarefasPage },
       { path: 'historico', component: HistoricoPage },
       { path: 'notificacoes', component: NotificacoesPage },
-      { path: 'membros', component: MembrosPage },
+      { path: 'grupo', component: GrupoPage },
       { path: 'saldos', component: BalancesPage },
     ],
   },

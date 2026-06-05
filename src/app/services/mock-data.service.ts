@@ -63,6 +63,7 @@ export interface ResidentBalance {
 export interface Group {
   id: number;
   name: string;
+  description: string;
   members: number;
   monthlyFee: number;
   imagemBase64?: string;
@@ -123,16 +124,16 @@ const MOCK_TASKS: Task[] = [
 ];
 
 const MOCK_GROUPS: Group[] = [
-  { id: 1, name: 'República Solaris', members: 12, monthlyFee: 450 },
-  { id: 2, name: 'Casa do Estudante', members: 8, monthlyFee: 320 },
-  { id: 3, name: 'Alojamento Universitário', members: 5, monthlyFee: 280 },
-  { id: 4, name: 'República Bela Vista', members: 10, monthlyFee: 520 },
-  { id: 5, name: 'Pensionato Central', members: 6, monthlyFee: 390 },
-  { id: 6, name: 'Kitnet Compartilhada', members: 4, monthlyFee: 250 },
-  { id: 7, name: 'Casa da Praia', members: 7, monthlyFee: 600 },
-  { id: 8, name: 'República Aurora', members: 9, monthlyFee: 410 },
-  { id: 9, name: 'Alojamento Rural', members: 3, monthlyFee: 200 },
-  { id: 10, name: 'Vila Estudantil', members: 15, monthlyFee: 350 },
+  { id: 1, name: 'República Solaris', description: 'Republica estudantil focada em sustentabilidade e organização coletiva.', members: 12, monthlyFee: 450 },
+  { id: 2, name: 'Casa do Estudante', description: 'Moradia estudantil próxima à universidade com 8 moradores.', members: 8, monthlyFee: 320 },
+  { id: 3, name: 'Alojamento Universitário', description: '', members: 5, monthlyFee: 280 },
+  { id: 4, name: 'República Bela Vista', description: 'Casa ampla com vista para o campus, 10 moradores.', members: 10, monthlyFee: 520 },
+  { id: 5, name: 'Pensionato Central', description: '', members: 6, monthlyFee: 390 },
+  { id: 6, name: 'Kitnet Compartilhada', description: '', members: 4, monthlyFee: 250 },
+  { id: 7, name: 'Casa da Praia', description: '', members: 7, monthlyFee: 600 },
+  { id: 8, name: 'República Aurora', description: '', members: 9, monthlyFee: 410 },
+  { id: 9, name: 'Alojamento Rural', description: '', members: 3, monthlyFee: 200 },
+  { id: 10, name: 'Vila Estudantil', description: '', members: 15, monthlyFee: 350 },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -180,11 +181,18 @@ export class MockDataService {
     this.groupsSignal.update(list => [...list, {
       id: newId,
       name: data.nome,
+      description: data.descricao,
       members: 1,
       monthlyFee: 0,
       imagemBase64: data.imagemBase64 || undefined,
     }]);
     return newId;
+  }
+
+  atualizarGrupo(id: number, data: { name: string; description: string; imagemBase64?: string }): void {
+    this.groupsSignal.update(list =>
+      list.map(g => g.id === id ? { ...g, name: data.name, description: data.description, imagemBase64: data.imagemBase64 ?? g.imagemBase64 } : g)
+    );
   }
 
   temDividasPendentes(nome: string): boolean {
