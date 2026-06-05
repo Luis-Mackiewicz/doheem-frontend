@@ -191,7 +191,7 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
             }
           </div>
 
-          <div class="flex gap-3 px-6 pb-6 pt-4 shrink-0 border-t border-theme">
+          <div class="flex gap-3 px-6 pb-6 pt-4 shrink-0 border-t border-theme justify-end">
             <app-button type="button" variant="outline" label="Cancelar" (click)="cancel.emit()"></app-button>
             <app-button type="button" variant="solid" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
           </div>
