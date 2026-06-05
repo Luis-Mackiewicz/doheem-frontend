@@ -195,9 +195,9 @@ import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/
                 <div class="grid grid-cols-2 gap-2 mt-1">
                   @for (m of members; track m) {
                     <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
-                      <div class="w-16 shrink-0 min-w-0">
+                      <div class="min-w-0 flex-1">
                         <span class="text-primary text-sm block truncate">{{ m }}</span>
-                        <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                        <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
                       </div>
                       <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
                         (input)="recalcCustom()"
