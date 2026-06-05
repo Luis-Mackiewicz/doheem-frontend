@@ -152,7 +152,7 @@ export class SidebarComponent {
     { path: `/groups/${this.groupId()}/financial`, label: 'Financial', exact: false },
     { path: `/groups/${this.groupId()}/group`, label: 'Group', exact: false },
     { path: `/groups/${this.groupId()}/tasks`, label: 'Tasks', exact: false },
-    { path: `/groups/${this.groupId()}/history`, label: 'History', exact: false },
+    { path: `/groups/${this.groupId()}/historical`, label: 'History', exact: false },
     { path: `/groups/${this.groupId()}/notifications`, label: 'Notifications', exact: false },
   ]);
 }
