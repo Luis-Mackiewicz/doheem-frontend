@@ -51,7 +51,7 @@ import {
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <a [routerLink]="['/groups', groupId, 'saldos']"
+        <a [routerLink]="['/groups', groupId, 'balances']"
            aria-label="Ver saldo dos moradores"
            class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
           <div class="flex items-center gap-2 mb-4">
@@ -97,7 +97,7 @@ import {
         </a>
 
         <div class="flex flex-col gap-4">
-          <a [routerLink]="['/groups', groupId, 'tarefas']"
+          <a [routerLink]="['/groups', groupId, 'tasks']"
              aria-label="Ver tarefas pendentes"
              class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
@@ -118,7 +118,7 @@ import {
             </div>
           </a>
 
-          <a [routerLink]="['/groups', groupId, 'financeiro']"
+          <a [routerLink]="['/groups', groupId, 'financial']"
              aria-label="Ver despesas recentes"
              class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
@@ -165,7 +165,7 @@ export class DashboardPage {
 
   protected readonly residents = computed(() => {
     const map = new Map<string, ResidentBalance>();
-    for (const m of this.mockData.membros()) {
+    for (const m of this.mockData.members()) {
       map.set(m.nome, { name: m.nome, owes: 0, toReceive: 0 });
     }
     for (const exp of this.expenses()) {

@@ -38,42 +38,42 @@ import { LucideX, LucideCamera, LucideBuilding2 } from '@lucide/angular';
 
           <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Nome do grupo
-            <input type="text" placeholder="Ex: República Solaris" [(ngModel)]="nome" required
+            <input type="text" placeholder="Ex: República Solaris" [(ngModel)]="name" required
               class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition w-full" />
           </label>
 
           <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Descrição
-            <textarea placeholder="Descreva o grupo..." [(ngModel)]="descricao" rows="3"
+            <textarea placeholder="Descreva o grupo..." [(ngModel)]="description" rows="3"
               class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition w-full resize-none"></textarea>
           </label>
 
           <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Moeda
-            <select [(ngModel)]="moeda"
+            <select [(ngModel)]="currency"
               class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
-              @for (m of moedas; track m) {
+              @for (m of currencies; track m) {
                 <option [value]="m" class="bg-card text-primary">{{ m }}</option>
               }
             </select>
           </label>
 
-          <app-button type="button" variant="solid" label="Criar grupo" (click)="criar()"></app-button>
+          <app-button type="button" variant="solid" label="Criar grupo" (click)="create()"></app-button>
         </app-card>
       </div>
     </div>
   `,
 })
-export class ModalCriarGrupoComponent {
+export class CreateGroupModalComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() created = new EventEmitter<{ nome: string; descricao: string; moeda: string; imagemBase64: string }>();
+  @Output() created = new EventEmitter<{ name: string; description: string; currency: string; imagemBase64: string }>();
 
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
-  protected nome = '';
-  protected descricao = '';
-  protected moeda = 'BRL';
-  protected moedas = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'PYG', 'UYU'];
+  protected name = '';
+  protected description = '';
+  protected currency = 'BRL';
+  protected currencies = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'PYG', 'UYU'];
   protected imagemBase64 = '';
   protected readonly imagemPreview = signal('');
 
@@ -89,12 +89,12 @@ export class ModalCriarGrupoComponent {
     reader.readAsDataURL(file);
   }
 
-  criar(): void {
-    if (!this.nome.trim()) return;
+  create(): void {
+    if (!this.name.trim()) return;
     this.created.emit({
-      nome: this.nome.trim(),
-      descricao: this.descricao.trim(),
-      moeda: this.moeda,
+      name: this.name.trim(),
+      description: this.description.trim(),
+      currency: this.currency,
       imagemBase64: this.imagemBase64,
     });
     this.close.emit();

@@ -1,8 +1,8 @@
 import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MockDataService, Membro } from '../../services/mock-data.service';
-import { BuscaComponent } from '../../components/busca/busca';
-import { PaginacaoComponent } from '../../components/paginator/paginator';
+import { SearchComponent } from '../../components/search/search';
+import { PaginatorComponent } from '../../components/paginator/paginator';
 import { FormsModule } from '@angular/forms';
 import {
   LucideCopy,
@@ -17,8 +17,8 @@ import {
 } from '@lucide/angular';
 
 @Component({
-  selector: 'app-grupo',
-  imports: [BuscaComponent, PaginacaoComponent, FormsModule,
+  selector: 'app-group',
+  imports: [SearchComponent, PaginatorComponent, FormsModule,
     LucideCopy, LucideCheck, LucideShield, LucideTrash2, LucideLogOut, LucideUsers,
     LucideCog, LucideCamera, LucideX,
   ],
@@ -42,7 +42,7 @@ import {
               <h1 class="text-2xl md:text-3xl font-bold text-primary tracking-tight truncate">
                 {{ group()?.name ?? 'Grupo' }}
               </h1>
-              <button (click)="abrirConfig()"
+              <button (click)="openSettings()"
                 class="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition shrink-0"
                 [class.hover-bg]="true"
                 [class.hover:text-primary]="true"
@@ -98,7 +98,7 @@ import {
                 <p class="text-muted text-sm">{{ m.telefone }}</p>
               </div>
               <div class="flex items-center gap-1 shrink-0">
-                <button (click)="copiarTelefone(m.telefone)"
+                <button (click)="copyPhone(m.telefone)"
                   class="w-9 h-9 flex items-center justify-center rounded-lg hover-bg text-muted hover-text-primary transition cursor-pointer"
                   aria-label="Copiar telefone de {{ m.nome }}"
                   title="Copiar telefone">
@@ -110,7 +110,7 @@ import {
                 </button>
                 @if (isAdmin()) {
                   @if (!m.admin) {
-                    <button (click)="promover(m)"
+                    <button (click)="promote(m)"
                       class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-amber-500/20 text-muted hover:text-amber-400 transition cursor-pointer"
                       aria-label="Promover {{ m.nome }} a admin"
                       title="Promover a admin">
@@ -127,7 +127,7 @@ import {
                   }
                 }
                 @if (m.nome === currentUserName) {
-                  <button (click)="sair(m)"
+                  <button (click)="leave(m)"
                     class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500/20 text-muted hover:text-rose-400 transition cursor-pointer"
                     aria-label="Sair do grupo"
                     title="Sair do grupo">
@@ -148,12 +148,12 @@ import {
 
     <!-- Settings modal -->
     @if (configOpen()) {
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="fecharConfig()">
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="closeSettings()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-md">
           <div class="rounded-xl p-6 shadow-2xl flex flex-col bg-card border border-theme">
             <div class="flex items-center justify-between mb-6">
               <h3 class="text-primary font-bold text-lg">Configurações do grupo</h3>
-              <button (click)="fecharConfig()"
+              <button (click)="closeSettings()"
                 class="w-8 h-8 rounded-lg flex items-center justify-center text-muted hover:text-primary hover-bg transition cursor-pointer"
                 aria-label="Fechar">
                 <svg lucideX class="w-4 h-4"></svg>
@@ -184,21 +184,21 @@ import {
 
             <!-- Name -->
             <label class="text-sm font-medium text-primary mb-1.5">Nome do grupo</label>
-            <input [(ngModel)]="editNome"
+            <input [(ngModel)]="editName"
               class="w-full px-4 py-2.5 rounded-xl bg-input border border-theme text-primary text-sm placeholder:text-muted focus:outline-none focus:border-purple-500 transition mb-4"
               placeholder="Nome do grupo" />
 
             <!-- Description -->
             <label class="text-sm font-medium text-primary mb-1.5">Descrição</label>
-            <textarea [(ngModel)]="editDescricao" rows="3"
+            <textarea [(ngModel)]="editDescription" rows="3"
               class="w-full px-4 py-2.5 rounded-xl bg-input border border-theme text-primary text-sm placeholder:text-muted focus:outline-none focus:border-purple-500 transition resize-none mb-6"
               placeholder="Descreva o grupo..."></textarea>
 
             <!-- Actions -->
             <div class="flex gap-3">
-              <button (click)="fecharConfig()"
+              <button (click)="closeSettings()"
                 class="flex-1 px-4 py-2.5 rounded-xl border border-theme text-secondary font-medium text-sm hover:text-primary hover-bg transition cursor-pointer">Cancelar</button>
-              <button (click)="salvarConfig()"
+              <button (click)="saveSettings()"
                 class="flex-1 px-4 py-2.5 rounded-xl bg-violet-600 text-white font-medium text-sm hover:bg-violet-500 transition cursor-pointer">Salvar</button>
             </div>
           </div>
@@ -216,7 +216,7 @@ import {
             <div class="flex gap-3 mt-6">
               <button (click)="cancelRemove()"
                 class="flex-1 px-4 py-2.5 rounded-xl border border-theme text-secondary font-medium text-sm hover:text-primary hover-bg transition cursor-pointer">Cancelar</button>
-              <button (click)="remover()"
+              <button (click)="remove()"
                 class="flex-1 px-4 py-2.5 rounded-xl bg-rose-500/20 text-rose-400 font-medium text-sm hover:bg-rose-500/30 transition cursor-pointer">Remover</button>
             </div>
           </div>
@@ -242,15 +242,15 @@ import {
 
     <!-- Leave confirmation -->
     @if (leaving(); as m) {
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancelarSaida()">
+      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancelLeave()">
         <div (click)="$event.stopPropagation()" class="w-full max-w-sm">
           <div class="rounded-xl p-6 shadow-2xl flex flex-col bg-card border border-theme">
             <h3 class="text-primary font-bold text-lg mb-2">Sair do grupo</h3>
             <p class="text-secondary text-sm">Tem certeza que deseja sair do grupo?</p>
             <div class="flex gap-3 mt-6">
-              <button (click)="cancelarSaida()"
+              <button (click)="cancelLeave()"
                 class="flex-1 px-4 py-2.5 rounded-xl border border-theme text-secondary font-medium text-sm hover:text-primary hover-bg transition cursor-pointer">Cancelar</button>
-              <button (click)="confirmarSaida()"
+              <button (click)="confirmLeave()"
                 class="flex-1 px-4 py-2.5 rounded-xl bg-rose-500/20 text-rose-400 font-medium text-sm hover:bg-rose-500/30 transition cursor-pointer">Sair</button>
             </div>
           </div>
@@ -259,7 +259,7 @@ import {
     }
   `,
 })
-export class GrupoPage {
+export class GroupPage {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   private route = inject(ActivatedRoute);
@@ -273,7 +273,7 @@ export class GrupoPage {
   });
 
   protected readonly isAdmin = computed(() =>
-    this.mockData.membros().find(m => m.nome === this.currentUserName)?.admin ?? false
+    this.mockData.members().find(m => m.nome === this.currentUserName)?.admin ?? false
   );
   protected readonly currentUserName = this.mockData.CURRENT_USER;
   protected readonly pageSize = 5;
@@ -285,11 +285,11 @@ export class GrupoPage {
   protected readonly searchQuery = signal('');
   protected readonly currentPage = signal(1);
 
-  protected readonly total = computed(() => this.mockData.membros().length);
+  protected readonly total = computed(() => this.mockData.members().length);
 
   protected readonly filtered = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    let list = this.mockData.membros();
+    let list = this.mockData.members();
     if (q) {
       list = list.filter(m => m.nome.toLowerCase().includes(q));
     }
@@ -307,19 +307,19 @@ export class GrupoPage {
 
   // Settings modal state
   protected readonly configOpen = signal(false);
-  protected editNome = '';
-  protected editDescricao = '';
+  protected editName = '';
+  protected editDescription = '';
   protected editFotoPreview = signal('');
 
-  abrirConfig(): void {
+  openSettings(): void {
     const g = this.group();
-    this.editNome = g?.name ?? '';
-    this.editDescricao = g?.description ?? '';
+    this.editName = g?.name ?? '';
+    this.editDescription = g?.description ?? '';
     this.editFotoPreview.set('');
     this.configOpen.set(true);
   }
 
-  fecharConfig(): void {
+  closeSettings(): void {
     this.configOpen.set(false);
     this.editFotoPreview.set('');
   }
@@ -335,14 +335,14 @@ export class GrupoPage {
     reader.readAsDataURL(file);
   }
 
-  salvarConfig(): void {
+  saveSettings(): void {
     const id = Number(this.groupId);
-    this.mockData.atualizarGrupo(id, {
-      name: this.editNome,
-      description: this.editDescricao,
+    this.mockData.updateGroup(id, {
+      name: this.editName,
+      description: this.editDescription,
       imagemBase64: this.editFotoPreview() || undefined,
     });
-    this.fecharConfig();
+    this.closeSettings();
   }
 
   onSearch(value: string): void {
@@ -356,7 +356,7 @@ export class GrupoPage {
     }
   }
 
-  copiarTelefone(tel: string): void {
+  copyPhone(tel: string): void {
     navigator.clipboard.writeText(tel);
     this.copiedTel.set(tel);
     setTimeout(() => {
@@ -364,8 +364,8 @@ export class GrupoPage {
     }, 1500);
   }
 
-  promover(m: Membro): void {
-    this.mockData.promoverParaAdmin(m.nome);
+  promote(m: Membro): void {
+    this.mockData.promoteToAdmin(m.nome);
   }
 
   confirmRemove(m: Membro): void {
@@ -376,25 +376,25 @@ export class GrupoPage {
     this.removing.set(null);
   }
 
-  remover(): void {
+  remove(): void {
     const target = this.removing();
     if (!target) return;
-    this.mockData.removerMembro(target.nome);
+    this.mockData.removeMember(target.nome);
     this.removing.set(null);
   }
 
-  sair(m: Membro): void {
-    if (this.mockData.temDividasPendentes(m.nome)) {
+  leave(m: Membro): void {
+    if (this.mockData.hasPendingDebts(m.nome)) {
       this.leaveError.set('Você possui dívidas pendentes. Quite-as antes de sair do grupo.');
       return;
     }
-    if (this.mockData.temTarefasPendentes(m.nome)) {
+    if (this.mockData.hasPendingTasks(m.nome)) {
       this.leaveError.set('Você possui tarefas pendentes. Conclua-as antes de sair do grupo.');
       return;
     }
-    const outrosAdmins = this.mockData.membros().filter(item => item.admin && item.nome !== m.nome);
+    const outrosAdmins = this.mockData.members().filter(item => item.admin && item.nome !== m.nome);
     if (m.admin && outrosAdmins.length === 0) {
-      const maisAntigo = this.mockData.getMembroMaisAntigo(m.nome);
+      const maisAntigo = this.mockData.getOldestMember(m.nome);
       if (maisAntigo) {
         this.leaveError.set(`Você é o único admin do grupo. Transfira o cargo para ${maisAntigo.nome} antes de sair.`);
       } else {
@@ -405,14 +405,14 @@ export class GrupoPage {
     this.leaving.set(m);
   }
 
-  cancelarSaida(): void {
+  cancelLeave(): void {
     this.leaving.set(null);
   }
 
-  confirmarSaida(): void {
+  confirmLeave(): void {
     const target = this.leaving();
     if (!target) return;
-    this.mockData.removerMembro(target.nome);
+    this.mockData.removeMember(target.nome);
     this.leaving.set(null);
   }
 }

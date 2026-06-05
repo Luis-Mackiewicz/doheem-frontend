@@ -102,7 +102,7 @@ import { NotificationService } from '../../services/notification-service';
     }
   `,
 })
-export class PerfilPage {
+export class ProfilePage {
   protected form;
 
   protected readonly saving = signal(false);
@@ -117,7 +117,7 @@ export class PerfilPage {
   private location = inject(Location);
 
   constructor() {
-    const currentUser = this.mockData.membros().find(m => m.nome === this.mockData.CURRENT_USER);
+    const currentUser = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
     this.phone.set(currentUser?.telefone ?? '');
     if (currentUser?.fotoBase64) {
       this.photoPreview.set(currentUser.fotoBase64);
@@ -133,7 +133,7 @@ export class PerfilPage {
   }
 
   protected get userEmail(): string {
-    const member = this.mockData.membros().find(m => m.nome === this.mockData.CURRENT_USER);
+    const member = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
     return member?.email ?? '';
   }
 
@@ -168,7 +168,7 @@ export class PerfilPage {
     reader.onload = () => {
       const result = reader.result as string;
       this.photoPreview.set(result);
-      this.mockData.atualizarFoto(this.mockData.CURRENT_USER, result);
+      this.mockData.updatePhoto(this.mockData.CURRENT_USER, result);
     };
     reader.readAsDataURL(file);
   }
@@ -187,7 +187,7 @@ export class PerfilPage {
       return;
     }
 
-    this.mockData.atualizarTelefone(this.mockData.CURRENT_USER, this.phone());
+    this.mockData.updatePhone(this.mockData.CURRENT_USER, this.phone());
 
     if (this.form.get('newPassword')?.value) {
       this.notif.add('info', 'Perfil atualizado',

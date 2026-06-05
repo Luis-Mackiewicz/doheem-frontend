@@ -1,38 +1,24 @@
 import { Routes } from '@angular/router';
-import { HomePage } from './pages/home/home';
-import { LoginPage } from './pages/login/login';
-import { RegisterPage } from './pages/register/register';
-import { GroupsPage } from './pages/groups/groups';
-import { PerfilPage } from './pages/profile/profile';
-import { NotFoundPage } from './pages/not-found/not-found';
-import { GroupLayoutComponent } from './pages/group-layout/group-layout';
-import { DashboardPage } from './pages/dashboard/dashboard';
-import { FinanceiroPage } from './pages/financial/financial';
-import { TarefasPage } from './pages/tasks/tasks';
-import { HistoricoPage } from './pages/historical/historical';
-import { NotificacoesPage } from './pages/notifications/notifications';
-import { GrupoPage } from './pages/grupo/grupo';
-import { BalancesPage } from './pages/balances/balances';
 
 export const routes: Routes = [
-  { path: '', component: HomePage },
-  { path: 'login', component: LoginPage },
-  { path: 'register', component: RegisterPage },
-  { path: 'groups', component: GroupsPage },
-  { path: 'perfil', component: PerfilPage },
+  { path: '', loadComponent: () => import('./pages/home/home').then(m => m.HomePage) },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginPage) },
+  { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.RegisterPage) },
+  { path: 'groups', loadComponent: () => import('./pages/groups/groups').then(m => m.GroupsPage) },
+  { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePage) },
   {
     path: 'groups/:id',
-    component: GroupLayoutComponent,
+    loadComponent: () => import('./pages/group-layout/group-layout').then(m => m.GroupLayoutComponent),
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: DashboardPage },
-      { path: 'financeiro', component: FinanceiroPage },
-      { path: 'tarefas', component: TarefasPage },
-      { path: 'historico', component: HistoricoPage },
-      { path: 'notificacoes', component: NotificacoesPage },
-      { path: 'grupo', component: GrupoPage },
-      { path: 'saldos', component: BalancesPage },
+      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardPage) },
+      { path: 'financial', loadComponent: () => import('./pages/financial/financial').then(m => m.FinancialPage) },
+      { path: 'tasks', loadComponent: () => import('./pages/tasks/tasks').then(m => m.TasksPage) },
+      { path: 'historical', loadComponent: () => import('./pages/historical/historical').then(m => m.HistoricalPage) },
+      { path: 'notifications', loadComponent: () => import('./pages/notifications/notifications').then(m => m.NotificationsPage) },
+      { path: 'group', loadComponent: () => import('./pages/group/group').then(m => m.GroupPage) },
+      { path: 'balances', loadComponent: () => import('./pages/balances/balances').then(m => m.BalancesPage) },
     ],
   },
-  { path: '**', component: NotFoundPage },
+  { path: '**', loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundPage) },
 ];

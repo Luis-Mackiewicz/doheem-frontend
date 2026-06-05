@@ -1,8 +1,8 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../components/button/button';
-import { PaginacaoComponent } from '../../components/paginator/paginator';
-import { BuscaComponent } from '../../components/busca/busca';
+import { PaginatorComponent } from '../../components/paginator/paginator';
+import { SearchComponent } from '../../components/search/search';
 import { MockDataService, PaymentStatus, Payment, Expense } from '../../services/mock-data.service';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 import { ExpenseCardComponent } from './expense-card';
@@ -24,8 +24,8 @@ import {
 } from '@lucide/angular';
 
 @Component({
-  selector: 'app-financeiro',
-  imports: [FormsModule, ButtonComponent, PaginacaoComponent, BuscaComponent,
+  selector: 'app-financial',
+  imports: [FormsModule, ButtonComponent, PaginatorComponent, SearchComponent,
     ExpenseCardComponent, ExpenseFormComponent, PayModalComponent, PendingModalComponent, DeleteConfirmComponent,
     LucideDollarSign, LucideBell, LucideCheck,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
@@ -204,7 +204,7 @@ import {
     }
   `,
 })
-export class FinanceiroPage {
+export class FinancialPage {
   protected mockData = inject(MockDataService);
   protected readonly members = this.mockData.MEMBROS;
   protected readonly categories = this.mockData.CATEGORIES;
@@ -217,7 +217,7 @@ export class FinanceiroPage {
 
   protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
   protected readonly isAdmin = computed(() =>
-    this.mockData.membros().find(m => m.nome === this.CURRENT_USER)?.admin ?? false
+    this.mockData.members().find(m => m.nome === this.CURRENT_USER)?.admin ?? false
   );
 
   protected fmt(val: number): string {

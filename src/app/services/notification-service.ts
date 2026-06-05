@@ -13,9 +13,6 @@ export interface Notification {
   relatedId?: number;
 }
 
-export const CURRENT_USER = 'Carlos Silva';
-export const ADMIN_USER = 'Ana Oliveira';
-
 const MOCK_NOTIFICATIONS: Notification[] = [
   { id: 1, type: 'expense', title: 'Nova despesa', message: 'Conta de luz — sua parte: R$ 64,00', read: false, createdAt: '2026-06-01T10:00:00', recipient: 'Carlos Silva', relatedId: 1 },
   { id: 2, type: 'expense', title: 'Nova despesa', message: 'Água — sua parte: R$ 50,00', read: false, createdAt: '2026-06-01T09:00:00', recipient: 'Carlos Silva', relatedId: 2 },

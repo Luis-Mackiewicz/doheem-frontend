@@ -31,7 +31,7 @@ import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
     </div>
   `,
 })
-export class PaginacaoComponent {
+export class PaginatorComponent {
   @Input() currentPage = 1;
   @Input() totalPages = 1;
   @Output() pageChange = new EventEmitter<number>();

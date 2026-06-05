@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { PaginacaoComponent } from '../../components/paginator/paginator';
-import { BuscaComponent } from '../../components/busca/busca';
+import { PaginatorComponent } from '../../components/paginator/paginator';
+import { SearchComponent } from '../../components/search/search';
 import { MockDataService, Payment } from '../../services/mock-data.service';
 import {
   LucideHouse,
@@ -20,8 +20,8 @@ import {
 } from '@lucide/angular';
 
 @Component({
-  selector: 'app-historico',
-  imports: [PaginacaoComponent, BuscaComponent,
+  selector: 'app-historical',
+  imports: [PaginatorComponent, SearchComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
     LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage,
@@ -143,7 +143,7 @@ import {
     }
   `,
 })
-export class HistoricoPage {
+export class HistoricalPage {
   private mockData = inject(MockDataService);
   private readonly today = new Date();
 

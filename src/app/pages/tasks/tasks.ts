@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ButtonComponent } from '../../components/button/button';
-import { BuscaComponent } from '../../components/busca/busca';
+import { SearchComponent } from '../../components/search/search';
 import { MockDataService, Task, TaskStatus } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
 import { ThemeService } from '../../services/theme-service';
@@ -24,7 +24,7 @@ const STATUS_CONFIG = {
 
 @Component({
   selector: 'app-tasks',
-  imports: [FormsModule, DatePipe, ButtonComponent, BuscaComponent,
+  imports: [FormsModule, DatePipe, ButtonComponent, SearchComponent,
     LucideClipboardList, LucideRefreshCw, LucideCircleCheck,
     LucideTrash2, LucidePen,
     LucideTriangleAlert, LucideX,
@@ -293,7 +293,7 @@ const STATUS_CONFIG = {
     <div aria-live="polite" aria-atomic="true" class="absolute w-px h-px overflow-hidden opacity-0 pointer-events-none">{{ dropAnnouncement() }}</div>
   `,
 })
-export class TarefasPage {
+export class TasksPage {
   protected mockData = inject(MockDataService);
   protected theme = inject(ThemeService);
   protected readonly members = this.mockData.MEMBROS;
@@ -303,7 +303,6 @@ export class TarefasPage {
   protected readonly ADMIN_USER = this.mockData.ADMIN_USER;
   protected readonly today = new Date().toISOString().slice(0, 10);
 
-  private tasksSignal = signal<Task[]>([...this.mockData.tasks()]);
   private notif = inject(NotificationService);
 
   protected showModal = signal(false);
@@ -321,7 +320,7 @@ export class TarefasPage {
 
   private checkOverdueTasks(): void {
     const today = new Date();
-    for (const task of this.tasksSignal()) {
+    for (const task of this.mockData.tasks()) {
       if (task.status === 'done' || !task.dueDate) continue;
       const due = new Date(task.dueDate + 'T23:59:59');
       if (due < today) {
@@ -341,8 +340,8 @@ export class TarefasPage {
 
   protected readonly filteredTasks = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.tasksSignal();
-    return this.tasksSignal().filter(t =>
+    if (!query) return this.mockData.tasks();
+    return this.mockData.tasks().filter(t =>
       t.title.toLowerCase().includes(query) ||
       t.assignedTo.toLowerCase().includes(query)
     );
@@ -352,7 +351,7 @@ export class TarefasPage {
     return this.filteredTasks().filter(t => t.status === status);
   };
 
-  private nextId = computed(() => Math.max(...this.tasksSignal().map(t => t.id), 0) + 1);
+  private nextId = computed(() => Math.max(...this.mockData.tasks().map(t => t.id), 0) + 1);
 
   protected onDragStart(id: number, e: DragEvent): void {
     this.draggedTaskId.set(id);
@@ -392,16 +391,16 @@ export class TarefasPage {
   protected onDrop(targetStatus: TaskStatus): void {
     const id = this.draggedTaskId();
     if (id === null) return;
-    const task = this.tasksSignal().find(t => t.id === id);
+    const task = this.mockData.tasks().find(t => t.id === id);
     if (!task || task.status === targetStatus) {
       this.draggedTaskId.set(null);
       this.dragOverStatus.set(null);
       return;
     }
-    this.tasksSignal.update(list =>
+    this.mockData.tasks.update(list =>
       list.map(t => t.id === id ? { ...t, status: targetStatus } : t)
     );
-    const taskName = this.tasksSignal().find(t => t.id === id)?.title ?? '';
+    const taskName = this.mockData.tasks().find(t => t.id === id)?.title ?? '';
     this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
     this.draggedTaskId.set(null);
     this.dragOverStatus.set(null);
@@ -497,9 +496,9 @@ export class TarefasPage {
       const id = this.draggedTaskId();
       const status = this.dragOverStatus();
       if (id !== null && status !== null) {
-        const task = this.tasksSignal().find(t => t.id === id);
+        const task = this.mockData.tasks().find(t => t.id === id);
         if (task && task.status !== status) {
-          this.tasksSignal.update(list =>
+          this.mockData.tasks.update(list =>
             list.map(t => t.id === id ? { ...t, status } : t)
           );
           this.dropAnnouncement.set(`Tarefa "${task.title}" movida para ${STATUS_CONFIG[status].label}`);
@@ -530,12 +529,12 @@ export class TarefasPage {
     const idx = order.indexOf(currentStatus);
     if (e.ctrlKey && e.key === 'ArrowRight' && idx < order.length - 1) {
       e.preventDefault();
-      this.tasksSignal.update(list =>
+      this.mockData.tasks.update(list =>
         list.map(t => t.id === taskId ? { ...t, status: order[idx + 1] } : t)
       );
     } else if (e.ctrlKey && e.key === 'ArrowLeft' && idx > 0) {
       e.preventDefault();
-      this.tasksSignal.update(list =>
+      this.mockData.tasks.update(list =>
         list.map(t => t.id === taskId ? { ...t, status: order[idx - 1] } : t)
       );
     }
@@ -553,7 +552,7 @@ export class TarefasPage {
       createdAt: new Date().toISOString().slice(0, 10),
       dueDate,
     };
-    this.tasksSignal.update(list => [...list, task]);
+    this.mockData.tasks.update(list => [...list, task]);
 
     // RN-16: notificar responsável 24h antes
     if (task.dueDate) {
@@ -575,7 +574,7 @@ export class TarefasPage {
 
   confirmEdit(task: Task, title: string, description: string, assignedTo: string, dueDate: string): void {
     if (!title.trim()) return;
-    this.tasksSignal.update(list =>
+    this.mockData.tasks.update(list =>
       list.map(t =>
         t.id === task.id
           ? { ...t, title: title.trim(), description: description.trim(), assignedTo, dueDate }
@@ -592,7 +591,7 @@ export class TarefasPage {
   confirmDelete(): void {
     const id = this.taskToDelete();
     if (id === undefined) return;
-    this.tasksSignal.update(list => list.filter(t => t.id !== id));
+    this.mockData.tasks.update(list => list.filter(t => t.id !== id));
     this.taskToDelete.set(undefined);
   }
 

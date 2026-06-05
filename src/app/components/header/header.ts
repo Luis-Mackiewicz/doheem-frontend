@@ -116,22 +116,22 @@ export class HeaderComponent {
   protected mobileOpen = signal(false);
 
   protected navLinks = [
-    { id: 'inicio', label: 'Início' },
-    { id: 'sobre', label: 'Sobre' },
-    { id: 'depoimentos', label: 'Depoimentos' },
+    { id: 'home', label: 'Home' },
+    { id: 'about', label: 'About' },
+    { id: 'testimonials', label: 'Testimonials' },
     { id: 'app', label: 'App' },
   ];
 
   constructor(private router: Router) {
     if (router.url === '/') {
-      this.activeSection.set('inicio');
+      this.activeSection.set('home');
     }
 
     router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
         if (e.url === '/') {
-          this.activeSection.set('inicio');
+          this.activeSection.set('home');
         } else {
           this.activeSection.set('');
         }

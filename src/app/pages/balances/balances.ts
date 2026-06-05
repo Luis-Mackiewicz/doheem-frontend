@@ -1,12 +1,12 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { MockDataService, ResidentBalance } from '../../services/mock-data.service';
-import { BuscaComponent } from '../../components/busca/busca';
-import { PaginacaoComponent } from '../../components/paginator/paginator';
+import { SearchComponent } from '../../components/search/search';
+import { PaginatorComponent } from '../../components/paginator/paginator';
 import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@lucide/angular';
 
 @Component({
   selector: 'app-balances',
-  imports: [BuscaComponent, PaginacaoComponent, LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet],
+  imports: [SearchComponent, PaginatorComponent, LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet],
   template: `
     <div class="flex flex-col gap-6 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
@@ -148,7 +148,7 @@ export class BalancesPage {
 
   protected readonly allResidents = computed(() => {
     const map = new Map<string, ResidentBalance>();
-    for (const m of this.mockData.membros()) {
+    for (const m of this.mockData.members()) {
       map.set(m.nome, { name: m.nome, owes: 0, toReceive: 0 });
     }
     for (const exp of this.expenses()) {

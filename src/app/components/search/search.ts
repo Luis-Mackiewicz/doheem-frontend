@@ -13,7 +13,7 @@ import { LucideSearch } from '@lucide/angular';
     </div>
   `,
 })
-export class BuscaComponent {
+export class SearchComponent {
   @Input() placeholder = 'Pesquisar...';
   @Output() searchChange = new EventEmitter<string>();
 

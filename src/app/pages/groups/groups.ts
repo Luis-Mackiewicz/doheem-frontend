@@ -1,7 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
-import { ModalCriarGrupoComponent } from '../../components/modal-create-group/modal-create-group';
+import { CreateGroupModalComponent } from '../../components/modal-create-group/modal-create-group';
 import { MockDataService } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
 import {
@@ -13,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-groups',
-  imports: [RouterLink, ButtonComponent, ModalCriarGrupoComponent,
+  imports: [RouterLink, ButtonComponent, CreateGroupModalComponent,
     LucideSearch, LucideHome, LucideChevronRight, LucideChevronLeft,
   ],
   template: `
@@ -44,7 +44,7 @@ import {
                 class="w-full bg-input border-theme rounded-xl pl-10 pr-4 py-3 text-primary outline-none focus:border-purple-400/60 transition"
                 (input)="onSearch(searchInput.value)" />
             </div>
-            <app-button variant="solid" type="button" label="+ Criar" (click)="showCriarModal.set(true)"></app-button>
+            <app-button variant="solid" type="button" label="+ Criar" (click)="showCreateModal.set(true)"></app-button>
             <app-button variant="outline" type="button" label="Entrar"></app-button>
           </div>
 
@@ -105,13 +105,13 @@ import {
       </div>
     </section>
 
-    @if (showCriarModal()) {
-      <app-modal-create-group (close)="showCriarModal.set(false)" (created)="onGroupCreated($event)" />
+    @if (showCreateModal()) {
+      <app-modal-create-group (close)="showCreateModal.set(false)" (created)="onGroupCreated($event)" />
     }
   `,
 })
 export class GroupsPage {
-  protected readonly showCriarModal = signal(false);
+  protected readonly showCreateModal = signal(false);
   readonly pageSize = 5;
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
@@ -154,10 +154,10 @@ export class GroupsPage {
     this.currentPage.set(1);
   }
 
-  onGroupCreated(data: { nome: string; descricao: string; moeda: string; imagemBase64: string }): void {
-    const newId = this.mockData.criarGrupo(data);
+  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string }): void {
+    const newId = this.mockData.createGroup(data);
     this.notif.add('info', 'Grupo criado',
-      `Grupo "${data.nome}" criado com sucesso!`,
+      `Group "${data.name}" created successfully!`,
       this.mockData.CURRENT_USER);
     this.router.navigate([`/groups/${newId}/dashboard`]);
   }

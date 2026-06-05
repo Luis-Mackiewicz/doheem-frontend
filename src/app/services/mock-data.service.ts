@@ -151,8 +151,8 @@ export class MockDataService {
     { value: 'outros', label: 'Outros' },
   ];
 
-  private readonly membrosSignal = signal<Membro[]>([...MEMBROS_INICIAIS]);
-  readonly membros = this.membrosSignal.asReadonly();
+  private readonly membersSignal = signal<Membro[]>([...MEMBROS_INICIAIS]);
+  readonly members = this.membersSignal.asReadonly();
 
   private readonly expensesSignal = signal<Expense[]>([...MOCK_EXPENSES]);
   readonly expenses = this.expensesSignal.asReadonly();
@@ -160,8 +160,7 @@ export class MockDataService {
   private readonly paymentsSignal = signal<Payment[]>([...MOCK_PAYMENTS]);
   readonly payments = this.paymentsSignal.asReadonly();
 
-  private readonly tasksSignal = signal<Task[]>([...MOCK_TASKS]);
-  readonly tasks = this.tasksSignal.asReadonly();
+  readonly tasks = signal<Task[]>([...MOCK_TASKS]);
 
   readonly historicalExpenses = [...MOCK_HISTORICAL_EXPENSES];
 
@@ -176,12 +175,12 @@ export class MockDataService {
   readonly groupsSignal = signal<Group[]>([...MOCK_GROUPS]);
   readonly groups = this.groupsSignal.asReadonly();
 
-  criarGrupo(data: { nome: string; descricao: string; moeda: string; imagemBase64: string }): number {
+  createGroup(data: { name: string; description: string; currency: string; imagemBase64: string }): number {
     const newId = Math.max(...this.groupsSignal().map(g => g.id), 0) + 1;
     this.groupsSignal.update(list => [...list, {
       id: newId,
-      name: data.nome,
-      description: data.descricao,
+      name: data.name,
+      description: data.description,
       members: 1,
       monthlyFee: 0,
       imagemBase64: data.imagemBase64 || undefined,
@@ -189,59 +188,59 @@ export class MockDataService {
     return newId;
   }
 
-  atualizarGrupo(id: number, data: { name: string; description: string; imagemBase64?: string }): void {
+  updateGroup(id: number, data: { name: string; description: string; imagemBase64?: string }): void {
     this.groupsSignal.update(list =>
       list.map(g => g.id === id ? { ...g, name: data.name, description: data.description, imagemBase64: data.imagemBase64 ?? g.imagemBase64 } : g)
     );
   }
 
-  temDividasPendentes(nome: string): boolean {
+  hasPendingDebts(name: string): boolean {
     for (const expense of this.expensesSignal()) {
-      if (expense.paidBy === nome) continue;
-      const isInSplit = expense.splitValues.some(sv => sv.name === nome);
+      if (expense.paidBy === name) continue;
+      const isInSplit = expense.splitValues.some(sv => sv.name === name);
       if (!isInSplit) continue;
-      const payment = this.paymentsSignal().find(p => p.expenseId === expense.id && p.memberName === nome);
+      const payment = this.paymentsSignal().find(p => p.expenseId === expense.id && p.memberName === name);
       if (!payment || payment.status !== 'approved') return true;
     }
     return false;
   }
 
-  temTarefasPendentes(nome: string): boolean {
-    return this.tasksSignal().some(t => t.assignedTo === nome && t.status !== 'done');
+  hasPendingTasks(name: string): boolean {
+    return this.tasks().some(t => t.assignedTo === name && t.status !== 'done');
   }
 
-  getMembroMaisAntigo(excluirNome?: string): Membro | undefined {
-    const list = excluirNome
-      ? this.membrosSignal().filter(m => m.nome !== excluirNome)
-      : this.membrosSignal();
+  getOldestMember(excludeName?: string): Membro | undefined {
+    const list = excludeName
+      ? this.membersSignal().filter(m => m.nome !== excludeName)
+      : this.membersSignal();
     return list[0];
   }
 
-  removerMembro(nome: string): void {
-    this.membrosSignal.update(list => list.filter(m => m.nome !== nome));
+  removeMember(name: string): void {
+    this.membersSignal.update(list => list.filter(m => m.nome !== name));
   }
 
-  promoverParaAdmin(nome: string): void {
-    this.membrosSignal.update(list =>
-      list.map(m => m.nome === nome ? { ...m, admin: true } : m)
+  promoteToAdmin(name: string): void {
+    this.membersSignal.update(list =>
+      list.map(m => m.nome === name ? { ...m, admin: true } : m)
     );
   }
 
-  atualizarTelefone(nome: string, telefone: string): void {
-    this.membrosSignal.update(list =>
-      list.map(m => m.nome === nome ? { ...m, telefone } : m)
+  updatePhone(name: string, phone: string): void {
+    this.membersSignal.update(list =>
+      list.map(m => m.nome === name ? { ...m, telefone: phone } : m)
     );
   }
 
-  atualizarEmail(nome: string, email: string): void {
-    this.membrosSignal.update(list =>
-      list.map(m => m.nome === nome ? { ...m, email } : m)
+  updateEmail(name: string, email: string): void {
+    this.membersSignal.update(list =>
+      list.map(m => m.nome === name ? { ...m, email } : m)
     );
   }
 
-  atualizarFoto(nome: string, fotoBase64: string): void {
-    this.membrosSignal.update(list =>
-      list.map(m => m.nome === nome ? { ...m, fotoBase64 } : m)
+  updatePhoto(name: string, photoBase64: string): void {
+    this.membersSignal.update(list =>
+      list.map(m => m.nome === name ? { ...m, fotoBase64: photoBase64 } : m)
     );
   }
 }

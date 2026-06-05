@@ -8,7 +8,7 @@ import { PwaInstallService } from '../../services/pwa-install-service';
   template: `
     <div id="main-content" class="bg-page text-white overflow-x-hidden">
 
-      <section #animateSection id="inicio"
+      <section #animateSection id="home"
         class="relative min-h-dvh flex flex-col justify-center opacity-0"
         aria-label="Seção inicial">
 
@@ -57,7 +57,7 @@ import { PwaInstallService } from '../../services/pwa-install-service';
         </div>
       </section>
 
-      <section #animateSection id="sobre"
+      <section #animateSection id="about"
         class="min-h-dvh flex flex-col justify-center opacity-0"
         aria-label="Sobre o Doheem">
 
@@ -113,7 +113,7 @@ import { PwaInstallService } from '../../services/pwa-install-service';
         </div>
       </section>
 
-      <section #animateSection id="depoimentos"
+      <section #animateSection id="testimonials"
         class="min-h-dvh flex flex-col justify-center opacity-0"
         aria-label="Depoimentos de usuários">
 
