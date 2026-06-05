@@ -65,13 +65,13 @@ import {
               <div class="flex items-start gap-4 min-w-0 flex-1">
                 <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0">
                   @switch (e.category) {
-                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
-                    @default { <svg lucidePackage class="w-5 h-5 text-[var(--badge-purple)]"></svg> }
+                    @case ('aluguel') { <svg lucideHouse class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @case ('energia') { <svg lucideZap class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @case ('internet') { <svg lucideWifi class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @case ('agua') { <svg lucideDroplets class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @case ('compras') { <svg lucideShoppingCart class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @case ('limpeza') { <svg lucideSparkles class="w-5 h-5 text-(--badge-purple)"></svg> }
+                    @default { <svg lucidePackage class="w-5 h-5 text-(--badge-purple)"></svg> }
                   }
                 </div>
                 <div class="min-w-0 flex-1">

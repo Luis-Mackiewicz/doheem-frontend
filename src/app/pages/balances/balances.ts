@@ -38,7 +38,7 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideWallet class="w-4 h-4 text-[var(--badge-purple)]"></svg>
+            <svg lucideWallet class="w-4 h-4 text-(--badge-purple)"></svg>
             <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalDebt()) }}</p>

@@ -42,7 +42,7 @@ import {
         </div>
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideWallet class="w-4 h-4 text-[var(--badge-purple)]"></svg>
+            <svg lucideWallet class="w-4 h-4 text-(--badge-purple)"></svg>
             <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalDebt()) }}</p>
@@ -55,7 +55,7 @@ import {
            aria-label="Ver saldo dos moradores"
            class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
           <div class="flex items-center gap-2 mb-4">
-            <svg lucideUsers class="w-5 h-5 text-[var(--badge-purple)]"></svg>
+            <svg lucideUsers class="w-5 h-5 text-(--badge-purple)"></svg>
             <h2 class="text-primary font-semibold">Saldo dos Moradores</h2>
           </div>
           <div class="overflow-x-auto">
@@ -101,7 +101,7 @@ import {
              aria-label="Ver tarefas pendentes"
              class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
-              <svg lucideClipboardList class="w-5 h-5 text-[var(--badge-purple)]"></svg>
+              <svg lucideClipboardList class="w-5 h-5 text-(--badge-purple)"></svg>
               <h2 class="text-primary font-semibold">Tarefas a Fazer</h2>
             </div>
             <div class="flex flex-col gap-2">
@@ -122,7 +122,7 @@ import {
              aria-label="Ver despesas recentes"
              class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
-              <svg lucideReceipt class="w-5 h-5 text-[var(--badge-purple)]"></svg>
+              <svg lucideReceipt class="w-5 h-5 text-(--badge-purple)"></svg>
               <h2 class="text-primary font-semibold">Despesas Recentes</h2>
             </div>
             <div class="flex flex-col gap-2">
