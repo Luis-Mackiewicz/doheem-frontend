@@ -214,18 +214,62 @@ export class TasksPage {
 
   protected onDrop(targetStatus: TaskStatus): void {
     const id = this.draggedTaskId();
+    const dropIdx = this.dropIndex();
     if (id === null) return;
     const task = this.mockData.tasks().find(t => t.id === id);
-    if (!task || task.status === targetStatus) {
+    if (!task) {
       this.draggedTaskId.set(null);
       this.dragOverStatus.set(null);
+      this.dropIndex.set(null);
       return;
     }
-    this.mockData.tasks.update(list =>
-      list.map(t => t.id === id ? { ...t, status: targetStatus } : t)
-    );
-    const taskName = this.mockData.tasks().find(t => t.id === id)?.title ?? '';
-    this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
+    const taskName = task.title;
+
+    if (task.status === targetStatus) {
+      this.mockData.tasks.update(list => {
+        const without = list.filter(t => t.id !== id);
+        const sameBefore = without.filter(t => t.status === targetStatus);
+        const posInStatus = list.filter(t => t.status === targetStatus).findIndex(t => t.id === id);
+        const adjustedDropIdx = dropIdx !== null && dropIdx > posInStatus ? dropIdx - 1 : (dropIdx ?? sameBefore.length);
+        const insertAt = Math.min(adjustedDropIdx, sameBefore.length);
+        const result: Task[] = [];
+        let inserted = false;
+        let count = 0;
+        for (const t of without) {
+          if (t.status === targetStatus && count === insertAt && !inserted) {
+            result.push(task);
+            inserted = true;
+          }
+          result.push(t);
+          if (t.status === targetStatus) count++;
+        }
+        if (!inserted) result.push(task);
+        return result;
+      });
+      this.dropAnnouncement.set(`Tarefa "${taskName}" reordenada`);
+    } else {
+      this.mockData.tasks.update(list => {
+        const without = list.filter(t => t.id !== id);
+        const sameBefore = without.filter(t => t.status === targetStatus);
+        const insertAt = Math.min(dropIdx ?? sameBefore.length, sameBefore.length);
+        const moved = { ...task, status: targetStatus };
+        const result: Task[] = [];
+        let inserted = false;
+        let count = 0;
+        for (const t of without) {
+          if (t.status === targetStatus && count === insertAt && !inserted) {
+            result.push(moved);
+            inserted = true;
+          }
+          result.push(t);
+          if (t.status === targetStatus) count++;
+        }
+        if (!inserted) result.push(moved);
+        return result;
+      });
+      this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
+    }
+
     this.draggedTaskId.set(null);
     this.dragOverStatus.set(null);
     this.dropIndex.set(null);
@@ -317,14 +361,56 @@ export class TasksPage {
     if (this.touchMoved) {
       this.suppressNextClick = true;
       const id = this.draggedTaskId();
-      const status = this.dragOverStatus();
-      if (id !== null && status !== null) {
+      const targetStatus = this.dragOverStatus();
+      const dropIdx = this.dropIndex();
+      if (id !== null && targetStatus !== null) {
         const task = this.mockData.tasks().find(t => t.id === id);
-        if (task && task.status !== status) {
-          this.mockData.tasks.update(list =>
-            list.map(t => t.id === id ? { ...t, status } : t)
-          );
-          this.dropAnnouncement.set(`Tarefa "${task.title}" movida para ${STATUS_CONFIG[status].label}`);
+        if (task) {
+          const taskName = task.title;
+          if (task.status === targetStatus) {
+            this.mockData.tasks.update(list => {
+              const without = list.filter(t => t.id !== id);
+              const sameBefore = without.filter(t => t.status === targetStatus);
+              const posInStatus = list.filter(t => t.status === targetStatus).findIndex(t => t.id === id);
+              const adjustedDropIdx = dropIdx !== null && dropIdx > posInStatus ? dropIdx - 1 : (dropIdx ?? sameBefore.length);
+              const insertAt = Math.min(adjustedDropIdx, sameBefore.length);
+              const result: Task[] = [];
+              let inserted = false;
+              let count = 0;
+              for (const t of without) {
+                if (t.status === targetStatus && count === insertAt && !inserted) {
+                  result.push(task);
+                  inserted = true;
+                }
+                result.push(t);
+                if (t.status === targetStatus) count++;
+              }
+              if (!inserted) result.push(task);
+              return result;
+            });
+            this.dropAnnouncement.set(`Tarefa "${taskName}" reordenada`);
+          } else {
+            this.mockData.tasks.update(list => {
+              const without = list.filter(t => t.id !== id);
+              const sameBefore = without.filter(t => t.status === targetStatus);
+              const insertAt = Math.min(dropIdx ?? sameBefore.length, sameBefore.length);
+              const moved = { ...task, status: targetStatus };
+              const result: Task[] = [];
+              let inserted = false;
+              let count = 0;
+              for (const t of without) {
+                if (t.status === targetStatus && count === insertAt && !inserted) {
+                  result.push(moved);
+                  inserted = true;
+                }
+                result.push(t);
+                if (t.status === targetStatus) count++;
+              }
+              if (!inserted) result.push(moved);
+              return result;
+            });
+            this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
+          }
         }
       }
       setTimeout(() => { this.suppressNextClick = false; }, 200);
