@@ -12,14 +12,14 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
   imports: [FormsModule, ButtonComponent, LucideX, LucideCheck],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancel.emit()">
-      <div (click)="$event.stopPropagation()" class="w-full max-w-lg">
-        <div class="rounded-2xl bg-card border border-theme p-6 shadow-2xl">
-          <div class="flex items-center justify-between mb-6">
+      <div (click)="$event.stopPropagation()" class="w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div class="rounded-2xl bg-card border border-theme shadow-2xl flex flex-col overflow-hidden">
+          <div class="flex items-center justify-between px-6 pt-6 pb-0 shrink-0">
             <h2 class="text-primary font-bold text-lg">{{ editingExpense ? 'Editar despesa' : 'Nova despesa' }}</h2>
             <button (click)="cancel.emit()" aria-label="Fechar" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
           </div>
 
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4 overflow-y-auto p-6">
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Descrição
               <input type="text" placeholder="Ex: Conta de luz" [(ngModel)]="form.description"
@@ -191,7 +191,7 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
             }
           </div>
 
-          <div class="flex gap-3 mt-6">
+          <div class="flex gap-3 px-6 pb-6 pt-0 shrink-0">
             <app-button type="button" variant="outline" label="Cancelar" (click)="cancel.emit()"></app-button>
             <app-button type="button" variant="solid" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
           </div>
