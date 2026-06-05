@@ -1,11 +1,11 @@
-import { Component, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../components/button/button';
 import {
   LucideX,
   LucideCheck,
 } from '@lucide/angular';
-import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service';
+import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/mock-data.service';
 
 @Component({
   selector: 'app-expense-form',
@@ -161,8 +161,11 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
                         }
                       </div>
                       <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
-                      <span class="text-primary flex-1">{{ m }}</span>
-                      <span class="text-secondary text-xs">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
+                      <div class="flex-1 min-w-0">
+                        <span class="text-primary text-sm block truncate">{{ m }}</span>
+                        <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                      </div>
+                      <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
                     </label>
                   }
                 </div>
@@ -192,7 +195,10 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
                 <div class="grid grid-cols-2 gap-2 mt-1">
                   @for (m of members; track m) {
                     <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
-                      <span class="text-primary text-sm w-16 shrink-0">{{ m }}</span>
+                      <div class="w-16 shrink-0 min-w-0">
+                        <span class="text-primary text-sm block truncate">{{ m }}</span>
+                        <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                      </div>
                       <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
                         (input)="recalcCustom()"
                         class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
@@ -218,6 +224,8 @@ export class ExpenseFormComponent implements OnInit {
   @Input() members: string[] = [];
   @Input() splitOptions: readonly { value: string; label: string }[] = [];
   @Input() today = '';
+
+  private mockData = inject(MockDataService);
 
   @Output() save = new EventEmitter<{ expense: Expense; isNew: boolean }>();
   @Output() cancel = new EventEmitter<void>();
@@ -257,6 +265,10 @@ export class ExpenseFormComponent implements OnInit {
 
   protected fmt(val: number): string {
     return val.toFixed(2).replace('.', ',');
+  }
+
+  protected phoneOf(name: string): string {
+    return this.mockData.members().find(m => m.nome === name)?.telefone ?? '';
   }
 
   private emptyForm() {
