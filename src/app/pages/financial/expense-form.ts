@@ -172,6 +172,18 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
             @if (form.splitMode === 'custom') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 <span>Valores por morador</span>
+
+                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
+                  <span class="text-secondary">Total distribuído</span>
+                  <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
+                </div>
+                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
+                  [class.text-emerald-400]="customTotal() === form.amount"
+                  [class.text-rose-400]="customTotal() !== form.amount">
+                  <span>Faltam</span>
+                  <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
+                </div>
+
                 @if (submitted() && customTotal() !== form.amount) {
                   <span class="text-rose-400 text-xs">
                     A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
