@@ -146,7 +146,7 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
 
             @if (form.splitMode === 'some') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                <span>Selecione os participantes (mínimo 2)</span>
+                <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
                 @if (submitted() && selectedSomeCount() < 2) {
                   <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
                 }
@@ -171,7 +171,7 @@ import { Expense, SplitValue, SplitMode } from '../../services/mock-data.service
 
             @if (form.splitMode === 'custom') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                <span>Valores por morador</span>
+                <span>Valores por morador  — {{ members.length }} participantes</span>
 
                 <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
                   <span class="text-secondary">Total distribuído</span>
