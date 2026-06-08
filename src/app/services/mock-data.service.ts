@@ -4,7 +4,7 @@ export interface Membro {
   nome: string;
   telefone: string;
   email: string;
-  cpf: string;
+  documento: string;
   dataNascimento: string;
   cep: string;
   admin: boolean;
@@ -83,13 +83,13 @@ export interface Group {
 }
 
 const MEMBROS_INICIAIS: Membro[] = [
-  { nome: 'Carlos Silva', telefone: '(11) 99999-0001', email: 'carlos.silva@email.com', cpf: '529.982.247-25', dataNascimento: '15/03/1998', cep: '01310-100', admin: false },
-  { nome: 'Ana Oliveira', telefone: '(11) 99999-0002', email: 'ana.oliveira@email.com', cpf: '123.456.789-09', dataNascimento: '22/07/1997', cep: '04567-110', admin: true },
-  { nome: 'Pedro Santos', telefone: '(11) 99999-0003', email: 'pedro.santos@email.com', cpf: '987.654.321-00', dataNascimento: '10/11/1999', cep: '05428-010', admin: false },
-  { nome: 'Mariana Costa', telefone: '(11) 99999-0004', email: 'mariana.costa@email.com', cpf: '111.222.333-44', dataNascimento: '05/02/2000', cep: '02045-001', admin: false },
-  { nome: 'João Pereira', telefone: '(11) 99999-0005', email: 'joao.pereira@email.com', cpf: '555.666.777-88', dataNascimento: '18/09/1996', cep: '01234-567', admin: false },
-  { nome: 'Fernanda Lima', telefone: '(11) 99999-0006', email: 'fernanda.lima@email.com', cpf: '999.888.777-66', dataNascimento: '30/06/2001', cep: '01532-080', admin: false },
-  { nome: 'Rafael Souza', telefone: '(11) 99999-0007', email: 'rafael.souza@email.com', cpf: '444.333.222-11', dataNascimento: '12/12/1995', cep: '04789-220', admin: false },
+  { nome: 'Carlos Silva', telefone: '(11) 99999-0001', email: 'carlos.silva@email.com', documento: '529.982.247-25', dataNascimento: '15/03/1998', cep: '01310-100', admin: false },
+  { nome: 'Ana Oliveira', telefone: '(11) 99999-0002', email: 'ana.oliveira@email.com', documento: '123.456.789-09', dataNascimento: '22/07/1997', cep: '04567-110', admin: true },
+  { nome: 'Pedro Santos', telefone: '(11) 99999-0003', email: 'pedro.santos@email.com', documento: '987.654.321-00', dataNascimento: '10/11/1999', cep: '05428-010', admin: false },
+  { nome: 'Mariana Costa', telefone: '(11) 99999-0004', email: 'mariana.costa@email.com', documento: '111.222.333-44', dataNascimento: '05/02/2000', cep: '02045-001', admin: false },
+  { nome: 'João Pereira', telefone: '(11) 99999-0005', email: 'joao.pereira@email.com', documento: '555.666.777-88', dataNascimento: '18/09/1996', cep: '01234-567', admin: false },
+  { nome: 'Fernanda Lima', telefone: '(11) 99999-0006', email: 'fernanda.lima@email.com', documento: '999.888.777-66', dataNascimento: '30/06/2001', cep: '01532-080', admin: false },
+  { nome: 'Rafael Souza', telefone: '(11) 99999-0007', email: 'rafael.souza@email.com', documento: '444.333.222-11', dataNascimento: '12/12/1995', cep: '04789-220', admin: false },
 ];
 
 const MOCK_EXPENSES: Expense[] = [
@@ -216,7 +216,7 @@ export class MockDataService {
         nome: this.CURRENT_USER,
         telefone: '(11) 99999-0001',
         email: 'carlos.silva@email.com',
-        cpf: '',
+        documento: '',
         dataNascimento: '',
         cep: '',
         admin: false,

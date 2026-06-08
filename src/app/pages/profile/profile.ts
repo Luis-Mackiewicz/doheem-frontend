@@ -9,13 +9,13 @@ import { PasswordInputComponent } from '../../components/password-input/password
 import { MockDataService } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
 import { passwordsMatchValidator } from '../../utils/validators';
-import { CpfMaskDirective } from '../../directives/cpf-mask.directive';
+import { DocumentMaskDirective } from '../../directives/document-mask.directive';
 import { CepMaskDirective } from '../../directives/cep-mask.directive';
 import { DateMaskDirective } from '../../directives/date-mask.directive';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, CepMaskDirective, DateMaskDirective],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, DocumentMaskDirective, CepMaskDirective, DateMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -50,8 +50,8 @@ import { DateMaskDirective } from '../../directives/date-mask.directive';
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-              CPF
-              <input formControlName="cpf" type="text" placeholder="000.000.000-00" appCpfMask
+              CPF ou CNPJ
+              <input formControlName="documento" type="text" placeholder="000.000.000-00" appDocumentMask
                 class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
             </label>
 
@@ -137,7 +137,7 @@ export class ProfilePage {
   constructor() {
     const currentUser = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
     this.form = this.fb.group({
-      cpf: [currentUser?.cpf ?? ''],
+      documento: [currentUser?.documento ?? ''],
       dataNascimento: [currentUser?.dataNascimento ?? ''],
       phone: [currentUser?.telefone ?? ''],
       cep: [currentUser?.cep ?? ''],
@@ -184,7 +184,7 @@ export class ProfilePage {
 
     this.saving.set(true);
 
-    const { cpf, dataNascimento, phone, cep, newPassword } = this.form.value;
+    const { documento, dataNascimento, phone, cep, newPassword } = this.form.value;
 
     this.mockData.updatePhone(this.mockData.CURRENT_USER, phone ?? '');
     this.mockData.updateEmail(this.mockData.CURRENT_USER, this.userEmail);
@@ -199,7 +199,7 @@ export class ProfilePage {
       'Suas informações foram salvas',
       this.mockData.CURRENT_USER);
 
-    this.form.reset({ cpf, dataNascimento, phone, cep });
+    this.form.reset({ documento, dataNascimento, phone, cep });
     setTimeout(() => this.saving.set(false), 600);
   }
 }

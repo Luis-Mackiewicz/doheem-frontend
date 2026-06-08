@@ -55,6 +55,15 @@ export function cnpjValidator(): ValidatorFn {
   };
 }
 
+export function documentValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const v = control.value?.replace(/\D/g, '');
+    if (!v) return null;
+    if (v.length <= 11) return validateCPF(v) ? null : { documento: true };
+    return validateCNPJ(v) ? null : { documento: true };
+  };
+}
+
 export function passwordsMatchValidator(passwordKey: string, confirmKey: string): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
     const pwd = group.get(passwordKey)?.value;

@@ -6,14 +6,14 @@ import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 import { NotificationService } from '../../services/notification-service';
-import { cpfValidator, passwordsMatchValidator } from '../../utils/validators';
-import { CpfMaskDirective } from '../../directives/cpf-mask.directive';
+import { documentValidator, passwordsMatchValidator } from '../../utils/validators';
+import { DocumentMaskDirective } from '../../directives/document-mask.directive';
 import { DateMaskDirective } from '../../directives/date-mask.directive';
 import { CepMaskDirective } from '../../directives/cep-mask.directive';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, DateMaskDirective, CepMaskDirective],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, DocumentMaskDirective, DateMaskDirective, CepMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors duration-150">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -56,12 +56,12 @@ import { CepMaskDirective } from '../../directives/cep-mask.directive';
             }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-              CPF
-              <input formControlName="cpf" type="text" placeholder="000.000.000-00" appCpfMask
+              CPF ou CNPJ
+              <input formControlName="documento" type="text" placeholder="000.000.000-00" appDocumentMask
                 class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
             </label>
-            @if (submitted() && form.controls['cpf'].invalid) {
-              <p class="text-red-400 text-xs -mt-3">Informe um CPF válido</p>
+            @if (submitted() && form.controls['documento'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe um CPF ou CNPJ válido</p>
             }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
@@ -138,7 +138,7 @@ export class RegisterPage {
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      cpf: ['', [Validators.required, cpfValidator()]],
+      documento: ['', [Validators.required, documentValidator()]],
       dataNascimento: ['', Validators.required],
       cep: ['', Validators.required],
       phone: ['', [Validators.required, Validators.minLength(10)]],
