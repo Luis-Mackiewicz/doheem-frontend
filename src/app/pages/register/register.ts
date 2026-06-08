@@ -9,10 +9,11 @@ import { NotificationService } from '../../services/notification-service';
 import { cpfValidator, passwordsMatchValidator } from '../../utils/validators';
 import { CpfMaskDirective } from '../../directives/cpf-mask.directive';
 import { DateMaskDirective } from '../../directives/date-mask.directive';
+import { CepMaskDirective } from '../../directives/cep-mask.directive';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, DateMaskDirective],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, DateMaskDirective, CepMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors duration-150">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -73,6 +74,15 @@ import { DateMaskDirective } from '../../directives/date-mask.directive';
             }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              CEP
+              <input formControlName="cep" type="text" placeholder="00000-000" appCepMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+            @if (submitted() && form.controls['cep'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe um CEP</p>
+            }
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Telefone
               <app-phone-input formControlName="phone" />
             </label>
@@ -130,6 +140,7 @@ export class RegisterPage {
       name: ['', [Validators.required, Validators.minLength(3)]],
       cpf: ['', [Validators.required, cpfValidator()]],
       dataNascimento: ['', Validators.required],
+      cep: ['', Validators.required],
       phone: ['', [Validators.required, Validators.minLength(10)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
