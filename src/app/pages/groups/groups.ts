@@ -164,7 +164,7 @@ export class GroupsPage {
     this.currentPage.set(1);
   }
 
-  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string }): void {
+  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): void {
     const newId = this.mockData.createGroup(data);
     this.notif.add('info', 'Grupo criado',
       `Group "${data.name}" created successfully!`,

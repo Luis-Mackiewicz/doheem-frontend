@@ -6,10 +6,13 @@ import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 import { NotificationService } from '../../services/notification-service';
+import { cpfValidator, passwordsMatchValidator } from '../../utils/validators';
+import { CpfMaskDirective } from '../../directives/cpf-mask.directive';
+import { DateMaskDirective } from '../../directives/date-mask.directive';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, DateMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors duration-150">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -52,8 +55,26 @@ import { NotificationService } from '../../services/notification-service';
             }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              CPF
+              <input formControlName="cpf" type="text" placeholder="000.000.000-00" appCpfMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+            @if (submitted() && form.controls['cpf'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe um CPF válido</p>
+            }
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              Data de nascimento
+              <input formControlName="dataNascimento" type="text" placeholder="DD/MM/AAAA" appDateMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+            @if (submitted() && form.controls['dataNascimento'].invalid) {
+              <p class="text-red-400 text-xs -mt-3">Informe uma data válida</p>
+            }
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Telefone
-              <app-phone-input [value]="phone()" (phoneChange)="onPhoneChange($event)" />
+              <app-phone-input formControlName="phone" />
             </label>
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
@@ -67,7 +88,7 @@ import { NotificationService } from '../../services/notification-service';
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Senha
-              <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
+              <app-password-input formControlName="password" />
             </label>
             @if (submitted() && form.controls['password'].invalid) {
               <p class="text-red-400 text-xs -mt-3">Senha deve ter no mínimo 6 caracteres</p>
@@ -75,7 +96,7 @@ import { NotificationService } from '../../services/notification-service';
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Confirmar senha
-              <app-password-input [value]="form.get('confirmPassword')?.value ?? ''" (valueChange)="form.get('confirmPassword')?.setValue($event)" />
+              <app-password-input formControlName="confirmPassword" />
             </label>
             @if (submitted() && form.errors?.['mismatch']) {
               <p class="text-red-400 text-xs -mt-3">Senhas não conferem</p>
@@ -97,7 +118,6 @@ import { NotificationService } from '../../services/notification-service';
 })
 export class RegisterPage {
   protected form;
-  protected readonly phone = signal('');
   protected readonly loading = signal(false);
   protected readonly submitted = signal(false);
 
@@ -108,20 +128,13 @@ export class RegisterPage {
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
+      cpf: ['', [Validators.required, cpfValidator()]],
+      dataNascimento: ['', Validators.required],
+      phone: ['', [Validators.required, Validators.minLength(10)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-    }, { validators: this.passwordsMatch });
-  }
-
-  private passwordsMatch(group: { get: (key: string) => any }) {
-    const pwd = group.get('password')?.value;
-    const confirm = group.get('confirmPassword')?.value;
-    return pwd === confirm ? null : { mismatch: true };
-  }
-
-  onPhoneChange(value: string): void {
-    this.phone.set(value);
+    }, { validators: passwordsMatchValidator('password', 'confirmPassword') });
   }
 
   onSubmit(): void {

@@ -8,10 +8,14 @@ import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 import { MockDataService } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
+import { passwordsMatchValidator } from '../../utils/validators';
+import { CpfMaskDirective } from '../../directives/cpf-mask.directive';
+import { CepMaskDirective } from '../../directives/cep-mask.directive';
+import { DateMaskDirective } from '../../directives/date-mask.directive';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent],
+  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, CpfMaskDirective, CepMaskDirective, DateMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -43,29 +47,45 @@ import { NotificationService } from '../../services/notification-service';
             <p class="text-secondary text-sm">{{ userEmail }}</p>
           </div>
 
-          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary mb-1">
-            Telefone
-            <app-phone-input [value]="phone()" (phoneChange)="onPhoneChange($event)" />
-          </label>
-          @if (phoneError()) {
-            <p class="text-red-400 text-xs mb-5">{{ phoneError() }}</p>
-          }
-
-          <div class="flex items-center gap-3 my-6">
-            <div class="flex-1 h-px border-soft"></div>
-            <span class="text-muted text-sm font-medium">Alterar senha</span>
-            <div class="flex-1 h-px border-soft"></div>
-          </div>
-
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              CPF
+              <input formControlName="cpf" type="text" placeholder="000.000.000-00" appCpfMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              Data de nascimento
+              <input formControlName="dataNascimento" type="text" placeholder="DD/MM/AAAA" appDateMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              Telefone
+              <app-phone-input formControlName="phone" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+              CEP
+              <input formControlName="cep" type="text" placeholder="00000-000" appCepMask
+                class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition" />
+            </label>
+
+            <div class="flex items-center gap-3 my-2">
+              <div class="flex-1 h-px border-soft"></div>
+              <span class="text-muted text-sm font-medium">Alterar senha</span>
+              <div class="flex-1 h-px border-soft"></div>
+            </div>
+
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Nova senha
-              <app-password-input [value]="form.get('newPassword')?.value ?? ''" (valueChange)="form.get('newPassword')?.setValue($event)" />
+              <app-password-input formControlName="newPassword" />
             </label>
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Confirmar senha
-              <app-password-input [value]="form.get('confirmPassword')?.value ?? ''" (valueChange)="form.get('confirmPassword')?.setValue($event)" />
+              <app-password-input formControlName="confirmPassword" />
             </label>
 
             @if (form.errors?.['mismatch'] && form.touched) {
@@ -107,8 +127,6 @@ export class ProfilePage {
 
   protected readonly saving = signal(false);
   protected readonly showLogoutModal = signal(false);
-  protected readonly phone = signal('');
-  protected readonly phoneError = signal('');
   protected readonly photoPreview = signal<string | null>(null);
 
   private mockData = inject(MockDataService);
@@ -118,14 +136,18 @@ export class ProfilePage {
 
   constructor() {
     const currentUser = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
-    this.phone.set(currentUser?.telefone ?? '');
+    this.form = this.fb.group({
+      cpf: [currentUser?.cpf ?? ''],
+      dataNascimento: [currentUser?.dataNascimento ?? ''],
+      phone: [currentUser?.telefone ?? ''],
+      cep: [currentUser?.cep ?? ''],
+      newPassword: ['', [Validators.minLength(6)]],
+      confirmPassword: [''],
+    }, { validators: passwordsMatchValidator('newPassword', 'confirmPassword') });
+
     if (currentUser?.fotoBase64) {
       this.photoPreview.set(currentUser.fotoBase64);
     }
-    this.form = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', Validators.required],
-    }, { validators: this.passwordsMatch });
   }
 
   protected get userName(): string {
@@ -141,24 +163,8 @@ export class ProfilePage {
     return this.mockData.CURRENT_USER.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
 
-  private passwordsMatch(group: { get: (key: string) => any }) {
-    const pwd = group.get('newPassword')?.value;
-    const confirm = group.get('confirmPassword')?.value;
-    return pwd === confirm ? null : { mismatch: true };
-  }
-
   goBack(): void {
     this.location.back();
-  }
-
-  onPhoneChange(value: string): void {
-    this.phone.set(value);
-    const digits = value.replace(/\D/g, '');
-    if (digits.length > 0 && digits.length < 10) {
-      this.phoneError.set('Telefone inválido — mínimo de 10 dígitos');
-    } else {
-      this.phoneError.set('');
-    }
   }
 
   onPhotoSelected(event: Event): void {
@@ -176,20 +182,14 @@ export class ProfilePage {
   onSubmit(): void {
     if (this.form.invalid || this.saving()) return;
 
-    if (this.phoneError()) return;
-
     this.saving.set(true);
 
-    const phoneDigits = this.phone().replace(/\D/g, '');
-    if (phoneDigits.length > 0 && phoneDigits.length < 10) {
-      this.phoneError.set('Telefone inválido — mínimo de 10 dígitos');
-      this.saving.set(false);
-      return;
-    }
+    const { cpf, dataNascimento, phone, cep, newPassword } = this.form.value;
 
-    this.mockData.updatePhone(this.mockData.CURRENT_USER, this.phone());
+    this.mockData.updatePhone(this.mockData.CURRENT_USER, phone ?? '');
+    this.mockData.updateEmail(this.mockData.CURRENT_USER, this.userEmail);
 
-    if (this.form.get('newPassword')?.value) {
+    if (newPassword) {
       this.notif.add('info', 'Perfil atualizado',
         'Senha alterada com sucesso',
         this.mockData.CURRENT_USER);
@@ -199,7 +199,7 @@ export class ProfilePage {
       'Suas informações foram salvas',
       this.mockData.CURRENT_USER);
 
-    this.form.reset();
+    this.form.reset({ cpf, dataNascimento, phone, cep });
     setTimeout(() => this.saving.set(false), 600);
   }
 }

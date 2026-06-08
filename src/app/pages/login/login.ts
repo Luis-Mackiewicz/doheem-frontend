@@ -52,7 +52,7 @@ import { NotificationService } from '../../services/notification-service';
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Senha
-              <app-password-input [value]="form.get('password')?.value ?? ''" (valueChange)="form.get('password')?.setValue($event)" />
+              <app-password-input formControlName="password" />
             </label>
             @if (submitted() && form.controls['password'].invalid) {
               <p class="text-red-400 text-xs -mt-3">Informe sua senha</p>
