@@ -1,6 +1,7 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MockDataService, ResidentBalance } from '../../services/mock-data.service';
+import { ModalInviteGroupComponent } from '../../components/modal-invite-group/modal-invite-group';
 import {
   LucideArrowDown,
   LucideArrowUp,
@@ -8,22 +9,32 @@ import {
   LucideUsers,
   LucideClipboardList,
   LucideReceipt,
+  LucideShare2,
 } from '@lucide/angular';
 
 @Component({
   selector: 'app-dashboard',
   imports: [
     RouterLink,
+    ModalInviteGroupComponent,
     LucideArrowDown,
     LucideArrowUp,
     LucideWallet,
     LucideUsers,
     LucideClipboardList,
     LucideReceipt,
+    LucideShare2,
   ],
   template: `
     <div class="flex flex-col gap-6 transition-colors duration-150">
-      <h1 class="text-2xl font-bold text-primary">{{ groupName() }}</h1>
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-primary">{{ groupName() }}</h1>
+        <button (click)="showInviteModal.set(true)"
+          class="inline-flex items-center gap-2 border border-theme text-primary font-semibold rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer px-4 py-2 text-sm">
+          <svg lucideShare2 class="w-4 h-4"></svg>
+          Convidar
+        </button>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-card border-theme p-5">
@@ -142,13 +153,18 @@ import {
         </div>
       </div>
     </div>
+
+    @if (showInviteModal()) {
+      <app-modal-invite-group [groups]="mockData.groups()" [groupId]="+groupId" (close)="showInviteModal.set(false)" />
+    }
   `,
 })
 export class DashboardPage {
+  protected showInviteModal = signal(false);
   protected groupId: string;
 
   private route = inject(ActivatedRoute);
-  private mockData = inject(MockDataService);
+  protected mockData = inject(MockDataService);
 
   constructor() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';

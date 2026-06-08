@@ -1,13 +1,13 @@
-import { Component, EventEmitter, Input, Output, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, computed, OnInit } from '@angular/core';
 import QRCode from 'qrcode';
 import { CardComponent } from '../card/card';
 import { ButtonComponent } from '../button/button';
-import { LucideX, LucideQrCode } from '@lucide/angular';
+import { LucideX, LucideQrCode, LucideRefreshCw } from '@lucide/angular';
 import { Group } from '../../services/mock-data.service';
 
 @Component({
   selector: 'app-modal-invite-group',
-  imports: [CardComponent, ButtonComponent, LucideX, LucideQrCode],
+  imports: [CardComponent, ButtonComponent, LucideX, LucideQrCode, LucideRefreshCw],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">
       <div (click)="$event.stopPropagation()" class="w-full max-w-md">
@@ -35,7 +35,11 @@ import { Group } from '../../services/mock-data.service';
               <div class="flex items-center gap-2 w-full">
                 <span class="text-sm text-secondary">Grupo:</span>
                 <span class="text-sm text-primary font-semibold">{{ selectedGroup()?.name }}</span>
-                <button (click)="resetSelection()" class="ml-auto text-xs text-muted hover-text-primary transition cursor-pointer">Trocar</button>
+                @if (!groupId) {
+                  <button (click)="resetSelection()" title="Trocar de grupo" class="ml-auto text-muted hover-text-primary transition cursor-pointer">
+                    <svg lucideRefreshCw class="w-4 h-4"></svg>
+                  </button>
+                }
               </div>
 
               <div class="bg-white p-3 rounded-2xl">
@@ -54,8 +58,10 @@ import { Group } from '../../services/mock-data.service';
               <input type="text" [value]="inviteLink()" readonly
                 class="flex-1 bg-input border-theme rounded-xl px-4 py-3 text-primary text-sm outline-none truncate" />
               <button type="button" (click)="copyLink()"
-                class="shrink-0 inline-flex items-center justify-center gap-2 border border-theme text-primary font-semibold rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer px-5 py-3 text-sm">
-                Copiar
+                [class]="copied()
+                  ? 'shrink-0 inline-flex items-center justify-center gap-2 border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-semibold rounded-xl transition backdrop-blur-sm cursor-pointer px-5 py-3 text-sm'
+                  : 'shrink-0 inline-flex items-center justify-center gap-2 border border-theme text-primary font-semibold rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer px-5 py-3 text-sm'">
+                {{ copied() ? 'Copiado!' : 'Copiar' }}
               </button>
             </div>
 
@@ -66,8 +72,9 @@ import { Group } from '../../services/mock-data.service';
     </div>
   `,
 })
-export class ModalInviteGroupComponent {
+export class ModalInviteGroupComponent implements OnInit {
   @Input({ required: true }) groups: Group[] = [];
+  @Input() groupId?: number;
   @Output() close = new EventEmitter<void>();
 
   protected readonly selectedGroupId = signal(0);
@@ -80,10 +87,21 @@ export class ModalInviteGroupComponent {
       : ''
   );
   protected readonly qrCodeDataUrl = signal<string>('');
+  protected readonly copied = signal(false);
+
+  ngOnInit(): void {
+    if (this.groupId) {
+      this.selectGroup(this.groupId);
+    }
+  }
 
   onGroupSelect(event: Event): void {
     const id = +(event.target as HTMLSelectElement).value;
     if (!id) return;
+    this.selectGroup(id);
+  }
+
+  private selectGroup(id: number): void {
     this.selectedGroupId.set(id);
     this.qrCodeDataUrl.set('');
     QRCode.toDataURL(this.inviteLink(), {
@@ -99,7 +117,10 @@ export class ModalInviteGroupComponent {
   }
 
   copyLink(): void {
-    navigator.clipboard.writeText(this.inviteLink()).catch(() => {});
+    navigator.clipboard.writeText(this.inviteLink()).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    }).catch(() => {});
   }
 
   shareLink(): void {
