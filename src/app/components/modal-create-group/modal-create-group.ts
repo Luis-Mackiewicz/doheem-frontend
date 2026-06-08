@@ -3,10 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../card/card';
 import { ButtonComponent } from '../button/button';
 import { LucideX, LucideCamera, LucideBuilding2 } from '@lucide/angular';
+import { CnpjMaskDirective } from '../../directives/cnpj-mask.directive';
+import { CepMaskDirective } from '../../directives/cep-mask.directive';
 
 @Component({
   selector: 'app-modal-create-group',
-  imports: [FormsModule, CardComponent, ButtonComponent, LucideX, LucideCamera, LucideBuilding2],
+  imports: [FormsModule, CardComponent, ButtonComponent, LucideX, LucideCamera, LucideBuilding2, CnpjMaskDirective, CepMaskDirective],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="close.emit()">
       <div (click)="$event.stopPropagation()" class="w-full max-w-md">
@@ -43,6 +45,18 @@ import { LucideX, LucideCamera, LucideBuilding2 } from '@lucide/angular';
           </label>
 
           <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+            CNPJ
+            <input type="text" placeholder="00.000.000/0000-00" appCnpjMask [(ngModel)]="cnpj"
+              class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition w-full" />
+          </label>
+
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+            CEP
+            <input type="text" placeholder="00000-000" appCepMask [(ngModel)]="cep"
+              class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition w-full" />
+          </label>
+
+          <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
             Descrição
             <textarea placeholder="Descreva o grupo..." [(ngModel)]="description" rows="3"
               class="bg-input border-theme rounded-xl px-4 py-3 text-primary placeholder:text-muted outline-none focus:border-purple-400/60 transition w-full resize-none"></textarea>
@@ -66,13 +80,15 @@ import { LucideX, LucideCamera, LucideBuilding2 } from '@lucide/angular';
 })
 export class CreateGroupModalComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() created = new EventEmitter<{ name: string; description: string; currency: string; imagemBase64: string }>();
+  @Output() created = new EventEmitter<{ name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }>();
 
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
   protected name = '';
   protected description = '';
   protected currency = 'BRL';
+  protected cnpj = '';
+  protected cep = '';
   protected currencies = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'PYG', 'UYU'];
   protected imagemBase64 = '';
   protected readonly imagemPreview = signal('');
@@ -96,6 +112,8 @@ export class CreateGroupModalComponent {
       description: this.description.trim(),
       currency: this.currency,
       imagemBase64: this.imagemBase64,
+      cnpj: this.cnpj,
+      cep: this.cep,
     });
     this.close.emit();
   }
