@@ -148,11 +148,11 @@ export class SidebarComponent {
 
   protected readonly navItems = computed(() => [
     { path: `/groups/${this.groupId()}/dashboard`, label: 'Dashboard', exact: true },
-    { path: `/groups/${this.groupId()}/balances`, label: 'Balances', exact: false },
-    { path: `/groups/${this.groupId()}/financial`, label: 'Financial', exact: false },
-    { path: `/groups/${this.groupId()}/group`, label: 'Group', exact: false },
-    { path: `/groups/${this.groupId()}/tasks`, label: 'Tasks', exact: false },
-    { path: `/groups/${this.groupId()}/historical`, label: 'History', exact: false },
-    { path: `/groups/${this.groupId()}/notifications`, label: 'Notifications', exact: false },
+    { path: `/groups/${this.groupId()}/balances`, label: 'Saldos', exact: false },
+    { path: `/groups/${this.groupId()}/financial`, label: 'Financeiro', exact: false },
+    { path: `/groups/${this.groupId()}/group`, label: 'Grupo', exact: false },
+    { path: `/groups/${this.groupId()}/tasks`, label: 'Tarefas', exact: false },
+    { path: `/groups/${this.groupId()}/historical`, label: 'Histórico', exact: false },
+    { path: `/groups/${this.groupId()}/notifications`, label: 'Notificações', exact: false },
   ]);
 }

@@ -116,9 +116,9 @@ export class HeaderComponent {
   protected mobileOpen = signal(false);
 
   protected navLinks = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'testimonials', label: 'Testimonials' },
+    { id: 'home', label: 'Início' },
+    { id: 'about', label: 'Sobre' },
+    { id: 'testimonials', label: 'Relatos' },
     { id: 'app', label: 'App' },
   ];
 
