@@ -1,59 +1,111 @@
-# DoheemFrontend
+# Doheem
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.11.
+Plataforma de gestão financeira e tarefas para estudantes em repúblicas e alojamentos compartilhados.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- Angular 21
+- Tailwind CSS v4
+- TypeScript 5.9
+- Vitest
+- Lucide Angular (ícones)
+- QRCode (geração de QR code client-side)
 
-```bash
-ng serve
-```
+## Funcionalidades
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Gerenciamento de grupos com convite via link e QR code
+- Controle de despesas com modos de rateio (igual, alguns, personalizado)
+- Fluxo de aprovação de pagamentos com upload de comprovante
+- Gerenciamento de tarefas com drag-and-drop (estilo Kanban)
+- Visão geral de saldos dos moradores
+- Histórico financeiro com filtros
+- Notificações de dívidas, tarefas e despesas
+- Tema claro / escuro
+- Layout responsivo (sidebar desktop + navegação inferior mobile)
+- Suporte a instalação como PWA
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Como executar
 
 ```bash
-ng build
+npm install
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Acesse `http://localhost:4200`.
 
-## Running unit tests
+## Scripts
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+| Comando | Descrição |
+|---------|-----------|
+| `npm start` | Iniciar servidor de desenvolvimento (porta 4200) |
+| `npm run build` | Build de produção |
+| `npm test` | Executar testes |
 
-```bash
-ng test
+## Estrutura do projeto
+
+```
+src/app/
+  components/         Componentes reutilizáveis
+    button/
+    card/
+    header/
+    modal-create-group/
+    modal-invite-group/
+    paginator/
+    password-input/
+    phone-input/
+    search/
+    sidebar/
+
+  pages/              Componentes de cada rota
+    balances/
+    dashboard/
+    financial/
+    group/            Gerenciamento de membros
+    group-layout/     Sidebar + router-outlet
+    groups/           Listagem de grupos
+    historical/
+    home/
+    join-group/       Entrar no grupo via link de convite
+    login/
+    notifications/
+    profile/
+    register/
+    tasks/            Quadro Kanban de tarefas
+
+  services/           Dados e utilitários
+    mock-data.service.ts
+    notification-service.ts
+    pwa-install-service.ts
+    theme-service.ts
 ```
 
-## Running end-to-end tests
+## Rotas
 
-For end-to-end (e2e) testing, run:
+| Caminho | Página |
+|---------|--------|
+| `/` | Início |
+| `/login` | Login |
+| `/register` | Cadastro |
+| `/groups` | Lista de grupos |
+| `/groups/join/:id` | Entrar no grupo via convite |
+| `/groups/:id/dashboard` | Painel do grupo |
+| `/groups/:id/financial` | Despesas |
+| `/groups/:id/tasks` | Tarefas |
+| `/groups/:id/group` | Membros |
+| `/groups/:id/balances` | Saldos |
+| `/groups/:id/historical` | Histórico de despesas |
+| `/groups/:id/notifications` | Notificações |
+| `/profile` | Perfil do usuário |
 
-```bash
-ng e2e
-```
+## Design System
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- Glassmorphism nos cards (`bg-card backdrop-blur-xl border-theme rounded-3xl`)
+- Paleta roxa (médio `#7c3aed`, escuro `#2e1065`)
+- Hierarquia de texto: 100% / 70% / 50% / 40% de opacidade
+- Fonte: Inter (Google Fonts)
+- Temas claro e escuro via variáveis CSS
 
-## Additional Resources
+## Licença
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MIT
