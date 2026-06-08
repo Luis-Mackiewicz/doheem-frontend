@@ -44,7 +44,7 @@ import { ThemeService } from '../../services/theme-service';
         </nav>
 
         <div class="flex items-center gap-2">
-          <a routerLink="/perfil" aria-label="Perfil"
+          <a routerLink="/profile" aria-label="Perfil"
             class="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition"
             [class.bg-white/10]="theme.theme() === 'dark'"
             [class.bg-violet-100]="theme.theme() === 'light'"
