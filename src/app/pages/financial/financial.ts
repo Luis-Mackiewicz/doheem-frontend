@@ -302,6 +302,64 @@ export class FinancialPage {
     setTimeout(() => this.toastMessage.set(''), 3000);
   }
 
+  private addMonths(dateStr: string, months: number): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T12:00:00');
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString().slice(0, 10);
+  }
+
+  private expandInstallments(expense: Expense, startId: number): Expense[] {
+    const n = expense.installments;
+    if (n <= 1) return [expense];
+
+    // Pre-calculate per-person per-installment rounded values
+    const perPerson = expense.splitValues.map(sv => {
+      const raw = sv.value / n;
+      const base = Math.floor(raw * 100) / 100;
+      const remainder = Math.round((raw - base) * n * 100) / 100;
+      return { name: sv.name, base, remainder };
+    });
+
+    const result: Expense[] = [];
+    for (let i = 0; i < n; i++) {
+      const splitValues = perPerson.map(p => ({
+        name: p.name,
+        value: i === 0 ? +(p.base + p.remainder).toFixed(2) : p.base,
+      }));
+      const total = splitValues.reduce((s, v) => s + v.value, 0);
+      // Adjust last person to fix rounding
+      const diff = Math.round((expense.amount / n - total) * 100) / 100;
+      if (Math.abs(diff) > 0.001) {
+        splitValues[splitValues.length - 1] = {
+          ...splitValues[splitValues.length - 1],
+          value: +(splitValues[splitValues.length - 1].value + diff).toFixed(2),
+        };
+      }
+
+      result.push({
+        ...expense,
+        id: startId + i,
+        amount: Math.round(expense.amount / n * 100) / 100,
+        dueDate: this.addMonths(expense.firstDueDate || expense.dueDate, i),
+        competenceDate: this.addMonths(expense.competenceDate, i),
+        installments: 1,
+        firstDueDate: '',
+        installmentGroup: { id: expense.id, index: i + 1, total: n },
+      });
+    }
+    // Fix amount rounding for the last installment
+    const sum = result.reduce((s, e) => s + e.amount, 0);
+    const diffTotal = Math.round((expense.amount - sum) * 100) / 100;
+    if (Math.abs(diffTotal) > 0.001) {
+      result[result.length - 1] = {
+        ...result[result.length - 1],
+        amount: +(result[result.length - 1].amount + diffTotal).toFixed(2),
+      };
+    }
+    return result;
+  }
+
   constructor() {
     const current = this.mockData.expenses();
     const historical = this.mockData.historicalExpenses;
@@ -319,7 +377,19 @@ export class FinancialPage {
         merged.push({ ...h });
       }
     }
-    this.expenses.set(merged);
+
+    // Expand installments into individual records
+    const expanded: Expense[] = [];
+    for (const e of merged) {
+      if (e.installments > 1) {
+        const insts = this.expandInstallments(e, nextId);
+        nextId += insts.length;
+        expanded.push(...insts);
+      } else {
+        expanded.push(e);
+      }
+    }
+    this.expenses.set(expanded);
 
     this.payments.set(
       this.mockData.payments().map(p => ({
@@ -440,23 +510,37 @@ export class FinancialPage {
 
   onSaveExpense(event: { expense: Expense; isNew: boolean }): void {
     const { expense, isNew } = event;
-    this.expenses.update(list => {
-      if (!isNew) {
-        return list.map(e => e.id === expense.id ? expense : e);
-      }
-      return [...list, expense];
-    });
 
-    if (isNew) {
+    if (!isNew) {
+      this.expenses.update(list => list.map(e => e.id === expense.id ? expense : e));
+      this.showToast('Despesa atualizada com sucesso');
+      this.showModal.set(false);
+      return;
+    }
+
+    const toAdd: Expense[] = expense.installments > 1
+      ? this.expandInstallments(expense, Date.now())
+      : [expense];
+
+    this.expenses.update(list => [...list, ...toAdd]);
+
+    if (expense.installments > 1) {
+      for (const sv of expense.splitValues) {
+        if (sv.name === expense.paidBy) continue;
+        this.notif.add('expense', 'Nova despesa parcelada',
+          `${expense.description} (${expense.installments}x) — sua parte total: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
+          sv.name, toAdd[0].id);
+      }
+    } else {
       for (const sv of expense.splitValues) {
         if (sv.name === expense.paidBy) continue;
         this.notif.add('expense', 'Nova despesa',
           `${expense.description} — sua parte: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
-          sv.name, expense.id);
+          sv.name, toAdd[0].id);
       }
     }
 
-    this.showToast(isNew ? 'Despesa criada com sucesso' : 'Despesa atualizada com sucesso');
+    this.showToast('Despesa criada com sucesso');
     this.showModal.set(false);
   }
 

@@ -86,7 +86,7 @@ import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/
               }
             </div>
             @if (form.installments > 1 && form.amount > 0) {
-              <p class="text-secondary text-xs">Serão geradas {{ form.installments }} parcelas de R$ {{ fmt(form.amount / form.installments) }}</p>
+              <p class="text-secondary text-xs">Serão criadas {{ form.installments }} despesas de R$ {{ fmt(form.amount / form.installments) }}</p>
             }
 
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
@@ -198,10 +198,13 @@ import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/
                       <div class="min-w-0 flex-1">
                         <span class="text-primary text-sm block truncate">{{ m }}</span>
                         <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
+                        @if (form.installments > 1) {
+                          <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
+                        }
                       </div>
                       <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
                         (input)="recalcCustom()"
-                        class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-full text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                     </div>
                   }
                 </div>

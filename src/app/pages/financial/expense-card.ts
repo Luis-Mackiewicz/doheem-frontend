@@ -40,18 +40,18 @@ import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../se
             }
           </div>
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <p class="text-primary font-semibold truncate text-sm">{{ expense.description }}</p>
-              <div class="flex items-center gap-1.5">
-                @if (expense.installments > 1) {
-                  <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">{{ expense.installments }}x R$ {{ fmt(expense.amount / expense.installments) }}</span>
-                }
-                @if (expense.fixed) {
-                  <span class="text-[10px] font-medium badge-amber px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
-                }
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="text-primary font-semibold truncate text-sm">{{ expense.description }}</p>
+                <div class="flex items-center gap-1.5">
+                  @if (expense.installmentGroup; as ig) {
+                    <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">Parcela {{ ig.index }}/{{ ig.total }}</span>
+                  }
+                  @if (expense.fixed) {
+                    <span class="text-[10px] font-medium badge-amber px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
+                  }
+                </div>
               </div>
-            </div>
-            <p class="text-muted text-xs mt-0.5">{{ categoryLabel(expense.category) }} · {{ expense.competenceDate | date:'dd/MM/yyyy' }} · {{ expense.paidBy }}</p>
+              <p class="text-muted text-xs mt-0.5">{{ categoryLabel(expense.category) }} · {{ expense.competenceDate | date:'dd/MM/yyyy' }} · {{ expense.paidBy }} @if (expense.dueDate) { · Vence {{ expense.dueDate | date:'dd/MM/yyyy' }} }</p>
             <div class="flex items-center gap-1.5 mt-2 flex-wrap">
               <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(expense.splitMode) }}</span>
               @for (sv of expense.splitValues; track sv.name) {

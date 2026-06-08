@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
 import { MockDataService, Payment } from '../../services/mock-data.service';
@@ -21,7 +22,7 @@ import {
 
 @Component({
   selector: 'app-historical',
-  imports: [PaginatorComponent, SearchComponent,
+  imports: [DatePipe, PaginatorComponent, SearchComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
     LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage,
@@ -77,14 +78,14 @@ import {
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 flex-wrap">
                     <p class="text-primary font-semibold truncate">{{ e.description }}</p>
-                    @if (e.installments > 1) {
-                      <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">{{ e.installments }}x R$ {{ fmt(e.amount / e.installments) }}</span>
+                    @if (e.installmentGroup; as ig) {
+                      <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">Parcela {{ ig.index }}/{{ ig.total }}</span>
                     }
                     @if (e.fixed) {
                       <span class="text-[10px] font-medium badge-amber px-2 py-0.5 rounded-full flex items-center gap-0.5"><svg lucidePin class="w-3 h-3"></svg> Fixa</span>
                     }
                   </div>
-                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ monthLabel(e.competenceDate) }} · Pago por {{ e.paidBy }}</p>
+                  <p class="text-muted text-xs mt-0.5">{{ categoryLabel(e.category) }} · {{ monthLabel(e.competenceDate) }} · Pago por {{ e.paidBy }} @if (e.dueDate) { · Vence {{ e.dueDate | date:'dd/MM/yyyy' }} }</p>
                   <div class="flex items-center gap-1.5 mt-2 flex-wrap">
                     <span class="text-[11px] bg-card-hover text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(e.splitMode) }}</span>
                     @for (sv of e.splitValues; track sv.name) {
