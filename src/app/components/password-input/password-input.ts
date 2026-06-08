@@ -1,11 +1,15 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-password-input',
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => PasswordInputComponent), multi: true },
+  ],
   template: `
     <div class="relative">
-      <input [type]="visible ? 'text' : 'password'" [value]="value" (input)="onInput($event)"
-        [placeholder]="placeholder"
+      <input [type]="visible ? 'text' : 'password'" [value]="value" (input)="onInput($event)" (blur)="onBlur()"
+        [disabled]="disabled" [placeholder]="placeholder"
         class="w-full bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition pr-12" />
       <button type="button" (click)="toggle()"
         class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition cursor-pointer">
@@ -26,18 +30,43 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
     </div>
   `,
 })
-export class PasswordInputComponent {
-  @Input() value = '';
+export class PasswordInputComponent implements ControlValueAccessor {
   @Input() placeholder = '••••••••';
-  @Output() valueChange = new EventEmitter<string>();
 
+  protected value = '';
+  protected disabled = false;
   protected visible = false;
 
-  toggle(): void {
-    this.visible = !this.visible;
+  private onChange: (v: string) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  writeValue(v: string): void {
+    this.value = v ?? '';
+  }
+
+  registerOnChange(fn: (v: string) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
   }
 
   onInput(e: Event): void {
-    this.valueChange.emit((e.target as HTMLInputElement).value);
+    const value = (e.target as HTMLInputElement).value;
+    this.value = value;
+    this.onChange(value);
+  }
+
+  onBlur(): void {
+    this.onTouched();
+  }
+
+  toggle(): void {
+    this.visible = !this.visible;
   }
 }
