@@ -23,6 +23,9 @@ Plataforma de gestão financeira e tarefas para estudantes em repúblicas e aloj
 - Tema claro / escuro
 - Layout responsivo (sidebar desktop + navegação inferior mobile)
 - Suporte a instalação como PWA
+- Máscaras automáticas em campos de CPF, CNPJ, telefone, CEP e data
+- Validação de CPF e CNPJ com algoritmos de dígitos verificadores
+- Campo unificado de documento (CPF ou CNPJ com detecção automática)
 
 ## Como executar
 
@@ -57,6 +60,14 @@ src/app/
     search/
     sidebar/
 
+  directives/         Diretivas de máscara
+    cpf-mask.directive.ts
+    cnpj-mask.directive.ts
+    document-mask.directive.ts
+    phone-mask.directive.ts
+    cep-mask.directive.ts
+    date-mask.directive.ts
+
   pages/              Componentes de cada rota
     balances/
     dashboard/
@@ -78,6 +89,9 @@ src/app/
     notification-service.ts
     pwa-install-service.ts
     theme-service.ts
+
+  utils/              Utilitários
+    validators.ts
 ```
 
 ## Rotas
