@@ -19,6 +19,7 @@ const TYPE_BADGE: Record<NotificationType, string> = {
   task_reminder: 'badge-blue',
   task_overdue: 'badge-rose',
   info: 'badge-emerald',
+  success: 'badge-emerald',
 };
 
 @Component({

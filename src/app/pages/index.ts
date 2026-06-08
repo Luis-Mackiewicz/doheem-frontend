@@ -4,6 +4,7 @@ export { RegisterPage } from './register/register';
 export { GroupsPage } from './groups/groups';
 export { ProfilePage } from './profile/profile';
 export { NotFoundPage } from './not-found/not-found';
+export { JoinGroupPage } from './join-group/join-group';
 export { GroupLayoutComponent } from './group-layout/group-layout';
 export { DashboardPage } from './dashboard/dashboard';
 export { FinancialPage } from './financial/financial';

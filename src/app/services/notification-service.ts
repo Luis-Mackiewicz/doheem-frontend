@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 
-export type NotificationType = 'expense' | 'debt_reminder' | 'task_reminder' | 'task_overdue' | 'info';
+export type NotificationType = 'expense' | 'debt_reminder' | 'task_reminder' | 'task_overdue' | 'info' | 'success';
 
 export interface Notification {
   id: number;

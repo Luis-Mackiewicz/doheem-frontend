@@ -5,6 +5,7 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginPage) },
   { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.RegisterPage) },
   { path: 'groups', loadComponent: () => import('./pages/groups/groups').then(m => m.GroupsPage) },
+  { path: 'groups/join/:id', loadComponent: () => import('./pages/join-group/join-group').then(m => m.JoinGroupPage) },
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePage) },
   {
     path: 'groups/:id',

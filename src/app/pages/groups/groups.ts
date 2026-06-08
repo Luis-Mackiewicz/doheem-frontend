@@ -2,6 +2,7 @@ import { Component, inject, computed, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CreateGroupModalComponent } from '../../components/modal-create-group/modal-create-group';
+import { ModalInviteGroupComponent } from '../../components/modal-invite-group/modal-invite-group';
 import { MockDataService } from '../../services/mock-data.service';
 import { NotificationService } from '../../services/notification-service';
 import {
@@ -13,7 +14,7 @@ import {
 
 @Component({
   selector: 'app-groups',
-  imports: [RouterLink, ButtonComponent, CreateGroupModalComponent,
+  imports: [RouterLink, ButtonComponent, CreateGroupModalComponent, ModalInviteGroupComponent,
     LucideSearch, LucideHome, LucideChevronRight, LucideChevronLeft,
   ],
   template: `
@@ -45,7 +46,7 @@ import {
                 (input)="onSearch(searchInput.value)" />
             </div>
             <app-button variant="solid" type="button" label="+ Criar" (click)="showCreateModal.set(true)"></app-button>
-            <app-button variant="outline" type="button" label="Entrar"></app-button>
+            <app-button variant="outline" type="button" label="Entrar" (click)="onInviteClick()"></app-button>
           </div>
 
           <div class="flex flex-col min-h-[360px]">
@@ -108,10 +109,15 @@ import {
     @if (showCreateModal()) {
       <app-modal-create-group (close)="showCreateModal.set(false)" (created)="onGroupCreated($event)" />
     }
+
+    @if (showInviteModal()) {
+      <app-modal-invite-group [groups]="groups()" (close)="showInviteModal.set(false)" />
+    }
   `,
 })
 export class GroupsPage {
   protected readonly showCreateModal = signal(false);
+  protected readonly showInviteModal = signal(false);
   readonly pageSize = 5;
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
@@ -148,6 +154,10 @@ export class GroupsPage {
     }
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   });
+
+  onInviteClick(): void {
+    this.showInviteModal.set(true);
+  }
 
   onSearch(value: string): void {
     this.searchQuery.set(value);

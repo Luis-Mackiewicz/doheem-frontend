@@ -26,6 +26,12 @@ export interface Payment {
   approvedBy?: string;
 }
 
+export interface InstallmentGroup {
+  id: number;
+  index: number;
+  total: number;
+}
+
 export interface Expense {
   id: number;
   description: string;
@@ -39,6 +45,7 @@ export interface Expense {
   installments: number;
   firstDueDate: string;
   fixed: boolean;
+  installmentGroup?: InstallmentGroup;
 }
 
 export type TaskStatus = 'todo' | 'doing' | 'done';
@@ -67,6 +74,7 @@ export interface Group {
   members: number;
   monthlyFee: number;
   imagemBase64?: string;
+  inviteLink?: string;
 }
 
 const MEMBROS_INICIAIS: Membro[] = [
@@ -186,6 +194,32 @@ export class MockDataService {
       imagemBase64: data.imagemBase64 || undefined,
     }]);
     return newId;
+  }
+
+  getGroupById(id: number): Group | undefined {
+    return this.groupsSignal().find(g => g.id === id);
+  }
+
+  joinGroup(groupId: number): boolean {
+    const group = this.groupsSignal().find(g => g.id === groupId);
+    if (!group) return false;
+    const alreadyMember = this.membersSignal().some(m => m.nome === this.CURRENT_USER);
+    if (!alreadyMember) {
+      this.membersSignal.update(list => [...list, {
+        nome: this.CURRENT_USER,
+        telefone: '(11) 99999-0001',
+        email: 'carlos.silva@email.com',
+        admin: false,
+      }]);
+    }
+    this.groupsSignal.update(list =>
+      list.map(g => g.id === groupId ? { ...g, members: g.members + 1 } : g)
+    );
+    return true;
+  }
+
+  isMember(groupId: number, name: string): boolean {
+    return this.membersSignal().some(m => m.nome === name);
   }
 
   updateGroup(id: number, data: { name: string; description: string; imagemBase64?: string }): void {
