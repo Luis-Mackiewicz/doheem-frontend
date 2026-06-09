@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
-import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification-service';
 import type { NotificationType } from '../../services/notification-service';
 import {
@@ -106,7 +106,7 @@ const TYPE_BADGE: Record<NotificationType, string> = {
 export class NotificationsPage {
   protected readonly TYPE_BADGE = TYPE_BADGE;
   protected readonly svc = inject(NotificationService);
-  protected readonly mockData = inject(MockDataService);
+  protected readonly auth = inject(AuthService);
   protected readonly pageSize = 5;
   protected readonly currentPage = signal(1);
   protected readonly searchQuery = signal('');
@@ -117,7 +117,7 @@ export class NotificationsPage {
 
   protected readonly filteredNotifications = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    let list = this.svc.notifications().filter(n => n.recipient === this.mockData.CURRENT_USER);
+    let list = this.svc.notifications().filter(n => n.recipient === (this.auth.currentUser()?.name ?? ''));
     if (query) {
       list = list.filter(n =>
         n.title.toLowerCase().includes(query) ||

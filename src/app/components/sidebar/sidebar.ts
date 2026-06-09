@@ -2,7 +2,7 @@ import { Component, computed, input, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
-import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
 import {
   LucideLayoutDashboard,
   LucideDollarSign,
@@ -64,7 +64,7 @@ import {
         <a routerLink="/profile"
           class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-secondary hover-text-primary hover-bg">
           <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold shrink-0" aria-hidden="true">{{ userInitials }}</div>
-          <span>{{ CURRENT_USER }}</span>
+          <span>{{ userName }}</span>
         </a>
       </div>
       <hr class="mx-4 border-theme" />
@@ -138,10 +138,14 @@ export class SidebarComponent {
   protected theme = inject(ThemeService);
   protected notif = inject(NotificationService);
 
-  protected readonly CURRENT_USER = inject(MockDataService).CURRENT_USER;
+  protected readonly auth = inject(AuthService);
+
+  protected get userName(): string {
+    return this.auth.currentUser()?.name ?? '';
+  }
 
   protected get userInitials(): string {
-    return this.CURRENT_USER.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return this.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
 
   protected readonly groupName = computed(() => `Group ${this.groupId()}`);

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { MockDataService, Membro } from '../../services/mock-data.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { GroupsApiService } from '../../services/groups-api.service';
+import { AuthService } from '../../services/auth.service';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +16,15 @@ import {
   LucideCamera,
   LucideX,
 } from '@lucide/angular';
+
+interface Member {
+  id: number;
+  nome: string;
+  telefone: string;
+  email: string;
+  admin: boolean;
+  fotoBase64?: string;
+}
 
 @Component({
   selector: 'app-group',
@@ -263,35 +273,44 @@ export class GroupPage {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   private route = inject(ActivatedRoute);
-  protected mockData = inject(MockDataService);
+  private groupsApi = inject(GroupsApiService);
+  private auth = inject(AuthService);
+  private router = inject(Router);
 
   protected readonly groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+  protected readonly groupIdNum = computed(() => Number(this.groupId));
 
-  protected readonly group = computed(() => {
-    const id = Number(this.groupId);
-    return this.mockData.groups().find(g => g.id === id);
-  });
-
-  protected readonly isAdmin = computed(() =>
-    this.mockData.members().find(m => m.nome === this.currentUserName)?.admin ?? false
+  private readonly groupResource = computed(() =>
+    this.groupsApi.getById(this.groupIdNum())
   );
-  protected readonly currentUserName = this.mockData.CURRENT_USER;
+  protected readonly group = computed(() => this.groupResource().value());
+  protected readonly groupLoading = computed(() => this.groupResource().isLoading());
+  protected readonly membersResource = computed(() =>
+    this.groupsApi.getMembers(this.groupIdNum())
+  );
+  protected readonly membersData = computed(() => this.membersResource().value() ?? [] as Member[]);
+  protected readonly membersLoading = computed(() => this.membersResource().isLoading());
+
+  protected readonly currentUserName = computed(() => this.auth.currentUser()?.name ?? '');
+  protected readonly isAdmin = computed(() =>
+    this.membersData().find(m => m.nome === this.currentUserName())?.admin ?? false
+  );
   protected readonly pageSize = 5;
 
   protected readonly copiedTel = signal('');
-  protected readonly removing = signal<Membro | null>(null);
-  protected readonly leaving = signal<Membro | null>(null);
+  protected readonly removing = signal<Member | null>(null);
+  protected readonly leaving = signal<Member | null>(null);
   protected readonly leaveError = signal('');
   protected readonly searchQuery = signal('');
   protected readonly currentPage = signal(1);
 
-  protected readonly total = computed(() => this.mockData.members().length);
+  protected readonly total = computed(() => this.membersData().length);
 
   protected readonly filtered = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    let list = this.mockData.members();
+    let list = this.membersData();
     if (q) {
-      list = list.filter(m => m.nome.toLowerCase().includes(q));
+      list = list.filter((m: Member) => m.nome.toLowerCase().includes(q));
     }
     return list;
   });
@@ -336,13 +355,14 @@ export class GroupPage {
   }
 
   saveSettings(): void {
-    const id = Number(this.groupId);
-    this.mockData.updateGroup(id, {
+    const id = this.groupIdNum();
+    this.groupsApi.update(id, {
       name: this.editName,
       description: this.editDescription,
       imagemBase64: this.editFotoPreview() || undefined,
+    }).subscribe(() => {
+      this.closeSettings();
     });
-    this.closeSettings();
   }
 
   onSearch(value: string): void {
@@ -364,11 +384,11 @@ export class GroupPage {
     }, 1500);
   }
 
-  promote(m: Membro): void {
-    this.mockData.promoteToAdmin(m.nome);
+  promote(m: Member): void {
+    this.groupsApi.updateMemberRole(this.groupIdNum(), m.id, { role: 'admin' }).subscribe();
   }
 
-  confirmRemove(m: Membro): void {
+  confirmRemove(m: Member): void {
     this.removing.set(m);
   }
 
@@ -379,29 +399,12 @@ export class GroupPage {
   remove(): void {
     const target = this.removing();
     if (!target) return;
-    this.mockData.removeMember(target.nome);
-    this.removing.set(null);
+    this.groupsApi.removeMember(this.groupIdNum(), target.id).subscribe(() => {
+      this.removing.set(null);
+    });
   }
 
-  leave(m: Membro): void {
-    if (this.mockData.hasPendingDebts(m.nome)) {
-      this.leaveError.set('Você possui dívidas pendentes. Quite-as antes de sair do grupo.');
-      return;
-    }
-    if (this.mockData.hasPendingTasks(m.nome)) {
-      this.leaveError.set('Você possui tarefas pendentes. Conclua-as antes de sair do grupo.');
-      return;
-    }
-    const outrosAdmins = this.mockData.members().filter(item => item.admin && item.nome !== m.nome);
-    if (m.admin && outrosAdmins.length === 0) {
-      const maisAntigo = this.mockData.getOldestMember(m.nome);
-      if (maisAntigo) {
-        this.leaveError.set(`Você é o único admin do grupo. Transfira o cargo para ${maisAntigo.nome} antes de sair.`);
-      } else {
-        this.leaveError.set('Você é o único admin do grupo e não há outros membros para assumir.');
-      }
-      return;
-    }
+  leave(m: Member): void {
     this.leaving.set(m);
   }
 
@@ -412,7 +415,15 @@ export class GroupPage {
   confirmLeave(): void {
     const target = this.leaving();
     if (!target) return;
-    this.mockData.removeMember(target.nome);
-    this.leaving.set(null);
+    this.groupsApi.removeMember(this.groupIdNum(), target.id).subscribe({
+      next: () => {
+        this.leaving.set(null);
+        this.router.navigate(['/groups']);
+      },
+      error: (err) => {
+        this.leaveError.set(err.error?.message ?? 'Não foi possível sair do grupo.');
+        this.leaving.set(null);
+      },
+    });
   }
 }

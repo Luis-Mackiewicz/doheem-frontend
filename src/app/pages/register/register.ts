@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 import { NotificationService } from '../../services/notification-service';
+import { AuthService } from '../../services/auth.service';
 import { documentValidator, passwordsMatchValidator } from '../../utils/validators';
 import { DocumentMaskDirective } from '../../directives/document-mask.directive';
 import { DateMaskDirective } from '../../directives/date-mask.directive';
@@ -134,6 +135,7 @@ export class RegisterPage {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private notif = inject(NotificationService);
+  private auth = inject(AuthService);
 
   constructor() {
     this.form = this.fb.group({
@@ -153,12 +155,28 @@ export class RegisterPage {
     if (this.form.invalid || this.loading()) return;
 
     this.loading.set(true);
-    this.notif.add('info', 'Conta criada',
-      `Bem-vindo, ${this.form.value.name}! Sua conta foi criada com sucesso.`,
-      this.form.value.name ?? '');
-    setTimeout(() => {
-      this.loading.set(false);
-      this.router.navigate(['/groups']);
-    }, 600);
+    const val = this.form.value;
+    this.auth.register({
+      name: val.name ?? '',
+      email: val.email ?? '',
+      phone: val.phone ?? '',
+      password: val.password ?? '',
+      documento: val.documento ?? undefined,
+      dataNascimento: val.dataNascimento ?? undefined,
+      cep: val.cep ?? undefined,
+    }).subscribe({
+      next: (res) => {
+        this.auth.setSession(res);
+        this.notif.add('info', 'Conta criada',
+          `Bem-vindo, ${res.user.name}! Sua conta foi criada com sucesso.`,
+          res.user.name);
+        this.loading.set(false);
+        this.router.navigate(['/groups']);
+      },
+      error: () => {
+        this.notif.add('debt_reminder', 'Erro ao criar conta', 'Verifique os dados e tente novamente.', '');
+        this.loading.set(false);
+      },
+    });
   }
 }

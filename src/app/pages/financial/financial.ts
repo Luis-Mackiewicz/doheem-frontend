@@ -1,9 +1,11 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
-import { MockDataService, PaymentStatus, Payment, Expense } from '../../services/mock-data.service';
+import { GroupStoreService } from '../../services/group-store.service';
+import { ExpensesApiService } from '../../services/expenses-api.service';
 import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
 import { ExpenseCardComponent } from './expense-card';
 import { ExpenseFormComponent } from './expense-form';
@@ -130,7 +132,7 @@ import {
           <app-expense-card
             [expense]="e"
             [payments]="payments()"
-            [currentUser]="CURRENT_USER"
+            [currentUser]="CURRENT_USER()"
             [categories]="categories"
             (pay)="openPayModal($event)"
             (edit)="openEdit($event)"
@@ -153,7 +155,7 @@ import {
       <app-expense-form
         [editingExpense]="editingExpense()"
         [categories]="categories"
-        [members]="members"
+        [members]="members()"
         [splitOptions]="splitOptions"
         [today]="today"
         (save)="onSaveExpense($event)"
@@ -168,7 +170,7 @@ import {
     @if (payingExpense(); as exp) {
       <app-pay-modal
         [expense]="exp"
-        [currentUser]="CURRENT_USER"
+        [currentUser]="CURRENT_USER()"
         [payReceiptBase64]="payReceiptBase64()"
         (confirm)="confirmPay()"
         (cancel)="closePayModal()"
@@ -180,7 +182,7 @@ import {
     <app-pending-modal
       [expenses]="expenses()"
       [payments]="payments()"
-      [currentUser]="CURRENT_USER"
+      [currentUser]="CURRENT_USER()"
       [isAdmin]="isAdmin()"
       [showPending]="showPendingModal()"
       (approve)="approvePayment($event)"
@@ -205,9 +207,13 @@ import {
   `,
 })
 export class FinancialPage {
-  protected mockData = inject(MockDataService);
-  protected readonly members = this.mockData.MEMBROS;
-  protected readonly categories = this.mockData.CATEGORIES;
+  private route = inject(ActivatedRoute);
+  protected store = inject(GroupStoreService);
+  private expensesApi = inject(ExpensesApiService);
+  private notif = inject(NotificationService);
+
+  protected readonly members = computed(() => this.store.memberNames());
+  protected readonly categories = this.store.categories;
   protected readonly today = new Date().toISOString().slice(0, 10);
   protected readonly splitOptions = [
     { value: 'equal', label: 'Todos' },
@@ -215,10 +221,11 @@ export class FinancialPage {
     { value: 'custom', label: 'Personalizado' },
   ] as const;
 
-  protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
-  protected readonly isAdmin = computed(() =>
-    this.mockData.members().find(m => m.nome === this.CURRENT_USER)?.admin ?? false
-  );
+  protected readonly CURRENT_USER = computed(() => this.store.currentUser());
+  protected readonly isAdmin = computed(() => {
+    const members = this.store.members();
+    return members.some((m: any) => (m.nome ?? m.name) === this.CURRENT_USER() && m.admin);
+  });
 
   protected fmt(val: number): string {
     return val.toFixed(2).replace('.', ',');
@@ -231,12 +238,12 @@ export class FinancialPage {
     return 'Todas as despesas';
   }
 
-  protected expenses = signal<Expense[]>([]);
-  protected payments = signal<Payment[]>([]);
+  protected expenses = signal<any[]>([]);
+  protected payments = signal<any[]>([]);
   protected showModal = signal(false);
-  protected editingExpense = signal<Expense | null>(null);
-  protected deleting = signal<Expense | null>(null);
-  protected payingExpense = signal<Expense | null>(null);
+  protected editingExpense = signal<any | null>(null);
+  protected deleting = signal<any | null>(null);
+  protected payingExpense = signal<any | null>(null);
   protected showPendingModal = signal(false);
   protected payReceiptBase64 = signal('');
   protected expandReceipt = signal('');
@@ -247,30 +254,38 @@ export class FinancialPage {
   readonly pageSize = 3;
   readonly currentPage = signal(1);
 
+  constructor() {
+    const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(Number(groupId));
+  }
+
   protected totalPendingCount = computed(() => {
     return this.expenses()
-      .filter(e => this.isAdmin || e.paidBy === this.CURRENT_USER)
-      .reduce((sum, e) => sum + this.payments().filter(p => p.expenseId === e.id && p.status === 'awaiting').length, 0);
+      .filter((e: any) => this.isAdmin() || e.paidBy === this.CURRENT_USER())
+      .reduce((sum: number, e: any) => sum + this.payments().filter((p: any) => p.expenseId === e.id && p.status === 'awaiting').length, 0);
   });
 
   protected readonly filteredExpenses = computed(() => {
     const query = this.searchQuery().toLowerCase();
     let list = this.expenses();
     if (query) {
-      list = list.filter(e =>
-        e.description.toLowerCase().includes(query) ||
+      list = list.filter((e: any) =>
+        (e.description ?? '').toLowerCase().includes(query) ||
         this.categoryLabel(e.category).toLowerCase().includes(query) ||
-        e.paidBy.toLowerCase().includes(query)
+        (e.paidBy ?? '').toLowerCase().includes(query)
       );
     }
     if (this.filterPeriod() === 'month') {
       const now = new Date();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
-      list = list.filter(e => e.competenceDate.startsWith(`${year}-${month}`));
+      list = list.filter((e: any) => (e.competenceDate ?? '').startsWith(`${year}-${month}`));
     }
     if (this.filterMyExpenses()) {
-      list = list.filter(e => e.splitValues.some(sv => sv.name === this.CURRENT_USER) || e.paidBy === this.CURRENT_USER);
+      list = list.filter((e: any) =>
+        (e.splitValues ?? []).some((sv: any) => sv.name === this.CURRENT_USER()) ||
+        e.paidBy === this.CURRENT_USER()
+      );
     }
     return list;
   });
@@ -284,12 +299,14 @@ export class FinancialPage {
     return this.filteredExpenses().slice(start, start + this.pageSize);
   });
 
-  protected readonly totalAmount = computed(() => this.expenses().reduce((sum, e) => sum + e.amount, 0));
+  protected readonly totalAmount = computed(() =>
+    this.expenses().reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0)
+  );
 
   protected readonly categoryTotals = computed(() => {
     const map = new Map<string, number>();
     for (const e of this.expenses()) {
-      map.set(e.category, (map.get(e.category) ?? 0) + e.amount);
+      map.set(e.category, (map.get(e.category) ?? 0) + (e.amount ?? 0));
     }
     return this.categories
       .filter(c => (map.get(c.value) ?? 0) > 0)
@@ -309,26 +326,24 @@ export class FinancialPage {
     return d.toISOString().slice(0, 10);
   }
 
-  private expandInstallments(expense: Expense, startId: number): Expense[] {
+  private expandInstallments(expense: any, startId: number): any[] {
     const n = expense.installments;
     if (n <= 1) return [expense];
 
-    // Pre-calculate per-person per-installment rounded values
-    const perPerson = expense.splitValues.map(sv => {
+    const perPerson = expense.splitValues.map((sv: any) => {
       const raw = sv.value / n;
       const base = Math.floor(raw * 100) / 100;
       const remainder = Math.round((raw - base) * n * 100) / 100;
       return { name: sv.name, base, remainder };
     });
 
-    const result: Expense[] = [];
+    const result: any[] = [];
     for (let i = 0; i < n; i++) {
-      const splitValues = perPerson.map(p => ({
+      const splitValues = perPerson.map((p: any) => ({
         name: p.name,
         value: i === 0 ? +(p.base + p.remainder).toFixed(2) : p.base,
       }));
-      const total = splitValues.reduce((s, v) => s + v.value, 0);
-      // Adjust last person to fix rounding
+      const total = splitValues.reduce((s: number, v: any) => s + v.value, 0);
       const diff = Math.round((expense.amount / n - total) * 100) / 100;
       if (Math.abs(diff) > 0.001) {
         splitValues[splitValues.length - 1] = {
@@ -348,8 +363,7 @@ export class FinancialPage {
         installmentGroup: { id: expense.id, index: i + 1, total: n },
       });
     }
-    // Fix amount rounding for the last installment
-    const sum = result.reduce((s, e) => s + e.amount, 0);
+    const sum = result.reduce((s: number, e: any) => s + e.amount, 0);
     const diffTotal = Math.round((expense.amount - sum) * 100) / 100;
     if (Math.abs(diffTotal) > 0.001) {
       result[result.length - 1] = {
@@ -360,75 +374,12 @@ export class FinancialPage {
     return result;
   }
 
-  constructor() {
-    const current = this.mockData.expenses();
-    const historical = this.mockData.historicalExpenses;
-    const usedIds = new Set(current.map(e => e.id));
-    let nextId = Math.max(...usedIds, 0) + 1;
-    const idMap = new Map<number, number>();
-
-    const merged: Expense[] = [...current];
-    for (const h of historical) {
-      if (usedIds.has(h.id)) {
-        const newId = nextId++;
-        idMap.set(h.id, newId);
-        merged.push({ ...h, id: newId });
-      } else {
-        merged.push({ ...h });
-      }
-    }
-
-    // Expand installments into individual records
-    const expanded: Expense[] = [];
-    for (const e of merged) {
-      if (e.installments > 1) {
-        const insts = this.expandInstallments(e, nextId);
-        nextId += insts.length;
-        expanded.push(...insts);
-      } else {
-        expanded.push(e);
-      }
-    }
-    this.expenses.set(expanded);
-
-    this.payments.set(
-      this.mockData.payments().map(p => ({
-        ...p,
-        expenseId: idMap.get(p.expenseId) ?? p.expenseId,
-      }))
-    );
-
-    this.checkDebts();
-  }
-
-  private notif = inject(NotificationService);
-
-  private checkDebts(): void {
-    const today = new Date();
-    for (const expense of this.expenses()) {
-      if (!expense.dueDate) continue;
-      const dueDate = new Date(expense.dueDate + 'T23:59:59');
-      const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysOverdue < NOTIFICATION_CONFIG.debtReminderDays) continue;
-      for (const sv of expense.splitValues) {
-        if (sv.name === expense.paidBy) continue;
-        const payment = this.payments().find(p => p.expenseId === expense.id && p.memberName === sv.name);
-        if (payment && payment.status !== 'pending') continue;
-        if (!this.notif.canSendReminder(expense.id, sv.name)) continue;
-        this.notif.add('debt_reminder', 'Lembrete de dívida',
-          `${expense.description} — venceu há ${daysOverdue} dia(s). Sua parte: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
-          sv.name, expense.id);
-        this.notif.registerReminder(expense.id, sv.name);
-      }
-    }
-  }
-
   categoryLabel(value: string): string {
-    return this.mockData.CATEGORIES.find(c => c.value === value)?.label ?? value;
+    return this.store.categories.find(c => c.value === value)?.label ?? value;
   }
 
   /* Payments */
-  openPayModal(e: Expense): void {
+  openPayModal(e: any): void {
     this.payingExpense.set(e);
     this.payReceiptBase64.set('');
   }
@@ -449,11 +400,11 @@ export class FinancialPage {
   confirmPay(): void {
     const expense = this.payingExpense();
     if (!expense) return;
-    this.payments.update(list => {
-      const idx = list.findIndex(p => p.expenseId === expense.id && p.memberName === this.CURRENT_USER);
-      const payment: Payment = {
+    this.payments.update((list: any[]) => {
+      const idx = list.findIndex((p: any) => p.expenseId === expense.id && p.memberName === this.CURRENT_USER());
+      const payment: any = {
         expenseId: expense.id,
-        memberName: this.CURRENT_USER,
+        memberName: this.CURRENT_USER(),
         status: 'awaiting',
         paidAt: new Date().toISOString().slice(0, 10),
         receiptBase64: this.payReceiptBase64() || undefined,
@@ -469,16 +420,16 @@ export class FinancialPage {
     this.closePayModal();
   }
 
-  approvePayment(p: Payment): void {
-    this.payments.update(list =>
-      list.map(p2 => p2.expenseId === p.expenseId && p2.memberName === p.memberName
-        ? { ...p2, status: 'approved' as PaymentStatus, approvedBy: this.CURRENT_USER } : p2)
+  approvePayment(p: any): void {
+    this.payments.update((list: any[]) =>
+      list.map((p2: any) => p2.expenseId === p.expenseId && p2.memberName === p.memberName
+        ? { ...p2, status: 'approved', approvedBy: this.CURRENT_USER() } : p2)
     );
   }
 
-  rejectPayment(p: Payment): void {
-    this.payments.update(list =>
-      list.filter(p2 => !(p2.expenseId === p.expenseId && p2.memberName === p.memberName))
+  rejectPayment(p: any): void {
+    this.payments.update((list: any[]) =>
+      list.filter((p2: any) => !(p2.expenseId === p.expenseId && p2.memberName === p.memberName))
     );
   }
 
@@ -498,7 +449,7 @@ export class FinancialPage {
     this.showModal.set(true);
   }
 
-  openEdit(e: Expense): void {
+  openEdit(e: any): void {
     this.editingExpense.set(e);
     this.showModal.set(true);
   }
@@ -508,21 +459,21 @@ export class FinancialPage {
     this.editingExpense.set(null);
   }
 
-  onSaveExpense(event: { expense: Expense; isNew: boolean }): void {
+  onSaveExpense(event: { expense: any; isNew: boolean }): void {
     const { expense, isNew } = event;
 
     if (!isNew) {
-      this.expenses.update(list => list.map(e => e.id === expense.id ? expense : e));
+      this.expenses.update((list: any[]) => list.map((e: any) => e.id === expense.id ? expense : e));
       this.showToast('Despesa atualizada com sucesso');
       this.showModal.set(false);
       return;
     }
 
-    const toAdd: Expense[] = expense.installments > 1
+    const toAdd: any[] = expense.installments > 1
       ? this.expandInstallments(expense, Date.now())
       : [expense];
 
-    this.expenses.update(list => [...list, ...toAdd]);
+    this.expenses.update((list: any[]) => [...list, ...toAdd]);
 
     if (expense.installments > 1) {
       for (const sv of expense.splitValues) {
@@ -544,7 +495,7 @@ export class FinancialPage {
     this.showModal.set(false);
   }
 
-  confirmDelete(e: Expense): void {
+  confirmDelete(e: any): void {
     this.deleting.set(e);
   }
 
@@ -555,7 +506,7 @@ export class FinancialPage {
   deleteExpense(): void {
     const target = this.deleting();
     if (!target) return;
-    this.expenses.update(list => list.filter(e => e.id !== target.id));
+    this.expenses.update((list: any[]) => list.filter((e: any) => e.id !== target.id));
     this.showToast('Despesa excluída com sucesso');
     this.deleting.set(null);
   }

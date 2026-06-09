@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
-import { MockDataService, Payment } from '../../services/mock-data.service';
+import { GroupStoreService } from '../../services/group-store.service';
 import {
   LucideHouse,
   LucideZap,
@@ -145,41 +146,53 @@ import {
   `,
 })
 export class HistoricalPage {
-  private mockData = inject(MockDataService);
+  private route = inject(ActivatedRoute);
+  protected store = inject(GroupStoreService);
   private readonly today = new Date();
+
+  constructor() {
+    const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(Number(groupId));
+  }
 
   protected fmt(val: number): string {
     return val.toFixed(2).replace('.', ',');
   }
 
   protected expandReceipt = signal('');
-  protected readonly payments = this.mockData.payments;
 
   protected readonly paymentsByExpense = computed(() => {
-    const map = new Map<number, Payment[]>();
-    for (const p of this.payments()) {
-      if (p.status !== 'approved' && p.status !== 'awaiting') continue;
-      const list = map.get(p.expenseId) ?? [];
-      list.push(p);
-      map.set(p.expenseId, list);
+    const map = new Map<number, any[]>();
+    for (const exp of this.store.expenses()) {
+      const pList = (exp as any).payments ?? [];
+      for (const p of pList) {
+        if (p.status !== 'approved' && p.status !== 'awaiting') continue;
+        const list = map.get(exp.id) ?? [];
+        list.push(p);
+        map.set(exp.id, list);
+      }
     }
     return map;
   });
 
-  protected paymentAmount(expense: { splitValues: { name: string; value: number }[] }, payment: Payment): number {
-    return expense.splitValues.find(sv => sv.name === payment.memberName)?.value ?? 0;
+  protected paymentAmount(expense: any, payment: any): number {
+    return expense.splitValues?.find((sv: any) => sv.name === payment.memberName)?.value ?? 0;
   }
 
   protected readonly selectedYear = signal(this.today.getFullYear());
-  protected readonly selectedMonth = signal(this.today.getMonth()); 
+  protected readonly selectedMonth = signal(this.today.getMonth());
 
-  private readonly allExpenses = this.mockData.historicalExpenses;
+  private readonly allExpenses = computed(() => this.store.expenses());
 
-  private readonly minDate = new Date(Math.min(...this.allExpenses.map(e => new Date(e.competenceDate + 'T00:00:00').getTime())));
-  private readonly minYear = this.minDate.getFullYear();
-  private readonly minMonth = this.minDate.getMonth();
+  private readonly minDate = computed(() => {
+    const list = this.allExpenses();
+    if (list.length === 0) return new Date();
+    return new Date(Math.min(...list.map((e: any) => new Date((e.competenceDate ?? '') + 'T00:00:00').getTime())));
+  });
+  private readonly minYear = computed(() => this.minDate().getFullYear());
+  private readonly minMonth = computed(() => this.minDate().getMonth());
 
-  protected readonly atMinMonth = computed(() => this.selectedYear() === this.minYear && this.selectedMonth() === this.minMonth);
+  protected readonly atMinMonth = computed(() => this.selectedYear() === this.minYear() && this.selectedMonth() === this.minMonth());
 
   protected readonly selectedMonthName = computed(() => {
     const d = new Date(this.selectedYear(), this.selectedMonth());
@@ -187,33 +200,31 @@ export class HistoricalPage {
   });
 
   protected readonly monthlyExpenses = computed(() => {
-    return this.allExpenses.filter(e => {
-      const d = new Date(e.competenceDate + 'T00:00:00');
+    return this.allExpenses().filter((e: any) => {
+      const d = new Date((e.competenceDate ?? '') + 'T00:00:00');
       return d.getFullYear() === this.selectedYear() && d.getMonth() === this.selectedMonth();
     });
   });
 
   protected readonly monthlyTotal = computed(() => {
-    return this.monthlyExpenses().reduce((sum, e) => sum + e.amount, 0);
+    return this.monthlyExpenses().reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0);
   });
 
-  // Search
   protected readonly searchQuery = signal('');
 
   protected readonly searchedExpenses = computed(() => {
     const query = this.searchQuery().toLowerCase();
     let list = this.monthlyExpenses();
     if (query) {
-      list = list.filter(e =>
-        e.description.toLowerCase().includes(query) ||
+      list = list.filter((e: any) =>
+        (e.description ?? '').toLowerCase().includes(query) ||
         this.categoryLabel(e.category).toLowerCase().includes(query) ||
-        e.paidBy.toLowerCase().includes(query)
+        (e.paidBy ?? '').toLowerCase().includes(query)
       );
     }
     return list;
   });
 
-  // Pagination
   protected readonly pageSize = 3;
   protected readonly currentPage = signal(1);
 
@@ -264,7 +275,7 @@ export class HistoricalPage {
   }
 
   categoryLabel(value: string): string {
-    return this.mockData.CATEGORIES.find(c => c.value === value)?.label ?? value;
+    return this.store.categories.find(c => c.value === value)?.label ?? value;
   }
 
   splitModeLabel(mode: string): string {

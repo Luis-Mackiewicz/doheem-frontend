@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { MockDataService, ResidentBalance } from '../../services/mock-data.service';
+import { ActivatedRoute } from '@angular/router';
+import { GroupStoreService, ResidentBalance } from '../../services/group-store.service';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@lucide/angular';
@@ -93,77 +94,23 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
   `,
 })
 export class BalancesPage {
-  private mockData = inject(MockDataService);
+  private route = inject(ActivatedRoute);
+  protected store = inject(GroupStoreService);
   protected readonly pageSize = 5;
-
-  private currentUser = this.mockData.CURRENT_USER;
-  private expenses = this.mockData.expenses;
-  private payments = this.mockData.payments;
 
   protected readonly searchQuery = signal('');
   protected readonly currentPage = signal(1);
 
-  protected readonly youOwe = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      if (exp.paidBy === this.currentUser) continue;
-      const sv = exp.splitValues.find(s => s.name === this.currentUser);
-      if (!sv) continue;
-      const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === this.currentUser);
-      if (!payment || payment.status !== 'approved') {
-        total += sv.value;
-      }
-    }
-    return total;
-  });
+  constructor() {
+    const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(Number(groupId));
+  }
 
-  protected readonly youReceive = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      if (exp.paidBy !== this.currentUser) continue;
-      for (const sv of exp.splitValues) {
-        if (sv.name === this.currentUser) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          total += sv.value;
-        }
-      }
-    }
-    return total;
-  });
+  protected readonly youOwe = computed(() => this.store.balanceSummary().youOwe);
+  protected readonly youReceive = computed(() => this.store.balanceSummary().youReceive);
+  protected readonly totalDebt = computed(() => this.store.balanceSummary().totalDebt);
 
-  protected readonly totalDebt = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      for (const sv of exp.splitValues) {
-        if (sv.name === exp.paidBy) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          total += sv.value;
-        }
-      }
-    }
-    return total;
-  });
-
-  protected readonly allResidents = computed(() => {
-    const map = new Map<string, ResidentBalance>();
-    for (const m of this.mockData.members()) {
-      map.set(m.nome, { name: m.nome, owes: 0, toReceive: 0 });
-    }
-    for (const exp of this.expenses()) {
-      const payer = exp.paidBy;
-      for (const sv of exp.splitValues) {
-        if (sv.name === payer) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          map.get(sv.name)!.owes += sv.value;
-          map.get(payer)!.toReceive += sv.value;
-        }
-      }
-    }
-    return [...map.values()];
-  });
+  protected readonly allResidents = computed(() => this.store.balanceSummary().residents);
 
   protected readonly filtered = computed(() => {
     const q = this.searchQuery().toLowerCase();

@@ -1,8 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { SearchComponent } from '../../components/search/search';
-import { MockDataService, Task, TaskStatus } from '../../services/mock-data.service';
+import { TasksApiService } from '../../services/tasks-api.service';
+import { AuthService } from '../../services/auth.service';
+import { GroupStoreService } from '../../services/group-store.service';
 import { NotificationService } from '../../services/notification-service';
 import { TaskCardComponent } from './task-card';
 import { TaskFormComponent } from './task-form';
@@ -14,7 +17,7 @@ import {
   LucideCircleCheck,
 } from '@lucide/angular';
 
-const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string; border: string; bg: string; badge: string }> = {
+const STATUS_CONFIG: Record<string, { label: string; color: string; border: string; bg: string; badge: string }> = {
   todo: { label: 'A Fazer', color: 'from-blue-400 to-blue-600', border: 'border-blue-500/30', bg: 'bg-blue-500/10', badge: 'badge-blue' },
   doing: { label: 'Fazendo', color: 'from-amber-400 to-amber-600', border: 'border-amber-500/30', bg: 'bg-amber-500/10', badge: 'badge-amber' },
   done: { label: 'Concluído', color: 'from-emerald-400 to-emerald-600', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10', badge: 'badge-emerald' },
@@ -119,43 +122,45 @@ const STATUS_CONFIG: Record<TaskStatus, { label: string; color: string; border: 
   `,
 })
 export class TasksPage {
-  protected mockData = inject(MockDataService);
-  protected readonly members = this.mockData.MEMBROS;
-  protected readonly STATUS_CONFIG = STATUS_CONFIG;
-  protected readonly statuses: TaskStatus[] = ['todo', 'doing', 'done'];
-  protected readonly CURRENT_USER = this.mockData.CURRENT_USER;
-  protected readonly ADMIN_USER = this.mockData.ADMIN_USER;
-  protected readonly today = new Date().toISOString().slice(0, 10);
-
+  private route = inject(ActivatedRoute);
+  private tasksApi = inject(TasksApiService);
+  private auth = inject(AuthService);
+  protected store = inject(GroupStoreService);
   private notif = inject(NotificationService);
 
+  protected readonly STATUS_CONFIG = STATUS_CONFIG;
+  protected readonly statuses = ['todo', 'doing', 'done'] as const;
+  protected readonly today = new Date().toISOString().slice(0, 10);
+
   protected showModal = signal(false);
-  protected selectedTask = signal<Task | undefined>(undefined);
-  protected editingTask = signal<Task | undefined>(undefined);
+  protected selectedTask = signal<any | undefined>(undefined);
+  protected editingTask = signal<any | undefined>(undefined);
   protected taskToDelete = signal<number | undefined>(undefined);
   protected draggedTaskId = signal<number | null>(null);
-  protected dragOverStatus = signal<TaskStatus | null>(null);
+  protected dragOverStatus = signal<string | null>(null);
   protected dropIndex = signal<number | null>(null);
   protected dropAnnouncement = signal('');
 
+  private readonly tasksSignal = signal<any[]>([]);
+
   constructor() {
-    this.checkOverdueTasks();
+    const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(Number(groupId));
   }
 
-  private checkOverdueTasks(): void {
-    const today = new Date();
-    for (const task of this.mockData.tasks()) {
-      if (task.status === 'done' || !task.dueDate) continue;
-      const due = new Date(task.dueDate + 'T23:59:59');
-      if (due < today) {
-        this.notif.add('task_overdue', 'Tarefa atrasada',
-          `${task.title} — atribuída a ${task.assignedTo}`,
-          this.ADMIN_USER, task.id);
-      }
-    }
+  protected get members(): string[] {
+    return this.store.memberNames();
   }
 
-  protected isOverdue(task: Task): boolean {
+  protected get CURRENT_USER(): string {
+    return this.store.currentUser();
+  }
+
+  protected get ADMIN_USER(): string {
+    return this.store.adminUser();
+  }
+
+  protected isOverdue(task: any): boolean {
     if (task.status === 'done' || !task.dueDate) return false;
     return new Date(task.dueDate + 'T23:59:59') < new Date();
   }
@@ -164,18 +169,16 @@ export class TasksPage {
 
   protected readonly filteredTasks = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.mockData.tasks();
-    return this.mockData.tasks().filter(t =>
+    if (!query) return this.tasksSignal();
+    return this.tasksSignal().filter((t: any) =>
       t.title.toLowerCase().includes(query) ||
       t.assignedTo.toLowerCase().includes(query)
     );
   });
 
-  protected tasksByStatus = (status: TaskStatus) => {
-    return this.filteredTasks().filter(t => t.status === status);
+  protected tasksByStatus = (status: string) => {
+    return this.filteredTasks().filter((t: any) => t.status === status);
   };
-
-  private nextId = computed(() => Math.max(...this.mockData.tasks().map(t => t.id), 0) + 1);
 
   protected onDragStart(id: number, e: DragEvent): void {
     this.draggedTaskId.set(id);
@@ -192,17 +195,17 @@ export class TasksPage {
   protected onDragOver(e: DragEvent): void {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    const status = (e.currentTarget as HTMLElement).getAttribute('data-status') as TaskStatus | null;
+    const status = (e.currentTarget as HTMLElement).getAttribute('data-status');
     if (status !== null) {
       this.dropIndex.set(this.computeDropIndex(e.clientY, status));
     }
   }
 
-  protected onDragEnter(status: TaskStatus): void {
+  protected onDragEnter(status: string): void {
     this.dragOverStatus.set(status);
   }
 
-  protected onDragLeave(status: TaskStatus, e: DragEvent): void {
+  protected onDragLeave(status: string, e: DragEvent): void {
     const container = e.currentTarget as HTMLElement | null;
     const related = e.relatedTarget as HTMLElement | null;
     if (container && related && container.contains(related)) return;
@@ -212,11 +215,11 @@ export class TasksPage {
     }
   }
 
-  protected onDrop(targetStatus: TaskStatus): void {
+  protected onDrop(targetStatus: string): void {
     const id = this.draggedTaskId();
     const dropIdx = this.dropIndex();
     if (id === null) return;
-    const task = this.mockData.tasks().find(t => t.id === id);
+    const task = this.tasksSignal().find((t: any) => t.id === id);
     if (!task) {
       this.draggedTaskId.set(null);
       this.dragOverStatus.set(null);
@@ -226,13 +229,13 @@ export class TasksPage {
     const taskName = task.title;
 
     if (task.status === targetStatus) {
-      this.mockData.tasks.update(list => {
-        const without = list.filter(t => t.id !== id);
-        const sameBefore = without.filter(t => t.status === targetStatus);
-        const posInStatus = list.filter(t => t.status === targetStatus).findIndex(t => t.id === id);
+      this.tasksSignal.update((list: any[]) => {
+        const without = list.filter((t: any) => t.id !== id);
+        const sameBefore = without.filter((t: any) => t.status === targetStatus);
+        const posInStatus = list.filter((t: any) => t.status === targetStatus).findIndex((t: any) => t.id === id);
         const adjustedDropIdx = dropIdx !== null && dropIdx > posInStatus ? dropIdx - 1 : (dropIdx ?? sameBefore.length);
         const insertAt = Math.min(adjustedDropIdx, sameBefore.length);
-        const result: Task[] = [];
+        const result: any[] = [];
         let inserted = false;
         let count = 0;
         for (const t of without) {
@@ -248,12 +251,12 @@ export class TasksPage {
       });
       this.dropAnnouncement.set(`Tarefa "${taskName}" reordenada`);
     } else {
-      this.mockData.tasks.update(list => {
-        const without = list.filter(t => t.id !== id);
-        const sameBefore = without.filter(t => t.status === targetStatus);
+      this.tasksSignal.update((list: any[]) => {
+        const without = list.filter((t: any) => t.id !== id);
+        const sameBefore = without.filter((t: any) => t.status === targetStatus);
         const insertAt = Math.min(dropIdx ?? sameBefore.length, sameBefore.length);
         const moved = { ...task, status: targetStatus };
-        const result: Task[] = [];
+        const result: any[] = [];
         let inserted = false;
         let count = 0;
         for (const t of without) {
@@ -267,7 +270,7 @@ export class TasksPage {
         if (!inserted) result.push(moved);
         return result;
       });
-      this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
+      this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus as keyof typeof STATUS_CONFIG].label}`);
     }
 
     this.draggedTaskId.set(null);
@@ -275,7 +278,7 @@ export class TasksPage {
     this.dropIndex.set(null);
   }
 
-  private computeDropIndex(y: number, status: TaskStatus): number {
+  private computeDropIndex(y: number, status: string): number {
     const colEl = document.querySelector(`[data-status="${status}"]`);
     if (!colEl) return 0;
     const cards = colEl.querySelectorAll(':scope > [role="listitem"]');
@@ -337,7 +340,7 @@ export class TasksPage {
     if (el) {
       const colBody = el.closest('[data-status]');
       if (colBody) {
-        const status = colBody.getAttribute('data-status') as TaskStatus | null;
+        const status = colBody.getAttribute('data-status');
         if (status) {
           this.dragOverStatus.set(status);
           this.dropIndex.set(this.computeDropIndex(touch.clientY, status));
@@ -364,17 +367,17 @@ export class TasksPage {
       const targetStatus = this.dragOverStatus();
       const dropIdx = this.dropIndex();
       if (id !== null && targetStatus !== null) {
-        const task = this.mockData.tasks().find(t => t.id === id);
+        const task = this.tasksSignal().find((t: any) => t.id === id);
         if (task) {
           const taskName = task.title;
           if (task.status === targetStatus) {
-            this.mockData.tasks.update(list => {
-              const without = list.filter(t => t.id !== id);
-              const sameBefore = without.filter(t => t.status === targetStatus);
-              const posInStatus = list.filter(t => t.status === targetStatus).findIndex(t => t.id === id);
+            this.tasksSignal.update((list: any[]) => {
+              const without = list.filter((t: any) => t.id !== id);
+              const sameBefore = without.filter((t: any) => t.status === targetStatus);
+              const posInStatus = list.filter((t: any) => t.status === targetStatus).findIndex((t: any) => t.id === id);
               const adjustedDropIdx = dropIdx !== null && dropIdx > posInStatus ? dropIdx - 1 : (dropIdx ?? sameBefore.length);
               const insertAt = Math.min(adjustedDropIdx, sameBefore.length);
-              const result: Task[] = [];
+              const result: any[] = [];
               let inserted = false;
               let count = 0;
               for (const t of without) {
@@ -390,12 +393,12 @@ export class TasksPage {
             });
             this.dropAnnouncement.set(`Tarefa "${taskName}" reordenada`);
           } else {
-            this.mockData.tasks.update(list => {
-              const without = list.filter(t => t.id !== id);
-              const sameBefore = without.filter(t => t.status === targetStatus);
+            this.tasksSignal.update((list: any[]) => {
+              const without = list.filter((t: any) => t.id !== id);
+              const sameBefore = without.filter((t: any) => t.status === targetStatus);
               const insertAt = Math.min(dropIdx ?? sameBefore.length, sameBefore.length);
               const moved = { ...task, status: targetStatus };
-              const result: Task[] = [];
+              const result: any[] = [];
               let inserted = false;
               let count = 0;
               for (const t of without) {
@@ -409,7 +412,7 @@ export class TasksPage {
               if (!inserted) result.push(moved);
               return result;
             });
-            this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus].label}`);
+            this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus as keyof typeof STATUS_CONFIG].label}`);
           }
         }
       }
@@ -428,35 +431,37 @@ export class TasksPage {
     this.showModal.set(true);
   }
 
-  openDetail(task: Task): void {
+  openDetail(task: any): void {
     if (this.suppressNextClick) return;
     this.selectedTask.set(task);
   }
 
-  openEdit(task: Task): void {
+  openEdit(task: any): void {
     this.editingTask.set({ ...task });
   }
 
-  protected onKeyDown(taskId: number, currentStatus: TaskStatus, e: KeyboardEvent): void {
-    const order: TaskStatus[] = ['todo', 'doing', 'done'];
+  protected onKeyDown(taskId: number, currentStatus: string, e: KeyboardEvent): void {
+    const order = ['todo', 'doing', 'done'];
     const idx = order.indexOf(currentStatus);
     if (e.ctrlKey && e.key === 'ArrowRight' && idx < order.length - 1) {
       e.preventDefault();
-      this.mockData.tasks.update(list =>
-        list.map(t => t.id === taskId ? { ...t, status: order[idx + 1] } : t)
-      );
+      this.updateTaskStatus(taskId, order[idx + 1]);
     } else if (e.ctrlKey && e.key === 'ArrowLeft' && idx > 0) {
       e.preventDefault();
-      this.mockData.tasks.update(list =>
-        list.map(t => t.id === taskId ? { ...t, status: order[idx - 1] } : t)
-      );
+      this.updateTaskStatus(taskId, order[idx - 1]);
     }
+  }
+
+  private updateTaskStatus(taskId: number, status: string): void {
+    this.tasksSignal.update((list: any[]) =>
+      list.map((t: any) => t.id === taskId ? { ...t, status } : t)
+    );
   }
 
   confirmCreate(data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
-    const task: Task = {
-      id: this.nextId(),
+    const task: any = {
+      id: Date.now(),
       title: data.title.trim(),
       description: data.description.trim(),
       assignedTo: data.assignedTo,
@@ -465,7 +470,7 @@ export class TasksPage {
       createdAt: new Date().toISOString().slice(0, 10),
       dueDate: data.dueDate,
     };
-    this.mockData.tasks.update(list => [...list, task]);
+    this.tasksSignal.update((list: any[]) => [...list, task]);
 
     if (task.dueDate) {
       this.notif.add('task_reminder', 'Tarefa próxima do prazo',
@@ -476,14 +481,14 @@ export class TasksPage {
     this.showModal.set(false);
   }
 
-  canModify(task: Task): boolean {
+  canModify(task: any): boolean {
     return task.createdBy === this.CURRENT_USER || this.CURRENT_USER === this.ADMIN_USER;
   }
 
-  confirmEdit(task: Task, data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
+  confirmEdit(task: any, data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
-    this.mockData.tasks.update(list =>
-      list.map(t =>
+    this.tasksSignal.update((list: any[]) =>
+      list.map((t: any) =>
         t.id === task.id
           ? { ...t, title: data.title.trim(), description: data.description.trim(), assignedTo: data.assignedTo, dueDate: data.dueDate }
           : t
@@ -499,7 +504,7 @@ export class TasksPage {
   confirmDelete(): void {
     const id = this.taskToDelete();
     if (id === undefined) return;
-    this.mockData.tasks.update(list => list.filter(t => t.id !== id));
+    this.tasksSignal.update((list: any[]) => list.filter((t: any) => t.id !== id));
     this.taskToDelete.set(undefined);
   }
 

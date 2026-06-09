@@ -5,7 +5,10 @@ import {
   LucideX,
   LucideCheck,
 } from '@lucide/angular';
-import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/mock-data.service';
+import { GroupStoreService } from '../../services/group-store.service';
+
+interface SplitValue { name: string; value: number }
+type SplitMode = 'equal' | 'some' | 'custom';
 
 @Component({
   selector: 'app-expense-form',
@@ -222,15 +225,15 @@ import { Expense, SplitValue, SplitMode, MockDataService } from '../../services/
   `,
 })
 export class ExpenseFormComponent implements OnInit {
-  @Input() editingExpense: Expense | null = null;
+  @Input() editingExpense: any = null;
   @Input() categories: { value: string; label: string }[] = [];
   @Input() members: string[] = [];
   @Input() splitOptions: readonly { value: string; label: string }[] = [];
   @Input() today = '';
 
-  private mockData = inject(MockDataService);
+  private store = inject(GroupStoreService);
 
-  @Output() save = new EventEmitter<{ expense: Expense; isNew: boolean }>();
+  @Output() save = new EventEmitter<{ expense: any; isNew: boolean }>();
   @Output() cancel = new EventEmitter<void>();
 
   protected submitted = signal(false);
@@ -239,7 +242,7 @@ export class ExpenseFormComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.editingExpense) {
-      this.selectedSome.set(this.editingExpense.splitValues.map(sv => sv.name));
+      this.selectedSome.set(this.editingExpense.splitValues.map((sv: any) => sv.name));
       this.form = {
         description: this.editingExpense.description,
         amount: this.editingExpense.amount,
@@ -252,7 +255,7 @@ export class ExpenseFormComponent implements OnInit {
         installments: this.editingExpense.installments,
         firstDueDate: this.editingExpense.firstDueDate,
         splitCustom: Object.fromEntries(this.members.map(m => {
-          const sv = this.editingExpense!.splitValues.find(v => v.name === m);
+          const sv = this.editingExpense!.splitValues.find((v: any) => v.name === m);
           return [m, sv ? sv.value : 0];
         })) as Record<string, number>,
       };
@@ -271,7 +274,8 @@ export class ExpenseFormComponent implements OnInit {
   }
 
   protected phoneOf(name: string): string {
-    return this.mockData.members().find(m => m.nome === name)?.telefone ?? '';
+    const member = this.store.members().find((m: any) => (m.nome ?? m.name) === name);
+    return member?.telefone ?? member?.phone ?? '';
   }
 
   private emptyForm() {
@@ -396,7 +400,7 @@ export class ExpenseFormComponent implements OnInit {
     }
 
     const isNew = !this.editingExpense;
-    const expense: Expense = {
+    const expense: any = {
       id: this.editingExpense?.id ?? Date.now(),
       description: this.form.description.trim(),
       amount: this.form.amount,

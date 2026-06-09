@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { MockDataService, ResidentBalance } from '../../services/mock-data.service';
+import { GroupStoreService } from '../../services/group-store.service';
 import { ModalInviteGroupComponent } from '../../components/modal-invite-group/modal-invite-group';
 import {
   LucideArrowDown,
@@ -155,7 +155,7 @@ import {
     </div>
 
     @if (showInviteModal()) {
-      <app-modal-invite-group [groups]="mockData.groups()" [groupId]="+groupId" (close)="showInviteModal.set(false)" />
+      <app-modal-invite-group [groups]="[]" [groupId]="+groupId" (close)="showInviteModal.set(false)" />
     }
   `,
 })
@@ -164,91 +164,39 @@ export class DashboardPage {
   protected groupId: string;
 
   private route = inject(ActivatedRoute);
-  protected mockData = inject(MockDataService);
+  protected store = inject(GroupStoreService);
 
   constructor() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(Number(this.groupId));
   }
 
-  private currentUser = this.mockData.CURRENT_USER;
-  private expenses = this.mockData.expenses;
-  private payments = this.mockData.payments;
+  protected readonly groupName = computed(() =>
+    this.store.group()?.name ?? 'Dashboard'
+  );
 
-  protected readonly groupName = computed(() => {
-    const id = Number(this.groupId);
-    return this.mockData.groups().find(g => g.id === id)?.name ?? 'Dashboard';
-  });
+  protected readonly residents = computed(() =>
+    this.store.balanceSummary().residents
+  );
 
-  protected readonly residents = computed(() => {
-    const map = new Map<string, ResidentBalance>();
-    for (const m of this.mockData.members()) {
-      map.set(m.nome, { name: m.nome, owes: 0, toReceive: 0 });
-    }
-    for (const exp of this.expenses()) {
-      const payer = exp.paidBy;
-      for (const sv of exp.splitValues) {
-        if (sv.name === payer) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          map.get(sv.name)!.owes += sv.value;
-          map.get(payer)!.toReceive += sv.value;
-        }
-      }
-    }
-    return [...map.values()];
-  });
+  protected readonly youOwe = computed(() =>
+    this.store.balanceSummary().youOwe
+  );
 
-  protected readonly youOwe = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      if (exp.paidBy === this.currentUser) continue;
-      const sv = exp.splitValues.find(s => s.name === this.currentUser);
-      if (!sv) continue;
-      const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === this.currentUser);
-      if (!payment || payment.status !== 'approved') {
-        total += sv.value;
-      }
-    }
-    return total;
-  });
+  protected readonly youReceive = computed(() =>
+    this.store.balanceSummary().youReceive
+  );
 
-  protected readonly youReceive = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      if (exp.paidBy !== this.currentUser) continue;
-      for (const sv of exp.splitValues) {
-        if (sv.name === this.currentUser) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          total += sv.value;
-        }
-      }
-    }
-    return total;
-  });
-
-  protected readonly totalDebt = computed(() => {
-    let total = 0;
-    for (const exp of this.expenses()) {
-      for (const sv of exp.splitValues) {
-        if (sv.name === exp.paidBy) continue;
-        const payment = this.payments().find(p => p.expenseId === exp.id && p.memberName === sv.name);
-        if (!payment || payment.status !== 'approved') {
-          total += sv.value;
-        }
-      }
-    }
-    return total;
-  });
+  protected readonly totalDebt = computed(() =>
+    this.store.balanceSummary().totalDebt
+  );
 
   protected readonly recentExpenses = computed(() =>
-    [...this.expenses()]
-      .sort((a, b) => b.competenceDate.localeCompare(a.competenceDate))
-      .slice(0, 5)
+    this.store.recentExpenses()
   );
 
   protected readonly pendingTasks = computed(() =>
-    this.mockData.tasks().filter(t => t.status !== 'done').slice(0, 4)
+    this.store.pendingTasks()
   );
 
   protected fmt(val: number): string {

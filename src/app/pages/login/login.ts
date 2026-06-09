@@ -5,6 +5,7 @@ import { ButtonComponent } from '../../components/button/button';
 import { CardComponent } from '../../components/card/card';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
 import { NotificationService } from '../../services/notification-service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -80,6 +81,7 @@ export class LoginPage {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private notif = inject(NotificationService);
+  private auth = inject(AuthService);
 
   constructor() {
     this.form = this.fb.group({
@@ -93,10 +95,17 @@ export class LoginPage {
     if (this.form.invalid || this.loading()) return;
 
     this.loading.set(true);
-    this.notif.add('info', 'Bem-vindo de volta', 'Login realizado com sucesso', 'Carlos Silva');
-    setTimeout(() => {
-      this.loading.set(false);
-      this.router.navigate(['/groups']);
-    }, 600);
+    this.auth.login({ email: this.form.value.credential ?? '', password: this.form.value.password ?? '' }).subscribe({
+      next: (res) => {
+        this.auth.setSession(res);
+        this.notif.add('info', 'Bem-vindo de volta', 'Login realizado com sucesso', res.user.name);
+        this.loading.set(false);
+        this.router.navigate(['/groups']);
+      },
+      error: () => {
+        this.notif.add('debt_reminder', 'Erro ao entrar', 'Credenciais inválidas. Tente novamente.', '');
+        this.loading.set(false);
+      },
+    });
   }
 }

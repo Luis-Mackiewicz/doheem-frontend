@@ -1,12 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { Location } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
-import { MockDataService } from '../../services/mock-data.service';
+import { AuthService } from '../../services/auth.service';
+import { UsersApiService } from '../../services/users-api.service';
 import { NotificationService } from '../../services/notification-service';
 import { passwordsMatchValidator } from '../../utils/validators';
 import { DocumentMaskDirective } from '../../directives/document-mask.directive';
@@ -15,7 +16,7 @@ import { DateMaskDirective } from '../../directives/date-mask.directive';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, DocumentMaskDirective, CepMaskDirective, DateMaskDirective],
+  imports: [ReactiveFormsModule, CardComponent, ButtonComponent, PhoneInputComponent, PasswordInputComponent, DocumentMaskDirective, CepMaskDirective, DateMaskDirective],
   template: `
     <section class="min-h-dvh bg-page overflow-y-auto transition-colors">
       <div class="max-w-7xl mx-auto w-full flex justify-center px-6 md:px-16 lg:px-24 pt-24 pb-6">
@@ -96,7 +97,7 @@ import { DateMaskDirective } from '../../directives/date-mask.directive';
           </form>
 
           <div class="mt-6 pt-4 border-t border-theme">
-            <button (click)="showLogoutModal.set(true)" class="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 text-sm font-medium transition cursor-pointer">
+            <button (click)="confirmLogout()" class="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 text-sm font-medium transition cursor-pointer">
               Sair da conta
             </button>
           </div>
@@ -114,8 +115,8 @@ import { DateMaskDirective } from '../../directives/date-mask.directive';
           <div class="flex gap-3 mt-6">
             <button (click)="showLogoutModal.set(false)"
               class="flex-1 px-4 py-2.5 rounded-xl border border-theme text-secondary font-medium text-sm hover:text-primary hover-bg transition cursor-pointer">Cancelar</button>
-            <a routerLink="/login" (click)="showLogoutModal.set(false)"
-              class="flex-1 px-4 py-2.5 rounded-xl badge-rose font-medium text-sm hover:bg-rose-500/30 transition text-center cursor-pointer block">Sair</a>
+            <button (click)="logout()"
+              class="flex-1 px-4 py-2.5 rounded-xl badge-rose font-medium text-sm hover:bg-rose-500/30 transition text-center cursor-pointer">Sair</button>
           </div>
         </div>
       </div>
@@ -129,38 +130,37 @@ export class ProfilePage {
   protected readonly showLogoutModal = signal(false);
   protected readonly photoPreview = signal<string | null>(null);
 
-  private mockData = inject(MockDataService);
+  private auth = inject(AuthService);
+  private usersApi = inject(UsersApiService);
   private notif = inject(NotificationService);
   private fb = inject(FormBuilder);
   private location = inject(Location);
+  private router = inject(Router);
+
+  protected readonly profile = computed(() => this.usersApi.me.value());
 
   constructor() {
-    const currentUser = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
+    const user = this.auth.currentUser();
     this.form = this.fb.group({
-      documento: [currentUser?.documento ?? ''],
-      dataNascimento: [currentUser?.dataNascimento ?? ''],
-      phone: [currentUser?.telefone ?? ''],
-      cep: [currentUser?.cep ?? ''],
+      documento: [''],
+      dataNascimento: [''],
+      phone: [user?.phone ?? ''],
+      cep: [''],
       newPassword: ['', [Validators.minLength(6)]],
       confirmPassword: [''],
     }, { validators: passwordsMatchValidator('newPassword', 'confirmPassword') });
-
-    if (currentUser?.fotoBase64) {
-      this.photoPreview.set(currentUser.fotoBase64);
-    }
   }
 
   protected get userName(): string {
-    return this.mockData.CURRENT_USER;
+    return this.auth.currentUser()?.name ?? '';
   }
 
   protected get userEmail(): string {
-    const member = this.mockData.members().find(m => m.nome === this.mockData.CURRENT_USER);
-    return member?.email ?? '';
+    return this.auth.currentUser()?.email ?? '';
   }
 
   protected get userInitials(): string {
-    return this.mockData.CURRENT_USER.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return this.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
 
   goBack(): void {
@@ -174,7 +174,7 @@ export class ProfilePage {
     reader.onload = () => {
       const result = reader.result as string;
       this.photoPreview.set(result);
-      this.mockData.updatePhoto(this.mockData.CURRENT_USER, result);
+      this.usersApi.updateProfile({ fotoBase64: result }).subscribe();
     };
     reader.readAsDataURL(file);
   }
@@ -186,20 +186,34 @@ export class ProfilePage {
 
     const { documento, dataNascimento, phone, cep, newPassword } = this.form.value;
 
-    this.mockData.updatePhone(this.mockData.CURRENT_USER, phone ?? '');
-    this.mockData.updateEmail(this.mockData.CURRENT_USER, this.userEmail);
+    this.usersApi.updateProfile({ phone: phone ?? '' }).subscribe();
 
     if (newPassword) {
+      this.usersApi.changePassword({ currentPassword: '', newPassword }).subscribe();
       this.notif.add('info', 'Perfil atualizado',
         'Senha alterada com sucesso',
-        this.mockData.CURRENT_USER);
+        this.userName);
     }
 
     this.notif.add('info', 'Perfil atualizado',
       'Suas informações foram salvas',
-      this.mockData.CURRENT_USER);
+      this.userName);
 
     this.form.reset({ documento, dataNascimento, phone, cep });
     setTimeout(() => this.saving.set(false), 600);
+  }
+
+  confirmLogout(): void {
+    this.showLogoutModal.set(true);
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe({
+      complete: () => {
+        this.auth.clearSession();
+        this.showLogoutModal.set(false);
+        this.router.navigate(['/login']);
+      },
+    });
   }
 }

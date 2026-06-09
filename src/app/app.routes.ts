@@ -1,15 +1,17 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then(m => m.HomePage) },
   { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginPage) },
   { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.RegisterPage) },
-  { path: 'groups', loadComponent: () => import('./pages/groups/groups').then(m => m.GroupsPage) },
-  { path: 'groups/join/:id', loadComponent: () => import('./pages/join-group/join-group').then(m => m.JoinGroupPage) },
-  { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePage) },
+  { path: 'groups', loadComponent: () => import('./pages/groups/groups').then(m => m.GroupsPage), canActivate: [authGuard] },
+  { path: 'groups/join/:id', loadComponent: () => import('./pages/join-group/join-group').then(m => m.JoinGroupPage), canActivate: [authGuard] },
+  { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfilePage), canActivate: [authGuard] },
   {
     path: 'groups/:id',
     loadComponent: () => import('./pages/group-layout/group-layout').then(m => m.GroupLayoutComponent),
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.DashboardPage) },

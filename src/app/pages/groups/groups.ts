@@ -3,7 +3,8 @@ import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CreateGroupModalComponent } from '../../components/modal-create-group/modal-create-group';
 import { ModalInviteGroupComponent } from '../../components/modal-invite-group/modal-invite-group';
-import { MockDataService } from '../../services/mock-data.service';
+import { GroupsApiService } from '../../services/groups-api.service';
+import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification-service';
 import {
   LucideSearch,
@@ -33,9 +34,9 @@ import {
 
           <div class="flex items-center gap-3 mb-6">
             <div class="flex-1 h-1.5 rounded-full bg-card-hover overflow-hidden">
-              <div class="h-full rounded-full bg-linear-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(groups().length / 10) * 100"></div>
+              <div class="h-full rounded-full bg-linear-to-r from-green-400 to-emerald-400 transition-all" [style.width.%]="(groupsData().length / 10) * 100"></div>
             </div>
-            <span class="text-muted text-xs whitespace-nowrap">{{ groups().length }} / 10 repúblicas</span>
+            <span class="text-muted text-xs whitespace-nowrap">{{ groupsData().length }} / 10 repúblicas</span>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-3 mb-6">
@@ -50,26 +51,35 @@ import {
           </div>
 
           <div class="flex flex-col min-h-[360px]">
-            @for (group of filteredGroups(); track group.id) {
-              <a [routerLink]="'/groups/' + group.id + '/dashboard'"
-                class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-theme last:border-b-0 hover-bg">
-                <div class="flex items-center gap-4 min-w-0">
-                  @if (group.imagemBase64) {
-                    <img [src]="group.imagemBase64" alt="" class="w-10 h-10 rounded-xl object-cover shrink-0" />
-                  } @else {
-                    <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center shrink-0">
-                      <svg lucideHome class="w-5 h-5"></svg>
+            @if (loading()) {
+              <div class="flex items-center justify-center h-full gap-3 text-muted">
+                <div class="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                <span class="text-sm">Carregando grupos...</span>
+              </div>
+            } @else if (error()) {
+              <p class="text-red-400 text-center flex items-center justify-center h-full">Erro ao carregar grupos</p>
+            } @else {
+              @for (group of filteredGroups(); track group.id) {
+                <a [routerLink]="'/groups/' + group.id + '/dashboard'"
+                  class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-theme last:border-b-0 hover-bg">
+                  <div class="flex items-center gap-4 min-w-0">
+                    @if (group.imagemBase64) {
+                      <img [src]="group.imagemBase64" alt="" class="w-10 h-10 rounded-xl object-cover shrink-0" />
+                    } @else {
+                      <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center shrink-0">
+                        <svg lucideHome class="w-5 h-5"></svg>
+                      </div>
+                    }
+                    <div class="min-w-0">
+                      <p class="text-primary font-semibold truncate">{{ group.name }}</p>
+                      <p class="text-secondary text-sm">{{ group.members }} membros · R$ {{ group.monthlyFee }}/mês</p>
                     </div>
-                  }
-                  <div class="min-w-0">
-                    <p class="text-primary font-semibold truncate">{{ group.name }}</p>
-                    <p class="text-secondary text-sm">{{ group.members }} membros · R$ {{ group.monthlyFee }}/mês</p>
                   </div>
-                </div>
-                <svg lucideChevronRight class="w-5 h-5 text-muted shrink-0"></svg>
-              </a>
-            } @empty {
-              <p class="text-muted text-center flex items-center justify-center h-full">Nenhum grupo encontrado</p>
+                  <svg lucideChevronRight class="w-5 h-5 text-muted shrink-0"></svg>
+                </a>
+              } @empty {
+                <p class="text-muted text-center flex items-center justify-center h-full">Nenhum grupo encontrado</p>
+              }
             }
           </div>
 
@@ -111,7 +121,7 @@ import {
     }
 
     @if (showInviteModal()) {
-      <app-modal-invite-group [groups]="groups()" (close)="showInviteModal.set(false)" />
+      <app-modal-invite-group [groups]="groupsData()" (close)="showInviteModal.set(false)" />
     }
   `,
 })
@@ -122,15 +132,18 @@ export class GroupsPage {
   readonly searchQuery = signal('');
   readonly currentPage = signal(1);
 
-  private mockData = inject(MockDataService);
+  protected groupsApi = inject(GroupsApiService);
+  private auth = inject(AuthService);
   private router = inject(Router);
   private notif = inject(NotificationService);
 
-  protected readonly groups = this.mockData.groups;
+  protected readonly loading = this.groupsApi.list.isLoading;
+  protected readonly error = this.groupsApi.list.error;
+  protected readonly groupsData = computed(() => this.groupsApi.list.value() ?? []);
 
   readonly allFiltered = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    const list = this.groups();
+    const list = this.groupsData();
     if (!query) return list;
     return list.filter(g => g.name.toLowerCase().includes(query));
   });
@@ -165,11 +178,17 @@ export class GroupsPage {
   }
 
   onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): void {
-    const newId = this.mockData.createGroup(data);
-    this.notif.add('info', 'Grupo criado',
-      `Group "${data.name}" created successfully!`,
-      this.mockData.CURRENT_USER);
-    this.router.navigate([`/groups/${newId}/dashboard`]);
+    this.groupsApi.create(data).subscribe({
+      next: (group) => {
+        this.notif.add('info', 'Grupo criado',
+          `Grupo "${data.name}" criado com sucesso!`,
+          this.auth.currentUser()?.name ?? '');
+        this.router.navigate([`/groups/${group.id}/dashboard`]);
+      },
+      error: () => {
+        this.notif.add('debt_reminder', 'Erro', 'Não foi possível criar o grupo.', '');
+      },
+    });
   }
 
   goToPage(page: number): void {

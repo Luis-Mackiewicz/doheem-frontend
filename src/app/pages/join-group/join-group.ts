@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MockDataService } from '../../services/mock-data.service';
+import { GroupsApiService } from '../../services/groups-api.service';
+import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification-service';
 import { ButtonComponent } from '../../components/button/button';
 import { LucideHome, LucideUsers, LucideLoader } from '@lucide/angular';
@@ -69,40 +70,30 @@ import { LucideHome, LucideUsers, LucideLoader } from '@lucide/angular';
 export class JoinGroupPage {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private mockData = inject(MockDataService);
+  private groupsApi = inject(GroupsApiService);
+  private auth = inject(AuthService);
   private notif = inject(NotificationService);
 
-  protected readonly loading = signal(true);
-  protected readonly error = signal(false);
-  protected readonly group = signal(this.mockData.getGroupById(0));
+  protected readonly groupId = Number(this.route.snapshot.paramMap.get('id'));
 
-  constructor() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!id) {
-      this.error.set(true);
-      this.loading.set(false);
-      return;
-    }
-
-    const found = this.mockData.getGroupById(id);
-    if (!found) {
-      this.error.set(true);
-      this.loading.set(false);
-      return;
-    }
-
-    this.group.set(found);
-    this.loading.set(false);
-  }
+  private readonly groupResource = computed(() =>
+    this.groupsApi.getById(this.groupId)
+  );
+  protected readonly group = computed(() => this.groupResource().value());
+  protected readonly loading = computed(() => this.groupResource().isLoading());
+  protected readonly error = computed(() =>
+    !this.groupId || (this.groupResource().isLoading() === false && !this.groupResource().value())
+  );
 
   join(): void {
     const g = this.group();
     if (!g) return;
-    const success = this.mockData.joinGroup(g.id);
-    if (success) {
-      this.notif.add('success', 'Bem-vindo!', `Você entrou no grupo "${g.name}"!`, this.mockData.CURRENT_USER);
-      this.router.navigate([`/groups/${g.id}/dashboard`]);
-    }
+    this.groupsApi.join(g.id).subscribe({
+      next: () => {
+        this.notif.add('success', 'Bem-vindo!', `Você entrou no grupo "${g.name}"!`, this.auth.currentUser()?.name ?? '');
+        this.router.navigate([`/groups/${g.id}/dashboard`]);
+      },
+    });
   }
 
   goToGroups(): void {
