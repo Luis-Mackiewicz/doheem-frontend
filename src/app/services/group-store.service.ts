@@ -38,19 +38,31 @@ export class GroupStoreService {
   private readonly membersResource = computed(() =>
     this.groupsApi.getMembers(this.groupId())
   );
-  readonly members = computed(() => this.membersResource().value() ?? []);
+  readonly members = computed(() => {
+    const val = this.membersResource().value();
+    if (Array.isArray(val)) return val;
+    return (val as any)?.data ?? [];
+  });
   readonly membersLoading = computed(() => this.membersResource().isLoading());
 
   private readonly expensesResource = computed(() =>
     this.expensesApi.listByGroup(this.groupId())
   );
-  readonly expenses = computed(() => this.expensesResource().value() ?? []);
+  readonly expenses = computed(() => {
+    const val = this.expensesResource().value();
+    if (Array.isArray(val)) return val;
+    return (val as any)?.data ?? [];
+  });
   readonly expensesLoading = computed(() => this.expensesResource().isLoading());
 
   private readonly tasksResource = computed(() =>
     this.tasksApi.listByGroup(this.groupId())
   );
-  readonly tasks = computed(() => this.tasksResource().value() ?? []);
+  readonly tasks = computed(() => {
+    const val = this.tasksResource().value();
+    if (Array.isArray(val)) return val;
+    return (val as any)?.data ?? [];
+  });
   readonly tasksLoading = computed(() => this.tasksResource().isLoading());
 
   readonly currentUser = computed(() => this.auth.currentUser()?.name ?? '');

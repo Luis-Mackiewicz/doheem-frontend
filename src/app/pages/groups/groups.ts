@@ -139,7 +139,11 @@ export class GroupsPage {
 
   protected readonly loading = this.groupsApi.list.isLoading;
   protected readonly error = this.groupsApi.list.error;
-  protected readonly groupsData = computed(() => this.groupsApi.list.value() ?? []);
+  protected readonly groupsData = computed(() => {
+    const val = this.groupsApi.list.value();
+    if (Array.isArray(val)) return val;
+    return (val as any)?.data ?? [];
+  });
 
   readonly allFiltered = computed(() => {
     const query = this.searchQuery().toLowerCase();

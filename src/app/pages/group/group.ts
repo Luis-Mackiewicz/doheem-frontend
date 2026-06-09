@@ -288,7 +288,11 @@ export class GroupPage {
   protected readonly membersResource = computed(() =>
     this.groupsApi.getMembers(this.groupIdNum())
   );
-  protected readonly membersData = computed(() => this.membersResource().value() ?? [] as Member[]);
+  protected readonly membersData = computed(() => {
+    const val = this.membersResource().value();
+    if (Array.isArray(val)) return val as Member[];
+    return (val as any)?.data ?? [] as Member[];
+  });
   protected readonly membersLoading = computed(() => this.membersResource().isLoading());
 
   protected readonly currentUserName = computed(() => this.auth.currentUser()?.name ?? '');
