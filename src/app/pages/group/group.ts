@@ -127,7 +127,7 @@ interface Member {
                       <svg lucideShield class="w-4 h-4"></svg>
                     </button>
                   }
-                  @if (m.nome !== currentUserName) {
+                  @if (m.nome !== currentUserName()) {
                     <button (click)="confirmRemove(m)"
                       class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500/20 text-muted hover:text-rose-400 transition cursor-pointer"
                       aria-label="Remover {{ m.nome }} do grupo"
@@ -136,7 +136,7 @@ interface Member {
                     </button>
                   }
                 }
-                @if (m.nome === currentUserName) {
+                @if (m.nome === currentUserName()) {
                   <button (click)="leave(m)"
                     class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500/20 text-muted hover:text-rose-400 transition cursor-pointer"
                     aria-label="Sair do grupo"
@@ -288,10 +288,10 @@ export class GroupPage {
   protected readonly membersResource = computed(() =>
     this.groupsApi.getMembers(this.groupIdNum())
   );
-  protected readonly membersData = computed(() => {
+  protected readonly membersData = computed<Member[]>(() => {
     const val = this.membersResource().value();
-    if (Array.isArray(val)) return val as Member[];
-    return (val as any)?.data ?? [] as Member[];
+    if (Array.isArray(val)) return val;
+    return (val as any)?.data ?? [];
   });
   protected readonly membersLoading = computed(() => this.membersResource().isLoading());
 

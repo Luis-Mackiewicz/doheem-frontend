@@ -139,7 +139,7 @@ export class GroupsPage {
 
   protected readonly loading = this.groupsApi.list.isLoading;
   protected readonly error = this.groupsApi.list.error;
-  protected readonly groupsData = computed(() => {
+  protected readonly groupsData = computed<any[]>(() => {
     const val = this.groupsApi.list.value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];

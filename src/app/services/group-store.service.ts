@@ -38,7 +38,7 @@ export class GroupStoreService {
   private readonly membersResource = computed(() =>
     this.groupsApi.getMembers(this.groupId())
   );
-  readonly members = computed(() => {
+  readonly members = computed<any[]>(() => {
     const val = this.membersResource().value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
@@ -48,7 +48,7 @@ export class GroupStoreService {
   private readonly expensesResource = computed(() =>
     this.expensesApi.listByGroup(this.groupId())
   );
-  readonly expenses = computed(() => {
+  readonly expenses = computed<any[]>(() => {
     const val = this.expensesResource().value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
@@ -58,7 +58,7 @@ export class GroupStoreService {
   private readonly tasksResource = computed(() =>
     this.tasksApi.listByGroup(this.groupId())
   );
-  readonly tasks = computed(() => {
+  readonly tasks = computed<any[]>(() => {
     const val = this.tasksResource().value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
