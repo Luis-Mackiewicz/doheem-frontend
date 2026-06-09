@@ -17,8 +17,8 @@ export interface RegisterRequest {
   email: string;
   phone: string;
   password: string;
-  documento?: string;
-  dataNascimento?: string;
+  document?: string;
+  birth_date?: string;
   cep?: string;
 }
 

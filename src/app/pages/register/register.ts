@@ -5,7 +5,7 @@ import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
-import { NotificationService } from '../../services/notification-service';
+import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { documentValidator, passwordsMatchValidator } from '../../utils/validators';
 import { DocumentMaskDirective } from '../../directives/document-mask.directive';
@@ -134,7 +134,7 @@ export class RegisterPage {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private notif = inject(NotificationService);
+  private toast = inject(ToastService);
   private auth = inject(AuthService);
 
   constructor() {
@@ -161,22 +161,27 @@ export class RegisterPage {
       email: val.email ?? '',
       phone: val.phone ?? '',
       password: val.password ?? '',
-      documento: val.documento ?? undefined,
-      dataNascimento: val.dataNascimento ?? undefined,
+      document: val.documento ?? undefined,
+      birth_date: this.formatDate(val.dataNascimento ?? undefined),
       cep: val.cep ?? undefined,
     }).subscribe({
       next: (res) => {
         this.auth.setSession(res);
-        this.notif.add('info', 'Conta criada',
-          `Bem-vindo, ${res.user.name}! Sua conta foi criada com sucesso.`,
-          res.user.name);
+        this.toast.show(`Bem-vindo, ${res.user.name}! Conta criada com sucesso.`, 'success');
         this.loading.set(false);
         this.router.navigate(['/groups']);
       },
       error: () => {
-        this.notif.add('debt_reminder', 'Erro ao criar conta', 'Verifique os dados e tente novamente.', '');
+        this.toast.show('Erro ao criar conta. Verifique os dados e tente novamente.', 'error');
         this.loading.set(false);
       },
     });
+  }
+
+  private formatDate(date: string | undefined): string | undefined {
+    if (!date) return undefined;
+    const [day, month, year] = date.replace(/\D/g, '').match(/(\d{2})(\d{2})(\d{4})/)?.slice(1) ?? [];
+    if (!day || !month || !year) return undefined;
+    return `${year}-${month}-${day}`;
   }
 }
