@@ -8,8 +8,7 @@ export interface CreateGroupRequest {
   description: string;
   currency: string;
   imagemBase64: string;
-  cnpj: string;
-  cep: string;
+
 }
 
 export interface UpdateGroupRequest {

@@ -181,7 +181,7 @@ export class GroupsPage {
     this.currentPage.set(1);
   }
 
-  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): void {
+  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string }): void {
     this.groupsApi.create(data).subscribe({
       next: (group) => {
         this.notif.add('info', 'Grupo criado',
