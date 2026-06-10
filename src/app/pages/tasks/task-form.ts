@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
 import { Task } from '../../services/mock-data.service';
 import { LucideX } from '@lucide/angular';
 
@@ -37,7 +37,12 @@ import { LucideX } from '@lucide/angular';
           <div>
             <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
             <input #dueDateRef type="date" [value]="mode === 'edit' ? task?.dueDate : ''" [min]="today"
-              class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm" />
+              (input)="dueDateError.set(false)"
+              class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm"
+              [class.border-rose-500/60]="dueDateError()" />
+            @if (dueDateError()) {
+              <p class="text-rose-400 text-xs mt-1">Selecione uma data limite</p>
+            }
           </div>
           <div class="flex justify-end gap-3 mt-2">
             <button (click)="cancel.emit()" class="px-4 py-2 rounded-xl border border-theme text-primary font-medium text-sm hover:text-secondary hover-bg transition cursor-pointer">Cancelar</button>
@@ -57,7 +62,14 @@ export class TaskFormComponent {
   @Output() save = new EventEmitter<{ title: string; description: string; assignedTo: string; dueDate: string }>();
   @Output() cancel = new EventEmitter<void>();
 
+  protected readonly dueDateError = signal(false);
+
   protected onSave(title: string, description: string, assignedTo: string, dueDate: string): void {
+    this.dueDateError.set(false);
+    if (!dueDate) {
+      this.dueDateError.set(true);
+      return;
+    }
     this.save.emit({ title, description, assignedTo, dueDate });
   }
 }
