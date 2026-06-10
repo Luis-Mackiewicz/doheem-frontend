@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
@@ -135,8 +135,8 @@ export class TasksPage {
   protected showModal = signal(false);
   protected selectedTask = signal<any | undefined>(undefined);
   protected editingTask = signal<any | undefined>(undefined);
-  protected taskToDelete = signal<number | undefined>(undefined);
-  protected draggedTaskId = signal<number | null>(null);
+  protected taskToDelete = signal<string | undefined>(undefined);
+  protected draggedTaskId = signal<string | null>(null);
   protected dragOverStatus = signal<string | null>(null);
   protected dropIndex = signal<number | null>(null);
   protected dropAnnouncement = signal('');
@@ -146,6 +146,10 @@ export class TasksPage {
   constructor() {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.store.setGroupId(groupId);
+    effect(() => {
+      const tasks = this.store.tasks();
+      if (tasks.length) this.tasksSignal.set(tasks);
+    });
   }
 
   protected get members(): string[] {
@@ -180,7 +184,7 @@ export class TasksPage {
     return this.filteredTasks().filter((t: any) => t.status === status);
   };
 
-  protected onDragStart(id: number, e: DragEvent): void {
+  protected onDragStart(id: string, e: DragEvent): void {
     this.draggedTaskId.set(id);
     e.dataTransfer?.setData('text/plain', String(id));
     if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
@@ -270,6 +274,7 @@ export class TasksPage {
         if (!inserted) result.push(moved);
         return result;
       });
+      this.tasksApi.update(id, { status: targetStatus }).subscribe();
       this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus as keyof typeof STATUS_CONFIG].label}`);
     }
 
@@ -304,7 +309,7 @@ export class TasksPage {
   private touchMoved = false;
   private suppressNextClick = false;
 
-  protected onTouchStart(taskId: number, title: string, assignedTo: string, e: TouchEvent): void {
+  protected onTouchStart(taskId: string, title: string, assignedTo: string, e: TouchEvent): void {
     this.touchMoved = false;
     this.draggedTaskId.set(taskId);
     const touch = e.touches[0];
@@ -412,6 +417,7 @@ export class TasksPage {
               if (!inserted) result.push(moved);
               return result;
             });
+            this.tasksApi.update(id, { status: targetStatus }).subscribe();
             this.dropAnnouncement.set(`Tarefa "${taskName}" movida para ${STATUS_CONFIG[targetStatus as keyof typeof STATUS_CONFIG].label}`);
           }
         }
@@ -440,7 +446,7 @@ export class TasksPage {
     this.editingTask.set({ ...task });
   }
 
-  protected onKeyDown(taskId: number, currentStatus: string, e: KeyboardEvent): void {
+  protected onKeyDown(taskId: string, currentStatus: string, e: KeyboardEvent): void {
     const order = ['todo', 'doing', 'done'];
     const idx = order.indexOf(currentStatus);
     if (e.ctrlKey && e.key === 'ArrowRight' && idx < order.length - 1) {
@@ -452,33 +458,32 @@ export class TasksPage {
     }
   }
 
-  private updateTaskStatus(taskId: number, status: string): void {
+  private updateTaskStatus(taskId: string, status: string): void {
     this.tasksSignal.update((list: any[]) =>
       list.map((t: any) => t.id === taskId ? { ...t, status } : t)
     );
+    this.tasksApi.update(taskId, { status }).subscribe();
   }
 
   confirmCreate(data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
-    const task: any = {
-      id: Date.now(),
+    this.tasksApi.create(this.store.groupId(), {
       title: data.title.trim(),
       description: data.description.trim(),
       assignedTo: data.assignedTo,
-      createdBy: this.CURRENT_USER,
-      status: 'todo',
-      createdAt: new Date().toISOString().slice(0, 10),
       dueDate: data.dueDate,
-    };
-    this.tasksSignal.update((list: any[]) => [...list, task]);
-
-    if (task.dueDate) {
-      this.notif.add('task_reminder', 'Tarefa próxima do prazo',
-        `${task.title} — vence em ${task.dueDate}`,
-        task.assignedTo, task.id);
-    }
-
-    this.showModal.set(false);
+    }).subscribe({
+      next: (task) => {
+        this.tasksSignal.update((list: any[]) => [...list, task]);
+        this.store.tasks.update((list: any[]) => [...list, task]);
+        if (task.dueDate) {
+          this.notif.add('task_reminder', 'Tarefa próxima do prazo',
+            `${task.title} — vence em ${task.dueDate}`,
+            task.assignedTo, task.id);
+        }
+        this.showModal.set(false);
+      },
+    });
   }
 
   canModify(task: any): boolean {
@@ -487,25 +492,39 @@ export class TasksPage {
 
   confirmEdit(task: any, data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
-    this.tasksSignal.update((list: any[]) =>
-      list.map((t: any) =>
-        t.id === task.id
-          ? { ...t, title: data.title.trim(), description: data.description.trim(), assignedTo: data.assignedTo, dueDate: data.dueDate }
-          : t
-      )
-    );
-    this.editingTask.set(undefined);
+    this.tasksApi.update(task.id, {
+      title: data.title.trim(),
+      description: data.description.trim(),
+      assignedTo: data.assignedTo,
+      dueDate: data.dueDate,
+    }).subscribe({
+      next: () => {
+        this.tasksSignal.update((list: any[]) =>
+          list.map((t: any) =>
+            t.id === task.id
+              ? { ...t, title: data.title.trim(), description: data.description.trim(), assignedTo: data.assignedTo, dueDate: data.dueDate }
+              : t
+          )
+        );
+        this.editingTask.set(undefined);
+      },
+    });
   }
 
-  deleteTask(id: number): void {
+  deleteTask(id: string): void {
     this.taskToDelete.set(id);
   }
 
   confirmDelete(): void {
     const id = this.taskToDelete();
     if (id === undefined) return;
-    this.tasksSignal.update((list: any[]) => list.filter((t: any) => t.id !== id));
-    this.taskToDelete.set(undefined);
+    this.tasksApi.delete(id).subscribe({
+      next: () => {
+        this.tasksSignal.update((list: any[]) => list.filter((t: any) => t.id !== id));
+        this.store.tasks.update((list: any[]) => list.filter((t: any) => t.id !== id));
+        this.taskToDelete.set(undefined);
+      },
+    });
   }
 
   cancelDelete(): void {

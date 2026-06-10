@@ -39,11 +39,11 @@ export class TasksApiService {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/tasks`, data);
   }
 
-  update(id: number, data: UpdateTaskRequest) {
+  update(id: string, data: UpdateTaskRequest) {
     return this.http.put<any>(`${environment.apiUrl}/tasks/${id}`, data);
   }
 
-  delete(id: number) {
+  delete(id: string) {
     return this.http.delete<void>(`${environment.apiUrl}/tasks/${id}`);
   }
 
