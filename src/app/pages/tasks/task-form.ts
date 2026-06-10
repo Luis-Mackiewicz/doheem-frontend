@@ -28,11 +28,17 @@ import { LucideX } from '@lucide/angular';
           </div>
           <div>
             <label class="text-secondary text-xs font-medium mb-1.5 block">Responsável</label>
-            <select #memberRef class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer">
+            <select #memberRef (change)="memberError.set(false)"
+              class="w-full bg-input border border-theme rounded-xl px-4 py-2.5 text-primary outline-none focus:border-purple-400/60 transition text-sm appearance-none cursor-pointer"
+              [class.border-rose-500/60]="memberError()">
+              <option value="" selected>Selecione um responsável</option>
               @for (m of members; track m) {
-                <option [class.bg-purple-dark]="mode === 'create'" [class.bg-card]="mode === 'edit'" class="text-primary" [value]="m" [selected]="mode === 'edit' && task?.assignedTo === m">{{ m }}</option>
+                <option class="text-primary" [value]="m" [selected]="mode === 'edit' && task?.assignedTo === m">{{ m }}</option>
               }
             </select>
+            @if (memberError()) {
+              <p class="text-rose-400 text-xs mt-1">Selecione um responsável</p>
+            }
           </div>
           <div>
             <label class="text-secondary text-xs font-medium mb-1.5 block">Data limite</label>
@@ -63,13 +69,20 @@ export class TaskFormComponent {
   @Output() cancel = new EventEmitter<void>();
 
   protected readonly dueDateError = signal(false);
+  protected readonly memberError = signal(false);
 
   protected onSave(title: string, description: string, assignedTo: string, dueDate: string): void {
     this.dueDateError.set(false);
+    this.memberError.set(false);
+
+    if (!assignedTo) {
+      this.memberError.set(true);
+    }
     if (!dueDate) {
       this.dueDateError.set(true);
-      return;
     }
+    if (!assignedTo || !dueDate) return;
+
     this.save.emit({ title, description, assignedTo, dueDate });
   }
 }
