@@ -47,7 +47,7 @@ import {
                 (input)="onSearch(searchInput.value)" />
             </div>
             <app-button variant="solid" type="button" label="+ Criar" (click)="showCreateModal.set(true)"></app-button>
-            <app-button variant="outline" type="button" label="Entrar" (click)="onInviteClick()"></app-button>
+            <app-button variant="outline" type="button" label="Convidar" (click)="onInviteClick()"></app-button>
           </div>
 
           <div class="flex flex-col min-h-[360px]">

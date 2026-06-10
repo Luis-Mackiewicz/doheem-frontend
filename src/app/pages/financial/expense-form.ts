@@ -129,21 +129,26 @@ type SplitMode = 'equal' | 'some' | 'custom';
             </label>
 
             <div class="flex flex-col gap-2.5 text-sm font-medium text-secondary">
-              <span>Modo de rateio</span>
-              <div class="flex bg-card-strong rounded-xl p-1 gap-1">
-                @for (opt of splitOptions; track opt.value) {
-                  <button type="button" (click)="setSplitMode(opt.value)"
-                    class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
-                    [class.bg-white/65]="form.splitMode === opt.value"
-                    [class.text-purple-dark]="form.splitMode === opt.value"
-                    [class.text-secondary]="form.splitMode !== opt.value">
-                    {{ opt.label }}
-                  </button>
-                }
-              </div>
+              @if (members.length <= 1) {
+                <span class="text-secondary text-xs">Apenas 1 morador no grupo — o valor total será atribuído a {{ members[0] }}.</span>
+              } @else {
+                <span>Modo de rateio</span>
+                <div class="flex bg-card-strong rounded-xl p-1 gap-1">
+                  @for (opt of splitOptions; track opt.value) {
+                    <button type="button" (click)="setSplitMode(opt.value)"
+                      class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
+                      [class.bg-white/65]="form.splitMode === opt.value"
+                      [class.text-purple-dark]="form.splitMode === opt.value"
+                      [class.text-secondary]="form.splitMode !== opt.value">
+                      {{ opt.label }}
+                    </button>
+                  }
+                </div>
+              }
             </div>
 
-            @if (form.splitMode === 'equal') {
+            @if (members.length > 1) {
+              @if (form.splitMode === 'equal') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 <span>Todos os membros dividem igualmente</span>
                 <div class="grid grid-cols-2 gap-2 mt-1">
@@ -155,9 +160,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   }
                 </div>
               </div>
-            }
+              }
 
-            @if (form.splitMode === 'some') {
+              @if (form.splitMode === 'some') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
                 @if (submitted() && selectedSomeCount() < 2) {
@@ -183,9 +188,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   }
                 </div>
               </div>
-            }
+              }
 
-            @if (form.splitMode === 'custom') {
+              @if (form.splitMode === 'custom') {
               <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 <span>Valores por morador  — {{ members.length }} participantes</span>
 
@@ -222,6 +227,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   }
                 </div>
               </div>
+              }
             }
           </div>
 
@@ -380,7 +386,9 @@ export class ExpenseFormComponent implements OnInit {
 
     let splitValues: SplitValue[] = [];
 
-    if (this.form.splitMode === 'equal') {
+    if (this.members.length <= 1) {
+      splitValues = [{ name: this.members[0], value: this.form.amount }];
+    } else if (this.form.splitMode === 'equal') {
       splitValues = this.computedSplitValues();
     } else if (this.form.splitMode === 'some') {
       const selected = this.selectedSome();
@@ -400,8 +408,8 @@ export class ExpenseFormComponent implements OnInit {
       if (Math.abs(totalCustom - this.form.amount) > 0.01) return;
     }
 
-    if (splitValues.length < 2) {
-      this.submittedGeneralError.set('É necessário ao menos 2 moradores no grupo para ratear a despesa.');
+    if (splitValues.length < 2 && this.members.length > 1) {
+      this.submittedGeneralError.set('É necessário ao menos 2 moradores para ratear a despesa.');
       return;
     }
 
