@@ -129,8 +129,15 @@ export class GroupStoreService {
     this.membersLoading.set(true);
     this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/members`).subscribe({
       next: res => {
-        const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
-        this.members.set(data);
+        const raw = Array.isArray(res) ? res : (res as any)?.data ?? [];
+        this.members.set(raw.map((m: any) => ({
+          id: m.id,
+          nome: m.user_name ?? m.nome ?? m.name ?? '',
+          email: m.user_email ?? m.email ?? '',
+          telefone: m.user_phone ?? m.telefone ?? '',
+          admin: m.is_admin ?? m.admin ?? false,
+          fotoBase64: m.foto_base64 ?? m.fotoBase64 ?? '',
+        })));
       },
       error: () => this.members.set([]),
       complete: () => this.membersLoading.set(false),
