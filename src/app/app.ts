@@ -2,12 +2,13 @@ import { Component } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './components/header/header';
+import { ToastComponent } from './components/toast/toast';
 import { ThemeService } from './services/theme-service';
 import { LucideSun, LucideMoon } from '@lucide/angular';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent, LucideSun, LucideMoon],
+  imports: [RouterOutlet, HeaderComponent, ToastComponent, LucideSun, LucideMoon],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CardComponent } from '../../components/card/card';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
-import { NotificationService } from '../../services/notification-service';
+import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -80,7 +80,7 @@ export class LoginPage {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private notif = inject(NotificationService);
+  private toast = inject(ToastService);
   private auth = inject(AuthService);
 
   constructor() {
@@ -98,12 +98,12 @@ export class LoginPage {
     this.auth.login({ email: this.form.value.credential ?? '', password: this.form.value.password ?? '' }).subscribe({
       next: (res) => {
         this.auth.setSession(res);
-        this.notif.add('info', 'Bem-vindo de volta', 'Login realizado com sucesso', res.user.name);
+        this.toast.show(`Bem-vindo de volta, ${res.user.name}!`, 'success');
         this.loading.set(false);
         this.router.navigate(['/groups']);
       },
       error: () => {
-        this.notif.add('debt_reminder', 'Erro ao entrar', 'Credenciais inválidas. Tente novamente.', '');
+        this.toast.show('Erro ao entrar. Credenciais inválidas.', 'error');
         this.loading.set(false);
       },
     });

@@ -18,5 +18,7 @@ export { NotificationsApiService } from './notifications-api.service';
 export type { CreateNotificationRequest } from './notifications-api.service';
 export { GroupStoreService } from './group-store.service';
 export type { ResidentBalance, BalanceSummary } from './group-store.service';
+export { ToastService } from './toast.service';
+export type { ToastType, Toast } from './toast.service';
 export { ThemeService } from './theme-service';
 export { PwaInstallService } from './pwa-install-service';

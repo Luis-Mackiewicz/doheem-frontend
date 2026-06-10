@@ -8,3 +8,4 @@ export { PhoneInputComponent } from './phone-input/phone-input';
 export { SearchComponent } from './search/search';
 export { SidebarComponent } from './sidebar/sidebar';
 export { ModalInviteGroupComponent } from './modal-invite-group/modal-invite-group';
+export { ToastComponent } from './toast/toast';
