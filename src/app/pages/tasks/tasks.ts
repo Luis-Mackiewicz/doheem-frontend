@@ -470,8 +470,8 @@ export class TasksPage {
     this.tasksApi.create(this.store.groupId(), {
       title: data.title.trim(),
       description: data.description.trim(),
-      assignedTo: data.assignedTo,
-      dueDate: data.dueDate,
+      assigned_to: data.assignedTo,
+      due_date: data.dueDate,
     }).subscribe({
       next: (task) => {
         this.tasksSignal.update((list: any[]) => [...list, task]);
@@ -495,8 +495,8 @@ export class TasksPage {
     this.tasksApi.update(task.id, {
       title: data.title.trim(),
       description: data.description.trim(),
-      assignedTo: data.assignedTo,
-      dueDate: data.dueDate,
+      assigned_to: data.assignedTo,
+      due_date: data.dueDate,
     }).subscribe({
       next: () => {
         this.tasksSignal.update((list: any[]) =>

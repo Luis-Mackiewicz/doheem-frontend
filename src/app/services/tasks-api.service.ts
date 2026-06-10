@@ -6,16 +6,16 @@ import { environment } from '../../environments/environment';
 export interface CreateTaskRequest {
   title: string;
   description: string;
-  assignedTo: string;
-  dueDate: string;
+  assigned_to: string;
+  due_date: string;
 }
 
 export interface UpdateTaskRequest {
   title?: string;
   description?: string;
-  assignedTo?: string;
+  assigned_to?: string;
   status?: string;
-  dueDate?: string;
+  due_date?: string;
 }
 
 export interface CreateOccurrenceRequest {
