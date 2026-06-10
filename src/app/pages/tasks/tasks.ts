@@ -148,7 +148,14 @@ export class TasksPage {
     this.store.setGroupId(groupId);
     effect(() => {
       const tasks = this.store.tasks();
-      if (tasks.length) this.tasksSignal.set(tasks);
+      if (tasks.length) {
+        const members = this.store.members();
+        this.tasksSignal.set(tasks.map((t: any) => ({
+          ...t,
+          assignedTo: members.find((m: any) => m.user_id === t.assigned_to)?.nome ?? t.assigned_to,
+          dueDate: t.due_date ?? t.dueDate,
+        })));
+      }
     });
   }
 
@@ -475,12 +482,18 @@ export class TasksPage {
       due_date: data.dueDate,
     }).subscribe({
       next: (task) => {
-        this.tasksSignal.update((list: any[]) => [...list, task]);
-        this.store.tasks.update((list: any[]) => [...list, task]);
-        if (task.dueDate) {
+        const members = this.store.members();
+        const normalized = {
+          ...task,
+          assignedTo: members.find((m: any) => m.user_id === task.assigned_to)?.nome ?? task.assigned_to,
+          dueDate: task.due_date ?? task.dueDate,
+        };
+        this.tasksSignal.update((list: any[]) => [...list, normalized]);
+        this.store.tasks.update((list: any[]) => [...list, normalized]);
+        if (normalized.dueDate) {
           this.notif.add('task_reminder', 'Tarefa próxima do prazo',
-            `${task.title} — vence em ${task.dueDate}`,
-            task.assignedTo, task.id);
+            `${normalized.title} — vence em ${normalized.dueDate}`,
+            normalized.assignedTo, normalized.id);
         }
         this.showModal.set(false);
       },
