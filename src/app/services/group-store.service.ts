@@ -1,5 +1,5 @@
 import { Injectable, inject, computed, signal } from '@angular/core';
-import { httpResource } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
@@ -18,46 +18,20 @@ export interface BalanceSummary {
 
 @Injectable({ providedIn: 'root' })
 export class GroupStoreService {
+  private http = inject(HttpClient);
   private auth = inject(AuthService);
 
   private groupIdSignal = signal<number>(0);
   readonly groupId = this.groupIdSignal.asReadonly();
 
-  private groupReq = httpResource<any>(() =>
-    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}` : undefined
-  );
-  readonly group = this.groupReq.value;
-  readonly groupLoading = this.groupReq.isLoading;
-
-  private membersReq = httpResource<any[]>(() =>
-    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/members` : undefined
-  );
-  readonly members = computed<any[]>(() => {
-    const val = this.membersReq.value();
-    if (Array.isArray(val)) return val;
-    return (val as any)?.data ?? [];
-  });
-  readonly membersLoading = this.membersReq.isLoading;
-
-  private expensesReq = httpResource<any[]>(() =>
-    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/expenses` : undefined
-  );
-  readonly expenses = computed<any[]>(() => {
-    const val = this.expensesReq.value();
-    if (Array.isArray(val)) return val;
-    return (val as any)?.data ?? [];
-  });
-  readonly expensesLoading = this.expensesReq.isLoading;
-
-  private tasksReq = httpResource<any[]>(() =>
-    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/tasks` : undefined
-  );
-  readonly tasks = computed<any[]>(() => {
-    const val = this.tasksReq.value();
-    if (Array.isArray(val)) return val;
-    return (val as any)?.data ?? [];
-  });
-  readonly tasksLoading = this.tasksReq.isLoading;
+  readonly group = signal<any>(undefined);
+  readonly groupLoading = signal(false);
+  readonly members = signal<any[]>([]);
+  readonly membersLoading = signal(false);
+  readonly expenses = signal<any[]>([]);
+  readonly expensesLoading = signal(false);
+  readonly tasks = signal<any[]>([]);
+  readonly tasksLoading = signal(false);
 
   readonly currentUser = computed(() => this.auth.currentUser()?.name ?? '');
 
@@ -141,5 +115,45 @@ export class GroupStoreService {
 
   setGroupId(id: number): void {
     this.groupIdSignal.set(id);
+    if (id) this.fetchAll(id);
+  }
+
+  private fetchAll(groupId: number): void {
+    this.groupLoading.set(true);
+    this.http.get<any>(`${environment.apiUrl}/groups/${groupId}`).subscribe({
+      next: res => this.group.set(res),
+      error: () => this.group.set(undefined),
+      complete: () => this.groupLoading.set(false),
+    });
+
+    this.membersLoading.set(true);
+    this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/members`).subscribe({
+      next: res => {
+        const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
+        this.members.set(data);
+      },
+      error: () => this.members.set([]),
+      complete: () => this.membersLoading.set(false),
+    });
+
+    this.expensesLoading.set(true);
+    this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/expenses`).subscribe({
+      next: res => {
+        const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
+        this.expenses.set(data);
+      },
+      error: () => this.expenses.set([]),
+      complete: () => this.expensesLoading.set(false),
+    });
+
+    this.tasksLoading.set(true);
+    this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/tasks`).subscribe({
+      next: res => {
+        const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
+        this.tasks.set(data);
+      },
+      error: () => this.tasks.set([]),
+      complete: () => this.tasksLoading.set(false),
+    });
   }
 }
