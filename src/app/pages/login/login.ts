@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ButtonComponent } from '../../components/button/button';
 import { CardComponent } from '../../components/card/card';
 import { PasswordInputComponent } from '../../components/password-input/password-input';
@@ -80,6 +80,7 @@ export class LoginPage {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
   private auth = inject(AuthService);
 
@@ -100,7 +101,8 @@ export class LoginPage {
         this.auth.setSession(res);
         this.toast.show(`Bem-vindo de volta, ${res.user.name}!`, 'success');
         this.loading.set(false);
-        this.router.navigate(['/groups']);
+        const redirect = this.route.snapshot.queryParamMap.get('redirect') || '/groups';
+        this.router.navigateByUrl(redirect);
       },
       error: () => {
         this.toast.show('Erro ao entrar. Credenciais inválidas.', 'error');

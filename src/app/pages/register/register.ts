@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { CardComponent } from '../../components/card/card';
 import { ButtonComponent } from '../../components/button/button';
 import { PhoneInputComponent } from '../../components/phone-input/phone-input';
@@ -134,6 +134,7 @@ export class RegisterPage {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
   private auth = inject(AuthService);
 
@@ -169,10 +170,12 @@ export class RegisterPage {
         this.auth.setSession(res);
         this.toast.show(`Bem-vindo, ${res.user.name}! Conta criada com sucesso.`, 'success');
         this.loading.set(false);
-        this.router.navigate(['/groups']);
+        const redirect = this.route.snapshot.queryParamMap.get('redirect') || '/groups';
+        this.router.navigateByUrl(redirect);
       },
-      error: () => {
-        this.toast.show('Erro ao criar conta. Verifique os dados e tente novamente.', 'error');
+      error: (err) => {
+        const msg = err.error?.error ?? 'Erro ao criar conta. Verifique os dados e tente novamente.';
+        this.toast.show(msg, 'error');
         this.loading.set(false);
       },
     });

@@ -19,7 +19,8 @@ import {
 } from '@lucide/angular';
 
 interface Member {
-  id: number;
+  id: string;
+  user_id: string;
   nome: string;
   telefone: string;
   email: string;
@@ -376,7 +377,11 @@ export class GroupPage {
   }
 
   promote(m: Member): void {
-    this.groupsApi.updateMemberRole(this.groupId, m.id, { role: 'admin' }).subscribe();
+    this.groupsApi.updateMemberRole(this.groupId, m.user_id, { is_admin: true }).subscribe({
+      next: () => this.store.members.update(list =>
+        list.map((mm: any) => (mm as any).user_id === m.user_id ? { ...mm, admin: true } : mm)
+      ),
+    });
   }
 
   confirmRemove(m: Member): void {
@@ -390,8 +395,9 @@ export class GroupPage {
   remove(): void {
     const target = this.removing();
     if (!target) return;
-    this.groupsApi.removeMember(this.groupId, target.id).subscribe(() => {
+    this.groupsApi.removeMember(this.groupId, target.user_id).subscribe(() => {
       this.removing.set(null);
+      this.store.members.update(list => list.filter((mm: any) => (mm as any).user_id !== target.user_id));
     });
   }
 
@@ -406,7 +412,7 @@ export class GroupPage {
   confirmLeave(): void {
     const target = this.leaving();
     if (!target) return;
-    this.groupsApi.removeMember(this.groupId, target.id).subscribe({
+    this.groupsApi.removeMember(this.groupId, target.user_id).subscribe({
       next: () => {
         this.leaving.set(null);
         this.router.navigate(['/groups']);

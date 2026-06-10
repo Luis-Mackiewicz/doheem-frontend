@@ -1,12 +1,12 @@
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const authGuard = () => {
+export const authGuard = (route?: ActivatedRouteSnapshot, state?: RouterStateSnapshot) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
   if (auth.isAuthenticated()) return true;
 
-  return router.parseUrl('/login');
+  return router.createUrlTree(['/login'], { queryParams: { redirect: state?.url ?? '' } });
 };
