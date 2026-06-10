@@ -467,10 +467,11 @@ export class TasksPage {
 
   confirmCreate(data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
+    const member = this.store.members().find((m: any) => m.nome === data.assignedTo);
     this.tasksApi.create(this.store.groupId(), {
       title: data.title.trim(),
       description: data.description.trim(),
-      assigned_to: data.assignedTo,
+      assigned_to: member?.user_id ?? '',
       due_date: data.dueDate,
     }).subscribe({
       next: (task) => {
@@ -492,10 +493,11 @@ export class TasksPage {
 
   confirmEdit(task: any, data: { title: string; description: string; assignedTo: string; dueDate: string }): void {
     if (!data.title.trim()) return;
+    const member = this.store.members().find((m: any) => m.nome === data.assignedTo);
     this.tasksApi.update(task.id, {
       title: data.title.trim(),
       description: data.description.trim(),
-      assigned_to: data.assignedTo,
+      assigned_to: member?.user_id ?? '',
       due_date: data.dueDate,
     }).subscribe({
       next: () => {
