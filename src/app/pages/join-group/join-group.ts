@@ -100,7 +100,7 @@ export class JoinGroupPage {
     if (!g) return;
     this.groupsApi.join(g.id).subscribe({
       next: () => {
-        this.notif.add('success', 'Bem-vindo!', `Você entrou no grupo "${g.name}"!`, this.auth.currentUser()?.name ?? '');
+        this.notif.add('success', 'Bem-vindo!', `Você entrou no grupo "${g.name}"!`);
         this.router.navigate([`/groups/${g.id}/dashboard`]);
       },
     });

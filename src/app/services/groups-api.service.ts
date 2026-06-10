@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface CreateGroupRequest {
   name: string;
@@ -29,8 +30,13 @@ export interface UpdateMemberRoleRequest {
 @Injectable({ providedIn: 'root' })
 export class GroupsApiService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
 
-  readonly list = httpResource<any[]>(() => `${environment.apiUrl}/groups`);
+  readonly list = httpResource<any[]>(() => {
+    const token = this.auth.token();
+    if (!token) return undefined;
+    return `${environment.apiUrl}/groups`;
+  });
 
   getById(id: string) {
     return httpResource<any>(() => `${environment.apiUrl}/groups/${id}`);

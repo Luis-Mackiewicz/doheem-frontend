@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, signal, computed, ViewChild, ElementRef, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GroupsApiService } from '../../services/groups-api.service';
 import { AuthService } from '../../services/auth.service';
@@ -6,6 +7,7 @@ import { GroupStoreService } from '../../services/group-store.service';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { FormsModule } from '@angular/forms';
+import { timer } from 'rxjs';
 import {
   LucideCopy,
   LucideCheck,
@@ -129,7 +131,7 @@ interface Member {
                       <svg lucideShield class="w-4 h-4"></svg>
                     </button>
                   }
-                  @if (m.nome !== currentUserName()) {
+                  @if (!m.admin && m.nome !== currentUserName()) {
                     <button (click)="confirmRemove(m)"
                       class="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-rose-500/20 text-muted hover:text-rose-400 transition cursor-pointer"
                       aria-label="Remover {{ m.nome }} do grupo"
@@ -290,7 +292,7 @@ export class GroupPage {
   );
   protected readonly pageSize = 5;
 
-  protected readonly copiedTel = signal('');
+  protected readonly copiedTel = signal<string | null>(null);
   protected readonly removing = signal<Member | null>(null);
   protected readonly leaving = signal<Member | null>(null);
   protected readonly leaveError = signal('');
@@ -368,12 +370,14 @@ export class GroupPage {
     }
   }
 
+  private destroyRef = inject(DestroyRef);
+
   copyPhone(tel: string): void {
-    navigator.clipboard.writeText(tel);
+    navigator.clipboard.writeText(tel).catch(() => {});
     this.copiedTel.set(tel);
-    setTimeout(() => {
-      if (this.copiedTel() === tel) this.copiedTel.set('');
-    }, 1500);
+    timer(1500).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.copiedTel() === tel) this.copiedTel.set(null);
+    });
   }
 
   promote(m: Member): void {

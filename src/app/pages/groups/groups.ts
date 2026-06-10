@@ -185,12 +185,11 @@ export class GroupsPage {
     this.groupsApi.create(data).subscribe({
       next: (group) => {
         this.notif.add('info', 'Grupo criado',
-          `Grupo "${data.name}" criado com sucesso!`,
-          this.auth.currentUser()?.name ?? '');
+          `Grupo "${data.name}" criado com sucesso!`);
         this.router.navigate([`/groups/${group.id}/dashboard`]);
       },
       error: () => {
-        this.notif.add('debt_reminder', 'Erro', 'Não foi possível criar o grupo.', '');
+        this.notif.add('debt_reminder', 'Erro', 'Não foi possível criar o grupo.');
       },
     });
   }

@@ -476,19 +476,11 @@ export class FinancialPage {
     this.expenses.update((list: any[]) => [...list, ...toAdd]);
 
     if (expense.installments > 1) {
-      for (const sv of expense.splitValues) {
-        if (sv.name === expense.paidBy) continue;
-        this.notif.add('expense', 'Nova despesa parcelada',
-          `${expense.description} (${expense.installments}x) — sua parte total: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
-          sv.name, toAdd[0].id);
-      }
+      this.notif.add('expense', 'Nova despesa parcelada',
+        `${expense.description} (${expense.installments}x) — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
     } else {
-      for (const sv of expense.splitValues) {
-        if (sv.name === expense.paidBy) continue;
-        this.notif.add('expense', 'Nova despesa',
-          `${expense.description} — sua parte: R$ ${sv.value.toFixed(2).replace('.', ',')}`,
-          sv.name, toAdd[0].id);
-      }
+      this.notif.add('expense', 'Nova despesa',
+        `${expense.description} — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
     }
 
     this.showToast('Despesa criada com sucesso');

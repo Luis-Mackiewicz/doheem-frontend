@@ -1,7 +1,8 @@
-import { Component, inject, signal, afterNextRender, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, afterNextRender, HostListener } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ThemeService } from '../../services/theme-service';
+import { UsersApiService } from '../../services/users-api.service';
 
 @Component({
   selector: 'app-header',
@@ -45,7 +46,7 @@ import { ThemeService } from '../../services/theme-service';
 
         <div class="flex items-center gap-2">
           <a routerLink="/profile" aria-label="Perfil"
-            class="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition"
+            class="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition overflow-hidden"
             [class.bg-white/10]="theme.theme() === 'dark'"
             [class.bg-violet-100]="theme.theme() === 'light'"
             [class.border]="true"
@@ -53,12 +54,16 @@ import { ThemeService } from '../../services/theme-service';
             [class.border-violet-200]="theme.theme() === 'light'"
             [class.hover:bg-white/20]="theme.theme() === 'dark'"
             [class.hover:bg-violet-200]="theme.theme() === 'light'">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-              [class.text-white/70]="theme.theme() === 'dark'"
-              [class.text-violet-700]="theme.theme() === 'light'">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            @if (avatarUrl(); as url) {
+              <img [src]="url" alt="" class="w-full h-full object-cover" />
+            } @else {
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                [class.text-white/70]="theme.theme() === 'dark'"
+                [class.text-violet-700]="theme.theme() === 'light'">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            }
           </a>
 
           <button (click)="toggleMobile()"
@@ -112,6 +117,8 @@ import { ThemeService } from '../../services/theme-service';
 })
 export class HeaderComponent {
   protected theme = inject(ThemeService);
+  protected usersApi = inject(UsersApiService);
+  protected avatarUrl = computed(() => this.usersApi.me.value()?.avatar_url ?? null);
   protected activeSection = signal('');
   protected mobileOpen = signal(false);
 

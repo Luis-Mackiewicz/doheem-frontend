@@ -491,9 +491,8 @@ export class TasksPage {
         this.tasksSignal.update((list: any[]) => [...list, normalized]);
         this.store.tasks.update((list: any[]) => [...list, normalized]);
         if (normalized.dueDate) {
-          this.notif.add('task_reminder', 'Tarefa próxima do prazo',
-            `${normalized.title} — vence em ${normalized.dueDate}`,
-            normalized.assignedTo, normalized.id);
+          this.notif.add('task_reminder', 'Tarefa criada',
+            `${normalized.title} — vence em ${normalized.dueDate}`);
         }
         this.showModal.set(false);
       },

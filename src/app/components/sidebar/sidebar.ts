@@ -4,6 +4,7 @@ import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
 import { AuthService } from '../../services/auth.service';
 import { GroupStoreService } from '../../services/group-store.service';
+import { UsersApiService } from '../../services/users-api.service';
 import {
   LucideLayoutDashboard,
   LucideDollarSign,
@@ -64,7 +65,11 @@ import {
       <div class="p-3">
         <a routerLink="/profile"
           class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-secondary hover-text-primary hover-bg">
-          <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold shrink-0" aria-hidden="true">{{ userInitials }}</div>
+          @if (avatarUrl(); as url) {
+            <img [src]="url" alt="" class="w-7 h-7 rounded-full object-cover shrink-0" />
+          } @else {
+            <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold shrink-0" aria-hidden="true">{{ userInitials }}</div>
+          }
           <span>{{ userName }}</span>
         </a>
       </div>
@@ -91,9 +96,13 @@ import {
       </div>
       <div class="flex items-center gap-3">
          <a routerLink="/profile"
-           class="transition cursor-pointer text-secondary hover-text-primary">
-           <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold" aria-hidden="true">{{ userInitials }}</div>
-         </a>
+            class="transition cursor-pointer text-secondary hover-text-primary">
+            @if (avatarUrl(); as url) {
+              <img [src]="url" alt="" class="w-7 h-7 rounded-full object-cover" />
+            } @else {
+              <div class="w-7 h-7 rounded-full badge-purple flex items-center justify-center text-[11px] font-bold" aria-hidden="true">{{ userInitials }}</div>
+            }
+          </a>
        </div>
     </div>
 
@@ -126,8 +135,12 @@ import {
         [routerLinkActive]="theme.theme() === 'dark' ? 'bg-white/10 text-white' : 'bg-purple-500/15 text-purple-dark'"
         aria-current="page"
         class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0 text-muted hover-text-primary hover-bg">
-         <div class="w-5 h-5 rounded-full badge-purple flex items-center justify-center text-[9px] font-bold" aria-hidden="true">{{ userInitials }}</div>
-         <span class="truncate w-full text-center">Profile</span>
+         @if (avatarUrl(); as url) {
+            <img [src]="url" alt="" class="w-5 h-5 rounded-full object-cover" />
+          } @else {
+            <div class="w-5 h-5 rounded-full badge-purple flex items-center justify-center text-[9px] font-bold" aria-hidden="true">{{ userInitials }}</div>
+          }
+          <span class="truncate w-full text-center">Profile</span>
        </a>
      </nav>
 
@@ -140,6 +153,8 @@ export class SidebarComponent {
   protected notif = inject(NotificationService);
   protected auth = inject(AuthService);
   protected store = inject(GroupStoreService);
+  protected usersApi = inject(UsersApiService);
+  protected avatarUrl = computed(() => this.usersApi.me.value()?.avatar_url ?? null);
 
   constructor() {
     effect(() => {

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +9,7 @@ import { PasswordInputComponent } from '../../components/password-input/password
 import { AuthService } from '../../services/auth.service';
 import { UsersApiService } from '../../services/users-api.service';
 import { NotificationService } from '../../services/notification-service';
+import { ToastService } from '../../services/toast.service';
 import { passwordsMatchValidator } from '../../utils/validators';
 import { DocumentMaskDirective } from '../../directives/document-mask.directive';
 import { CepMaskDirective } from '../../directives/cep-mask.directive';
@@ -133,6 +134,7 @@ export class ProfilePage {
   private auth = inject(AuthService);
   private usersApi = inject(UsersApiService);
   private notif = inject(NotificationService);
+  private toast = inject(ToastService);
   private fb = inject(FormBuilder);
   private location = inject(Location);
   private router = inject(Router);
@@ -149,6 +151,21 @@ export class ProfilePage {
       newPassword: ['', [Validators.minLength(6)]],
       confirmPassword: [''],
     }, { validators: passwordsMatchValidator('newPassword', 'confirmPassword') });
+
+    effect(() => {
+      const p = this.usersApi.me.value();
+      if (p) {
+        this.form.patchValue({
+          documento: p.document ?? '',
+          dataNascimento: p.birth_date ?? '',
+          phone: p.phone ?? '',
+          cep: p.cep ?? '',
+        });
+        if (p.avatar_url) {
+          this.photoPreview.set(p.avatar_url);
+        }
+      }
+    });
   }
 
   protected get userName(): string {
@@ -174,7 +191,7 @@ export class ProfilePage {
     reader.onload = () => {
       const result = reader.result as string;
       this.photoPreview.set(result);
-      this.usersApi.updateProfile({ fotoBase64: result }).subscribe();
+      this.usersApi.updateProfile({ avatar_url: result }).subscribe();
     };
     reader.readAsDataURL(file);
   }
@@ -186,21 +203,25 @@ export class ProfilePage {
 
     const { documento, dataNascimento, phone, cep, newPassword } = this.form.value;
 
-    this.usersApi.updateProfile({ phone: phone ?? '' }).subscribe();
-
-    if (newPassword) {
-      this.usersApi.changePassword({ currentPassword: '', newPassword }).subscribe();
-      this.notif.add('info', 'Perfil atualizado',
-        'Senha alterada com sucesso',
-        this.userName);
-    }
-
-    this.notif.add('info', 'Perfil atualizado',
-      'Suas informações foram salvas',
-      this.userName);
-
-    this.form.reset({ documento, dataNascimento, phone, cep });
-    setTimeout(() => this.saving.set(false), 600);
+    this.usersApi.updateProfile({
+      document: documento || undefined,
+      birth_date: dataNascimento || undefined,
+      phone: phone || undefined,
+      cep: cep || undefined,
+    }).subscribe({
+      next: () => {
+        if (newPassword) {
+          this.usersApi.changePassword({ currentPassword: '', newPassword }).subscribe();
+        }
+        this.toast.show('Perfil atualizado com sucesso', 'success');
+        this.form.reset({ documento, dataNascimento, phone, cep });
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.toast.show(err.error?.message ?? 'Erro ao atualizar perfil', 'error');
+        this.saving.set(false);
+      },
+    });
   }
 
   confirmLogout(): void {

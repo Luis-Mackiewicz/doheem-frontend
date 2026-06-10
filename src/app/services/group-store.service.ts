@@ -137,7 +137,7 @@ export class GroupStoreService {
           email: m.user_email ?? m.email ?? '',
           telefone: m.user_phone ?? m.telefone ?? '',
           admin: m.is_admin ?? m.admin ?? false,
-          fotoBase64: m.foto_base64 ?? m.fotoBase64 ?? '',
+          fotoBase64: m.avatar_url ?? m.foto_base64 ?? m.fotoBase64 ?? '',
         })));
       },
       error: () => this.members.set([]),
