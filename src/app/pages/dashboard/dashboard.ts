@@ -155,7 +155,7 @@ import {
     </div>
 
     @if (showInviteModal()) {
-      <app-modal-invite-group [groups]="[]" [groupId]="+groupId" (close)="showInviteModal.set(false)" />
+      <app-modal-invite-group [groups]="[]" [groupId]="groupId" (close)="showInviteModal.set(false)" />
     }
   `,
 })

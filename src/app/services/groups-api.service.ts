@@ -23,7 +23,7 @@ export interface AddMemberRequest {
 }
 
 export interface UpdateMemberRoleRequest {
-  role: string;
+  is_admin: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,11 +52,11 @@ export class GroupsApiService {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/members`, data);
   }
 
-  updateMemberRole(groupId: string, userId: number, data: UpdateMemberRoleRequest) {
+  updateMemberRole(groupId: string, userId: string, data: UpdateMemberRoleRequest) {
     return this.http.put<any>(`${environment.apiUrl}/groups/${groupId}/members/${userId}`, data);
   }
 
-  removeMember(groupId: string, userId: number) {
+  removeMember(groupId: string, userId: string) {
     return this.http.delete<void>(`${environment.apiUrl}/groups/${groupId}/members/${userId}`);
   }
 

@@ -132,6 +132,7 @@ export class GroupStoreService {
         const raw = Array.isArray(res) ? res : (res as any)?.data ?? [];
         this.members.set(raw.map((m: any) => ({
           id: m.id,
+          user_id: m.user_id ?? '',
           nome: m.user_name ?? m.nome ?? m.name ?? '',
           email: m.user_email ?? m.email ?? '',
           telefone: m.user_phone ?? m.telefone ?? '',

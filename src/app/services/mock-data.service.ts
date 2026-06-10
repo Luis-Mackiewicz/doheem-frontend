@@ -71,7 +71,7 @@ export interface ResidentBalance {
 }
 
 export interface Group {
-  id: number;
+  id: string;
   name: string;
   description: string;
   members: number;
@@ -137,16 +137,16 @@ const MOCK_TASKS: Task[] = [
 ];
 
 const MOCK_GROUPS: Group[] = [
-  { id: 1, name: 'República Solaris', description: 'Republica estudantil focada em sustentabilidade e organização coletiva.', members: 12, monthlyFee: 450, cnpj: '11.222.333/0001-81', cep: '01310-100' },
-  { id: 2, name: 'Casa do Estudante', description: 'Moradia estudantil próxima à universidade com 8 moradores.', members: 8, monthlyFee: 320, cnpj: '', cep: '' },
-  { id: 3, name: 'Alojamento Universitário', description: '', members: 5, monthlyFee: 280, cnpj: '', cep: '' },
-  { id: 4, name: 'República Bela Vista', description: 'Casa ampla com vista para o campus, 10 moradores.', members: 10, monthlyFee: 520, cnpj: '', cep: '' },
-  { id: 5, name: 'Pensionato Central', description: '', members: 6, monthlyFee: 390, cnpj: '', cep: '' },
-  { id: 6, name: 'Kitnet Compartilhada', description: '', members: 4, monthlyFee: 250, cnpj: '', cep: '' },
-  { id: 7, name: 'Casa da Praia', description: '', members: 7, monthlyFee: 600, cnpj: '', cep: '' },
-  { id: 8, name: 'República Aurora', description: '', members: 9, monthlyFee: 410, cnpj: '', cep: '' },
-  { id: 9, name: 'Alojamento Rural', description: '', members: 3, monthlyFee: 200, cnpj: '', cep: '' },
-  { id: 10, name: 'Vila Estudantil', description: '', members: 15, monthlyFee: 350, cnpj: '', cep: '' },
+  { id: 'mock-1', name: 'República Solaris', description: 'Republica estudantil focada em sustentabilidade e organização coletiva.', members: 12, monthlyFee: 450, cnpj: '11.222.333/0001-81', cep: '01310-100' },
+  { id: 'mock-2', name: 'Casa do Estudante', description: 'Moradia estudantil próxima à universidade com 8 moradores.', members: 8, monthlyFee: 320, cnpj: '', cep: '' },
+  { id: 'mock-3', name: 'Alojamento Universitário', description: '', members: 5, monthlyFee: 280, cnpj: '', cep: '' },
+  { id: 'mock-4', name: 'República Bela Vista', description: 'Casa ampla com vista para o campus, 10 moradores.', members: 10, monthlyFee: 520, cnpj: '', cep: '' },
+  { id: 'mock-5', name: 'Pensionato Central', description: '', members: 6, monthlyFee: 390, cnpj: '', cep: '' },
+  { id: 'mock-6', name: 'Kitnet Compartilhada', description: '', members: 4, monthlyFee: 250, cnpj: '', cep: '' },
+  { id: 'mock-7', name: 'Casa da Praia', description: '', members: 7, monthlyFee: 600, cnpj: '', cep: '' },
+  { id: 'mock-8', name: 'República Aurora', description: '', members: 9, monthlyFee: 410, cnpj: '', cep: '' },
+  { id: 'mock-9', name: 'Alojamento Rural', description: '', members: 3, monthlyFee: 200, cnpj: '', cep: '' },
+  { id: 'mock-10', name: 'Vila Estudantil', description: '', members: 15, monthlyFee: 350, cnpj: '', cep: '' },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -188,8 +188,8 @@ export class MockDataService {
   readonly groupsSignal = signal<Group[]>([...MOCK_GROUPS]);
   readonly groups = this.groupsSignal.asReadonly();
 
-  createGroup(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): number {
-    const newId = Math.max(...this.groupsSignal().map(g => g.id), 0) + 1;
+  createGroup(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): string {
+    const newId = crypto.randomUUID();
     this.groupsSignal.update(list => [...list, {
       id: newId,
       name: data.name,
@@ -203,11 +203,11 @@ export class MockDataService {
     return newId;
   }
 
-  getGroupById(id: number): Group | undefined {
+  getGroupById(id: string): Group | undefined {
     return this.groupsSignal().find(g => g.id === id);
   }
 
-  joinGroup(groupId: number): boolean {
+  joinGroup(groupId: string): boolean {
     const group = this.groupsSignal().find(g => g.id === groupId);
     if (!group) return false;
     const alreadyMember = this.membersSignal().some(m => m.nome === this.CURRENT_USER);
@@ -228,11 +228,11 @@ export class MockDataService {
     return true;
   }
 
-  isMember(groupId: number, name: string): boolean {
+  isMember(groupId: string, name: string): boolean {
     return this.membersSignal().some(m => m.nome === name);
   }
 
-  updateGroup(id: number, data: { name: string; description: string; imagemBase64?: string }): void {
+  updateGroup(id: string, data: { name: string; description: string; imagemBase64?: string }): void {
     this.groupsSignal.update(list =>
       list.map(g => g.id === id ? { ...g, name: data.name, description: data.description, imagemBase64: data.imagemBase64 ?? g.imagemBase64 } : g)
     );

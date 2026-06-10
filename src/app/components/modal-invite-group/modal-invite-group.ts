@@ -24,7 +24,7 @@ import { Group } from '../../services/mock-data.service';
               Selecione o grupo
               <select (change)="onGroupSelect($event)"
                 class="bg-input border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
-                <option value="0" selected class="bg-card text-muted">Escolher grupo...</option>
+                <option value="" selected class="bg-card text-muted">Escolher grupo...</option>
                 @for (g of groups; track g.id) {
                   <option [value]="g.id" class="bg-card text-primary">{{ g.name }}</option>
                 }
@@ -74,16 +74,18 @@ import { Group } from '../../services/mock-data.service';
 })
 export class ModalInviteGroupComponent implements OnInit {
   @Input({ required: true }) groups: Group[] = [];
-  @Input() groupId?: number;
+  @Input() groupId?: string;
   @Output() close = new EventEmitter<void>();
 
-  protected readonly selectedGroupId = signal(0);
-  protected readonly selectedGroup = computed(() =>
-    this.groups.find(g => g.id === this.selectedGroupId()) ?? null
-  );
+  protected readonly selectedGroupId = signal('');
+  protected readonly selectedGroup = computed(() => {
+    const id = this.selectedGroupId();
+    if (!id) return null;
+    return this.groups.find(g => g.id === id) ?? { id, name: 'Grupo atual' } as Group;
+  });
   protected readonly inviteLink = computed(() =>
-    this.selectedGroup()
-      ? `${window.location.origin}/groups/join/${this.selectedGroup()!.id}`
+    this.selectedGroupId()
+      ? `${window.location.origin}/groups/join/${this.selectedGroupId()}`
       : ''
   );
   protected readonly qrCodeDataUrl = signal<string>('');
@@ -96,12 +98,12 @@ export class ModalInviteGroupComponent implements OnInit {
   }
 
   onGroupSelect(event: Event): void {
-    const id = +(event.target as HTMLSelectElement).value;
+    const id = (event.target as HTMLSelectElement).value;
     if (!id) return;
     this.selectGroup(id);
   }
 
-  private selectGroup(id: number): void {
+  private selectGroup(id: string): void {
     this.selectedGroupId.set(id);
     this.qrCodeDataUrl.set('');
     QRCode.toDataURL(this.inviteLink(), {
@@ -112,7 +114,7 @@ export class ModalInviteGroupComponent implements OnInit {
   }
 
   resetSelection(): void {
-    this.selectedGroupId.set(0);
+    this.selectedGroupId.set('');
     this.qrCodeDataUrl.set('');
   }
 
