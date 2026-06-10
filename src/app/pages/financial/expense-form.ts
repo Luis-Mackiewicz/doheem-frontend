@@ -23,6 +23,11 @@ type SplitMode = 'equal' | 'some' | 'custom';
           </div>
 
           <div class="flex flex-col gap-4 overflow-y-auto p-6">
+            @if (submitted() && submittedGeneralError()) {
+              <div class="bg-rose-500/15 border border-rose-500/30 text-rose-400 text-sm font-medium rounded-xl px-4 py-3">
+                {{ submittedGeneralError() }}
+              </div>
+            }
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Descrição
               <input type="text" placeholder="Ex: Conta de luz" [(ngModel)]="form.description"
@@ -87,6 +92,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
+                  @if (submitted() && form.firstDueDate && form.firstDueDate < today) {
+                    <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
+                  }
                 </label>
               }
             </div>
@@ -239,6 +247,7 @@ export class ExpenseFormComponent implements OnInit {
   @Output() cancel = new EventEmitter<void>();
 
   protected submitted = signal(false);
+  protected submittedGeneralError = signal('');
   protected selectedSome = signal<string[]>([]);
   protected form!: ReturnType<typeof this.emptyForm>;
 
@@ -362,6 +371,7 @@ export class ExpenseFormComponent implements OnInit {
 
   handleSave(): void {
     this.submitted.set(true);
+    this.submittedGeneralError.set('');
 
     if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || this.form.installments < 1) return;
 
@@ -390,7 +400,10 @@ export class ExpenseFormComponent implements OnInit {
       if (Math.abs(totalCustom - this.form.amount) > 0.01) return;
     }
 
-    if (splitValues.length < 2) return;
+    if (splitValues.length < 2) {
+      this.submittedGeneralError.set('É necessário ao menos 2 moradores no grupo para ratear a despesa.');
+      return;
+    }
 
     const sumSplit = splitValues.reduce((s, v) => s + v.value, 0);
     const diff = Math.round((this.form.amount - sumSplit) * 100) / 100;
