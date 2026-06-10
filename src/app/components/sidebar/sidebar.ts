@@ -1,8 +1,9 @@
-import { Component, computed, input, inject } from '@angular/core';
+import { Component, computed, input, inject, effect } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ThemeService } from '../../services/theme-service';
 import { NotificationService } from '../../services/notification-service';
 import { AuthService } from '../../services/auth.service';
+import { GroupStoreService } from '../../services/group-store.service';
 import {
   LucideLayoutDashboard,
   LucideDollarSign,
@@ -42,17 +43,17 @@ import {
              class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition text-sm font-medium text-secondary hover-text-primary hover-bg">
              <span class="text-lg leading-none" aria-hidden="true">
                  @switch (item.label) {
-                   @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
-                   @case ('Financial') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-                   @case ('Group') { <svg lucideUsers class="w-5 h-5"></svg> }
-                   @case ('Balances') { <svg lucideWallet class="w-5 h-5"></svg> }
-                   @case ('Tasks') { <svg lucideListTodo class="w-5 h-5"></svg> }
-                   @case ('History') { <svg lucideHistory class="w-5 h-5"></svg> }
-                   @case ('Notifications') { <svg lucideBell class="w-5 h-5"></svg> }
-                 }
-               </span>
-               <span class="flex-1">{{ item.label }}</span>
-              @if (item.label === 'Notifications' && notif.unreadCount() > 0) {
+                    @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+                    @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+                    @case ('Grupo') { <svg lucideUsers class="w-5 h-5"></svg> }
+                    @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
+                    @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+                    @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+                    @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+                  }
+                </span>
+                <span class="flex-1">{{ item.label }}</span>
+               @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
                <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
              }
            </a>
@@ -106,15 +107,15 @@ import {
           class="flex flex-col items-center gap-0.5 py-2 flex-1 rounded-lg transition text-[10px] font-medium min-w-0 text-muted hover-text-primary hover-bg">
           <span class="text-lg leading-none relative" aria-hidden="true">
               @switch (item.label) {
-                @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
-                @case ('Financial') { <svg lucideDollarSign class="w-5 h-5"></svg> }
-                @case ('Group') { <svg lucideUsers class="w-5 h-5"></svg> }
-                @case ('Balances') { <svg lucideWallet class="w-5 h-5"></svg> }
-                @case ('Tasks') { <svg lucideListTodo class="w-5 h-5"></svg> }
-                @case ('History') { <svg lucideHistory class="w-5 h-5"></svg> }
-                @case ('Notifications') { <svg lucideBell class="w-5 h-5"></svg> }
-              }
-            @if (item.label === 'Notifications' && notif.unreadCount() > 0) {
+                 @case ('Dashboard') { <svg lucideLayoutDashboard class="w-5 h-5"></svg> }
+                 @case ('Financeiro') { <svg lucideDollarSign class="w-5 h-5"></svg> }
+                 @case ('Grupo') { <svg lucideUsers class="w-5 h-5"></svg> }
+                 @case ('Saldos') { <svg lucideWallet class="w-5 h-5"></svg> }
+                 @case ('Tarefas') { <svg lucideListTodo class="w-5 h-5"></svg> }
+                 @case ('Histórico') { <svg lucideHistory class="w-5 h-5"></svg> }
+                 @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
+               }
+             @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
               <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
             }
           </span>
@@ -137,8 +138,17 @@ export class SidebarComponent {
 
   protected theme = inject(ThemeService);
   protected notif = inject(NotificationService);
+  protected auth = inject(AuthService);
+  protected store = inject(GroupStoreService);
 
-  protected readonly auth = inject(AuthService);
+  constructor() {
+    effect(() => {
+      const id = this.groupId();
+      if (id) {
+        this.store.setGroupId(Number(id));
+      }
+    });
+  }
 
   protected get userName(): string {
     return this.auth.currentUser()?.name ?? '';
@@ -148,7 +158,11 @@ export class SidebarComponent {
     return this.userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
   }
 
-  protected readonly groupName = computed(() => `Group ${this.groupId()}`);
+  protected readonly groupName = computed(() => {
+    const group = this.store.group();
+    if (group?.name) return group.name;
+    return `Group ${this.groupId()}`;
+  });
 
   protected readonly navItems = computed(() => [
     { path: `/groups/${this.groupId()}/dashboard`, label: 'Dashboard', exact: true },

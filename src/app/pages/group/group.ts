@@ -1,7 +1,9 @@
 import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
+import { httpResource } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GroupsApiService } from '../../services/groups-api.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { FormsModule } from '@angular/forms';
@@ -280,20 +282,21 @@ export class GroupPage {
   protected readonly groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
   protected readonly groupIdNum = computed(() => Number(this.groupId));
 
-  private readonly groupResource = computed(() =>
-    this.groupsApi.getById(this.groupIdNum())
+  private groupReq = httpResource<any>(() =>
+    this.groupIdNum() ? `${environment.apiUrl}/groups/${this.groupIdNum()}` : undefined
   );
-  protected readonly group = computed(() => this.groupResource().value());
-  protected readonly groupLoading = computed(() => this.groupResource().isLoading());
-  protected readonly membersResource = computed(() =>
-    this.groupsApi.getMembers(this.groupIdNum())
+  protected readonly group = this.groupReq.value;
+  protected readonly groupLoading = this.groupReq.isLoading;
+
+  private membersReq = httpResource<any[]>(() =>
+    this.groupIdNum() ? `${environment.apiUrl}/groups/${this.groupIdNum()}/members` : undefined
   );
   protected readonly membersData = computed<Member[]>(() => {
-    const val = this.membersResource().value();
+    const val = this.membersReq.value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
   });
-  protected readonly membersLoading = computed(() => this.membersResource().isLoading());
+  protected readonly membersLoading = this.membersReq.isLoading;
 
   protected readonly currentUserName = computed(() => this.auth.currentUser()?.name ?? '');
   protected readonly isAdmin = computed(() =>

@@ -1,7 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
+import { httpResource } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GroupsApiService } from '../../services/groups-api.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 import { NotificationService } from '../../services/notification-service';
 import { ButtonComponent } from '../../components/button/button';
 import { LucideHome, LucideUsers, LucideLoader } from '@lucide/angular';
@@ -76,13 +78,13 @@ export class JoinGroupPage {
 
   protected readonly groupId = Number(this.route.snapshot.paramMap.get('id'));
 
-  private readonly groupResource = computed(() =>
-    this.groupsApi.getById(this.groupId)
+  private groupReq = httpResource<any>(() =>
+    this.groupId ? `${environment.apiUrl}/groups/${this.groupId}` : undefined
   );
-  protected readonly group = computed(() => this.groupResource().value());
-  protected readonly loading = computed(() => this.groupResource().isLoading());
+  protected readonly group = this.groupReq.value;
+  protected readonly loading = this.groupReq.isLoading;
   protected readonly error = computed(() =>
-    !this.groupId || (this.groupResource().isLoading() === false && !this.groupResource().value())
+    !this.groupId || (this.groupReq.isLoading() === false && !this.groupReq.value())
   );
 
   join(): void {

@@ -1,8 +1,6 @@
-import { Injectable, inject, computed, Signal, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { GroupsApiService } from './groups-api.service';
-import { ExpensesApiService } from './expenses-api.service';
-import { TasksApiService } from './tasks-api.service';
+import { Injectable, inject, computed, signal } from '@angular/core';
+import { httpResource } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
 export interface ResidentBalance {
@@ -20,50 +18,46 @@ export interface BalanceSummary {
 
 @Injectable({ providedIn: 'root' })
 export class GroupStoreService {
-  private groupsApi = inject(GroupsApiService);
-  private expensesApi = inject(ExpensesApiService);
-  private tasksApi = inject(TasksApiService);
   private auth = inject(AuthService);
 
   private groupIdSignal = signal<number>(0);
-
   readonly groupId = this.groupIdSignal.asReadonly();
 
-  private readonly groupResource = computed(() =>
-    this.groupsApi.getById(this.groupId())
+  private groupReq = httpResource<any>(() =>
+    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}` : undefined
   );
-  readonly group = computed(() => this.groupResource().value());
-  readonly groupLoading = computed(() => this.groupResource().isLoading());
+  readonly group = this.groupReq.value;
+  readonly groupLoading = this.groupReq.isLoading;
 
-  private readonly membersResource = computed(() =>
-    this.groupsApi.getMembers(this.groupId())
+  private membersReq = httpResource<any[]>(() =>
+    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/members` : undefined
   );
   readonly members = computed<any[]>(() => {
-    const val = this.membersResource().value();
+    const val = this.membersReq.value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
   });
-  readonly membersLoading = computed(() => this.membersResource().isLoading());
+  readonly membersLoading = this.membersReq.isLoading;
 
-  private readonly expensesResource = computed(() =>
-    this.expensesApi.listByGroup(this.groupId())
+  private expensesReq = httpResource<any[]>(() =>
+    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/expenses` : undefined
   );
   readonly expenses = computed<any[]>(() => {
-    const val = this.expensesResource().value();
+    const val = this.expensesReq.value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
   });
-  readonly expensesLoading = computed(() => this.expensesResource().isLoading());
+  readonly expensesLoading = this.expensesReq.isLoading;
 
-  private readonly tasksResource = computed(() =>
-    this.tasksApi.listByGroup(this.groupId())
+  private tasksReq = httpResource<any[]>(() =>
+    this.groupId() ? `${environment.apiUrl}/groups/${this.groupId()}/tasks` : undefined
   );
   readonly tasks = computed<any[]>(() => {
-    const val = this.tasksResource().value();
+    const val = this.tasksReq.value();
     if (Array.isArray(val)) return val;
     return (val as any)?.data ?? [];
   });
-  readonly tasksLoading = computed(() => this.tasksResource().isLoading());
+  readonly tasksLoading = this.tasksReq.isLoading;
 
   readonly currentUser = computed(() => this.auth.currentUser()?.name ?? '');
 
