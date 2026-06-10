@@ -1,9 +1,8 @@
 import { Component, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
-import { httpResource } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GroupsApiService } from '../../services/groups-api.service';
 import { AuthService } from '../../services/auth.service';
-import { environment } from '../../../environments/environment';
+import { GroupStoreService } from '../../services/group-store.service';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { FormsModule } from '@angular/forms';
@@ -282,25 +281,12 @@ export class GroupPage {
   protected readonly groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
   protected readonly groupIdNum = computed(() => Number(this.groupId));
 
-  private groupReq = httpResource<any>(() =>
-    this.groupIdNum() ? `${environment.apiUrl}/groups/${this.groupIdNum()}` : undefined
-  );
-  protected readonly group = this.groupReq.value;
-  protected readonly groupLoading = this.groupReq.isLoading;
-
-  private membersReq = httpResource<any[]>(() =>
-    this.groupIdNum() ? `${environment.apiUrl}/groups/${this.groupIdNum()}/members` : undefined
-  );
-  protected readonly membersData = computed<Member[]>(() => {
-    const val = this.membersReq.value();
-    if (Array.isArray(val)) return val;
-    return (val as any)?.data ?? [];
-  });
-  protected readonly membersLoading = this.membersReq.isLoading;
+  protected store = inject(GroupStoreService);
+  protected readonly group = this.store.group;
 
   protected readonly currentUserName = computed(() => this.auth.currentUser()?.name ?? '');
   protected readonly isAdmin = computed(() =>
-    this.membersData().find(m => m.nome === this.currentUserName())?.admin ?? false
+    this.store.members().find(m => m.nome === this.currentUserName())?.admin ?? false
   );
   protected readonly pageSize = 5;
 
@@ -311,11 +297,11 @@ export class GroupPage {
   protected readonly searchQuery = signal('');
   protected readonly currentPage = signal(1);
 
-  protected readonly total = computed(() => this.membersData().length);
+  protected readonly total = computed(() => this.store.members().length);
 
   protected readonly filtered = computed(() => {
     const q = this.searchQuery().toLowerCase();
-    let list = this.membersData();
+    let list = this.store.members();
     if (q) {
       list = list.filter((m: Member) => m.nome.toLowerCase().includes(q));
     }
