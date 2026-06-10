@@ -61,14 +61,16 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   <span class="text-rose-400 text-xs mt-1">A data de competência é obrigatória</span>
                 }
               </label>
-              <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                Data de vencimento
-                <input type="date" [min]="today" [(ngModel)]="form.dueDate"
-                  class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
-                @if (submitted() && form.dueDate && form.dueDate < today) {
-                  <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
-                }
-              </label>
+              @if (form.installments <= 1) {
+                <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                  Data de vencimento
+                  <input type="date" [min]="today" [(ngModel)]="form.dueDate"
+                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
+                  @if (submitted() && form.dueDate && form.dueDate < today) {
+                    <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
+                  }
+                </label>
+              }
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -82,7 +84,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
               </label>
               @if (form.installments > 1) {
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                  1ª data de vencimento
+                  Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
                 </label>
@@ -361,7 +363,10 @@ export class ExpenseFormComponent implements OnInit {
   handleSave(): void {
     this.submitted.set(true);
 
-    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || this.form.installments < 1 || (this.form.dueDate && this.form.dueDate < this.today)) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || this.form.installments < 1) return;
+
+    const dateField = this.form.installments > 1 ? this.form.firstDueDate : this.form.dueDate;
+    if (dateField && dateField < this.today) return;
 
     let splitValues: SplitValue[] = [];
 
@@ -406,7 +411,7 @@ export class ExpenseFormComponent implements OnInit {
       amount: this.form.amount,
       category: this.form.category,
       competenceDate: this.form.competenceDate,
-      dueDate: this.form.dueDate,
+      dueDate: this.form.installments > 1 ? this.form.firstDueDate : this.form.dueDate,
       paidBy: this.form.paidBy,
       splitMode: this.form.splitMode,
       splitValues,
