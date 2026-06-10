@@ -38,15 +38,15 @@ export interface UpdateCategoryRequest {
 export class ExpensesApiService {
   private http = inject(HttpClient);
 
-  listByGroup(groupId: number) {
+  listByGroup(groupId: string) {
     return httpResource<any[]>(() => `${environment.apiUrl}/groups/${groupId}/expenses`);
   }
 
-  getById(id: number) {
+  getById(id: string) {
     return httpResource<any>(() => `${environment.apiUrl}/expenses/${id}`);
   }
 
-  create(groupId: number, data: CreateExpenseRequest) {
+  create(groupId: string, data: CreateExpenseRequest) {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/expenses`, data);
   }
 

@@ -1,5 +1,5 @@
-import { Component, inject, computed } from '@angular/core';
-import { httpResource } from '@angular/common/http';
+import { Component, inject, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GroupsApiService } from '../../services/groups-api.service';
 import { AuthService } from '../../services/auth.service';
@@ -70,22 +70,30 @@ import { LucideHome, LucideUsers, LucideLoader } from '@lucide/angular';
   `,
 })
 export class JoinGroupPage {
+  private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private groupsApi = inject(GroupsApiService);
   private auth = inject(AuthService);
   private notif = inject(NotificationService);
 
-  protected readonly groupId = Number(this.route.snapshot.paramMap.get('id'));
+  protected readonly groupId = this.route.snapshot.paramMap.get('id') ?? '';
 
-  private groupReq = httpResource<any>(() =>
-    this.groupId ? `${environment.apiUrl}/groups/${this.groupId}` : undefined
-  );
-  protected readonly group = this.groupReq.value;
-  protected readonly loading = this.groupReq.isLoading;
-  protected readonly error = computed(() =>
-    !this.groupId || (this.groupReq.isLoading() === false && !this.groupReq.value())
-  );
+  protected readonly group = signal<any>(undefined);
+  protected readonly loading = signal(true);
+  protected readonly error = signal(false);
+
+  constructor() {
+    if (this.groupId) {
+      this.http.get<any>(`${environment.apiUrl}/groups/${this.groupId}`).subscribe({
+        next: res => { this.group.set(res); this.loading.set(false); },
+        error: () => { this.error.set(true); this.loading.set(false); },
+      });
+    } else {
+      this.error.set(true);
+      this.loading.set(false);
+    }
+  }
 
   join(): void {
     const g = this.group();

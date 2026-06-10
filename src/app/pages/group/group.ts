@@ -279,7 +279,6 @@ export class GroupPage {
   private router = inject(Router);
 
   protected readonly groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-  protected readonly groupIdNum = computed(() => Number(this.groupId));
 
   protected store = inject(GroupStoreService);
   protected readonly group = this.store.group;
@@ -348,8 +347,7 @@ export class GroupPage {
   }
 
   saveSettings(): void {
-    const id = this.groupIdNum();
-    this.groupsApi.update(id, {
+    this.groupsApi.update(this.groupId, {
       name: this.editName,
       description: this.editDescription,
       imagemBase64: this.editFotoPreview() || undefined,
@@ -378,7 +376,7 @@ export class GroupPage {
   }
 
   promote(m: Member): void {
-    this.groupsApi.updateMemberRole(this.groupIdNum(), m.id, { role: 'admin' }).subscribe();
+    this.groupsApi.updateMemberRole(this.groupId, m.id, { role: 'admin' }).subscribe();
   }
 
   confirmRemove(m: Member): void {
@@ -392,7 +390,7 @@ export class GroupPage {
   remove(): void {
     const target = this.removing();
     if (!target) return;
-    this.groupsApi.removeMember(this.groupIdNum(), target.id).subscribe(() => {
+    this.groupsApi.removeMember(this.groupId, target.id).subscribe(() => {
       this.removing.set(null);
     });
   }
@@ -408,7 +406,7 @@ export class GroupPage {
   confirmLeave(): void {
     const target = this.leaving();
     if (!target) return;
-    this.groupsApi.removeMember(this.groupIdNum(), target.id).subscribe({
+    this.groupsApi.removeMember(this.groupId, target.id).subscribe({
       next: () => {
         this.leaving.set(null);
         this.router.navigate(['/groups']);

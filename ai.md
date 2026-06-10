@@ -8,3 +8,4 @@
 8. Não faça commits sem me perguntar
 9. Prefira utilizar porcentagem e rem ao invés de pixel no tailwindcss
 10. Quando eu falar home estou me referindo a rota "/"
+11. Todos os commits devem ser em ingês

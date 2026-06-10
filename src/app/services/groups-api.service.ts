@@ -32,7 +32,7 @@ export class GroupsApiService {
 
   readonly list = httpResource<any[]>(() => `${environment.apiUrl}/groups`);
 
-  getById(id: number) {
+  getById(id: string) {
     return httpResource<any>(() => `${environment.apiUrl}/groups/${id}`);
   }
 
@@ -40,35 +40,35 @@ export class GroupsApiService {
     return this.http.post<any>(`${environment.apiUrl}/groups`, data);
   }
 
-  update(id: number, data: UpdateGroupRequest) {
+  update(id: string, data: UpdateGroupRequest) {
     return this.http.put<any>(`${environment.apiUrl}/groups/${id}`, data);
   }
 
-  getMembers(groupId: number) {
+  getMembers(groupId: string) {
     return httpResource<any[]>(() => `${environment.apiUrl}/groups/${groupId}/members`);
   }
 
-  addMember(groupId: number, data: AddMemberRequest) {
+  addMember(groupId: string, data: AddMemberRequest) {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/members`, data);
   }
 
-  updateMemberRole(groupId: number, userId: number, data: UpdateMemberRoleRequest) {
+  updateMemberRole(groupId: string, userId: number, data: UpdateMemberRoleRequest) {
     return this.http.put<any>(`${environment.apiUrl}/groups/${groupId}/members/${userId}`, data);
   }
 
-  removeMember(groupId: number, userId: number) {
+  removeMember(groupId: string, userId: number) {
     return this.http.delete<void>(`${environment.apiUrl}/groups/${groupId}/members/${userId}`);
   }
 
-  join(groupId: number) {
+  join(groupId: string) {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/join`, {});
   }
 
-  regenerateInvite(groupId: number) {
+  regenerateInvite(groupId: string) {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/regenerate-invite`, {});
   }
 
-  getInviteToken(groupId: number) {
+  getInviteToken(groupId: string) {
     return httpResource<string>(() => `${environment.apiUrl}/groups/${groupId}/invite-token`);
   }
 }

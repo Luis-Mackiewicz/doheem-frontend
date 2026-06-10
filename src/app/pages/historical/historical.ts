@@ -152,7 +152,7 @@ export class HistoricalPage {
 
   constructor() {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(Number(groupId));
+    this.store.setGroupId(groupId);
   }
 
   protected fmt(val: number): string {

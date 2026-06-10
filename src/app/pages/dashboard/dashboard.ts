@@ -168,7 +168,7 @@ export class DashboardPage {
 
   constructor() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(Number(this.groupId));
+    this.store.setGroupId(this.groupId);
   }
 
   protected readonly groupName = computed(() =>

@@ -27,15 +27,15 @@ export interface CreateOccurrenceRequest {
 export class TasksApiService {
   private http = inject(HttpClient);
 
-  listByGroup(groupId: number) {
+  listByGroup(groupId: string) {
     return httpResource<any[]>(() => `${environment.apiUrl}/groups/${groupId}/tasks`);
   }
 
-  getById(id: number) {
+  getById(id: string) {
     return httpResource<any>(() => `${environment.apiUrl}/tasks/${id}`);
   }
 
-  create(groupId: number, data: CreateTaskRequest) {
+  create(groupId: string, data: CreateTaskRequest) {
     return this.http.post<any>(`${environment.apiUrl}/groups/${groupId}/tasks`, data);
   }
 

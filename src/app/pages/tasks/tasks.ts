@@ -145,7 +145,7 @@ export class TasksPage {
 
   constructor() {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(Number(groupId));
+    this.store.setGroupId(groupId);
   }
 
   protected get members(): string[] {

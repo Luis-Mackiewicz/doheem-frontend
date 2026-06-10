@@ -21,7 +21,7 @@ export class GroupStoreService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
 
-  private groupIdSignal = signal<number>(0);
+  private groupIdSignal = signal<string>('');
   readonly groupId = this.groupIdSignal.asReadonly();
 
   readonly group = signal<any>(undefined);
@@ -113,12 +113,12 @@ export class GroupStoreService {
       .slice(0, 4)
   );
 
-  setGroupId(id: number): void {
+  setGroupId(id: string): void {
     this.groupIdSignal.set(id);
     if (id) this.fetchAll(id);
   }
 
-  private fetchAll(groupId: number): void {
+  private fetchAll(groupId: string): void {
     this.groupLoading.set(true);
     this.http.get<any>(`${environment.apiUrl}/groups/${groupId}`).subscribe({
       next: res => this.group.set(res),

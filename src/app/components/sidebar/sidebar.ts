@@ -145,7 +145,7 @@ export class SidebarComponent {
     effect(() => {
       const id = this.groupId();
       if (id) {
-        this.store.setGroupId(Number(id));
+        this.store.setGroupId(id);
       }
     });
   }

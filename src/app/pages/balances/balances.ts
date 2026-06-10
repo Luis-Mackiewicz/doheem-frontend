@@ -103,7 +103,7 @@ export class BalancesPage {
 
   constructor() {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(Number(groupId));
+    this.store.setGroupId(groupId);
   }
 
   protected readonly youOwe = computed(() => this.store.balanceSummary().youOwe);
