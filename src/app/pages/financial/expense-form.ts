@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter, signal, OnInit } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, signal, computed, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../components/button/button';
 import {
@@ -13,6 +13,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
 @Component({
   selector: 'app-expense-form',
   imports: [FormsModule, ButtonComponent, LucideX, LucideCheck],
+  styles: [':host([hidden]) { display: none; }'],
   template: `
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancel.emit()">
       <div (click)="$event.stopPropagation()" class="w-full max-w-lg max-h-[90vh] flex flex-col">
@@ -128,105 +129,115 @@ type SplitMode = 'equal' | 'some' | 'custom';
               </button>
             </label>
 
-            <div class="flex flex-col gap-2.5 text-sm font-medium text-secondary">
-              @if (members.length <= 1) {
-                <span class="text-secondary text-xs">Apenas 1 morador no grupo — o valor total será atribuído a {{ members[0] }}.</span>
-              } @else {
-                <span>Modo de rateio</span>
-                <div class="flex bg-card-strong rounded-xl p-1 gap-1">
-                  @for (opt of splitOptions; track opt.value) {
-                    <button type="button" (click)="setSplitMode(opt.value)"
-                      class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
-                      [class.bg-white/65]="form.splitMode === opt.value"
-                      [class.text-purple-dark]="form.splitMode === opt.value"
-                      [class.text-secondary]="form.splitMode !== opt.value">
-                      {{ opt.label }}
-                    </button>
-                  }
+            @if (membersLoading) {
+              <div class="animate-pulse flex flex-col gap-2.5">
+                <div class="h-4 bg-card-strong rounded w-32"></div>
+                <div class="flex gap-1">
+                  <div class="h-8 bg-card-strong rounded-xl flex-1"></div>
+                  <div class="h-8 bg-card-strong rounded-xl flex-1"></div>
+                  <div class="h-8 bg-card-strong rounded-xl flex-1"></div>
                 </div>
-              }
-            </div>
-
-            @if (members.length > 1) {
-              @if (form.splitMode === 'equal') {
-              <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                <span>Todos os membros dividem igualmente</span>
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                  @for (sv of computedSplitValues(); track sv.name) {
-                    <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
-                      <span class="text-primary text-sm">{{ sv.name }}</span>
-                      <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
-                    </div>
-                  }
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="h-14 bg-card-strong rounded-xl"></div>
+                  <div class="h-14 bg-card-strong rounded-xl"></div>
+                  <div class="h-14 bg-card-strong rounded-xl"></div>
+                  <div class="h-14 bg-card-strong rounded-xl"></div>
                 </div>
               </div>
-              }
-
-              @if (form.splitMode === 'some') {
-              <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
-                @if (submitted() && selectedSomeCount() < 2) {
-                  <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
+            } @else {
+              <div class="flex flex-col gap-2.5 text-sm font-medium text-secondary">
+                @if (members.length <= 1) {
+                  <span class="text-secondary text-xs">Apenas 1 morador no grupo — o valor total será atribuído a {{ members[0] }}.</span>
+                } @else {
+                  <span>Modo de rateio</span>
+                  <div class="flex bg-card-strong rounded-xl p-1 gap-1">
+                    @for (opt of splitOptions; track opt.value) {
+                      <button type="button" (click)="setSplitMode(opt.value)"
+                        class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
+                        [class.bg-white/65]="form.splitMode === opt.value"
+                        [class.text-purple-dark]="form.splitMode === opt.value"
+                        [class.text-secondary]="form.splitMode !== opt.value">
+                        {{ opt.label }}
+                      </button>
+                    }
+                  </div>
                 }
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                  @for (m of members; track m) {
-                    <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card-strong hover-bg transition cursor-pointer text-sm">
-                      <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
-                        [class.border-purple-400]="isSomeSelected(m)"
-                        [class.border-soft]="!isSomeSelected(m)">
-                        @if (isSomeSelected(m)) {
-                          <svg lucideCheck class="w-3 h-3 text-purple-400"></svg>
-                        }
-                      </div>
-                      <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
-                      <div class="flex-1 min-w-0">
-                        <span class="text-primary text-sm block truncate">{{ m }}</span>
-                        <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
-                      </div>
-                      <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
-                    </label>
-                  }
-                </div>
               </div>
-              }
 
-              @if (form.splitMode === 'custom') {
-              <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                <span>Valores por morador  — {{ members.length }} participantes</span>
-
-                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
-                  <span class="text-secondary">Total distribuído</span>
-                  <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
-                </div>
-                <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
-                  [class.text-emerald-400]="customTotal() === form.amount"
-                  [class.text-rose-400]="customTotal() !== form.amount">
-                  <span>Faltam</span>
-                  <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
-                </div>
-
-                @if (submitted() && customTotal() !== form.amount) {
-                  <span class="text-rose-400 text-xs">
-                    A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
-                  </span>
-                }
-                <div class="grid grid-cols-2 gap-2 mt-1">
-                  @for (m of members; track m) {
-                    <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
-                      <div class="min-w-0 flex-1">
-                        <span class="text-primary text-sm block truncate">{{ m }}</span>
-                        <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
-                        @if (form.installments > 1) {
-                          <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
-                        }
+              @if (members.length > 1) {
+                <div [hidden]="form.splitMode !== 'equal'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                  <span>Todos os membros dividem igualmente</span>
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (sv of computedSplitValues(); track sv.name) {
+                      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
+                        <span class="text-primary text-sm">{{ sv.name }}</span>
+                        <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
                       </div>
-                      <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
-                        (input)="recalcCustom()"
-                        class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                    </div>
-                  }
+                    }
+                  </div>
                 </div>
-              </div>
+
+                <div [hidden]="form.splitMode !== 'some'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                  <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
+                  @if (submitted() && selectedSomeCount() < 2) {
+                    <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
+                  }
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (m of members; track m) {
+                      <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card-strong hover-bg transition cursor-pointer text-sm">
+                        <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
+                          [class.border-purple-400]="isSomeSelected(m)"
+                          [class.border-soft]="!isSomeSelected(m)">
+                          @if (isSomeSelected(m)) {
+                            <svg lucideCheck class="w-3 h-3 text-purple-400"></svg>
+                          }
+                        </div>
+                        <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
+                        <div class="flex-1 min-w-0">
+                          <span class="text-primary text-sm block truncate">{{ m }}</span>
+                          <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                        </div>
+                        <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+
+                <div [hidden]="form.splitMode !== 'custom'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                  <span>Valores por morador  — {{ members.length }} participantes</span>
+
+                  <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
+                    <span class="text-secondary">Total distribuído</span>
+                    <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
+                  </div>
+                  <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
+                    [class.text-emerald-400]="customTotal() === form.amount"
+                    [class.text-rose-400]="customTotal() !== form.amount">
+                    <span>Faltam</span>
+                    <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
+                  </div>
+
+                  @if (submitted() && customTotal() !== form.amount) {
+                    <span class="text-rose-400 text-xs">
+                      A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
+                    </span>
+                  }
+                  <div class="grid grid-cols-2 gap-2 mt-1">
+                    @for (m of members; track m) {
+                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
+                        <div class="min-w-0 flex-1">
+                          <span class="text-primary text-sm block truncate">{{ m }}</span>
+                          <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
+                          @if (form.installments > 1) {
+                            <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
+                          }
+                        </div>
+                        <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
+                          class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                      </div>
+                    }
+                  </div>
+                </div>
               }
             }
           </div>
@@ -240,14 +251,31 @@ type SplitMode = 'equal' | 'some' | 'custom';
     </div>
   `,
 })
-export class ExpenseFormComponent implements OnInit {
+export class ExpenseFormComponent implements OnInit, OnChanges {
   @Input() editingExpense: any = null;
   @Input() categories: { value: string; label: string }[] = [];
   @Input() members: string[] = [];
   @Input() splitOptions: readonly { value: string; label: string }[] = [];
   @Input() today = '';
+  @Input() open = false;
+  @Input() membersLoading = false;
 
   private store = inject(GroupStoreService);
+
+  private readonly phoneMap = computed(() => {
+    const map = new Map<string, string>();
+    for (const m of this.store.members()) {
+      map.set(m.nome ?? m.name, m.telefone ?? m.phone ?? '');
+    }
+    return map;
+  });
+
+  private splitCacheKey = '';
+  private splitCacheValue: SplitValue[] = [];
+  private someCacheKey = '';
+  private someCacheValues = new Map<string, number>();
+  private customCacheKey = '';
+  private customCacheValue = 0;
 
   @Output() save = new EventEmitter<{ expense: any; isNew: boolean }>();
   @Output() cancel = new EventEmitter<void>();
@@ -258,6 +286,18 @@ export class ExpenseFormComponent implements OnInit {
   protected form!: ReturnType<typeof this.emptyForm>;
 
   ngOnInit(): void {
+    this.resetForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open']?.currentValue) {
+      this.resetForm();
+    }
+  }
+
+  private resetForm(): void {
+    this.submitted.set(false);
+    this.submittedGeneralError.set('');
     if (this.editingExpense) {
       this.selectedSome.set(this.editingExpense.splitValues.map((sv: any) => sv.name));
       this.form = {
@@ -291,8 +331,7 @@ export class ExpenseFormComponent implements OnInit {
   }
 
   protected phoneOf(name: string): string {
-    const member = this.store.members().find((m: any) => (m.nome ?? m.name) === name);
-    return member?.telefone ?? member?.phone ?? '';
+    return this.phoneMap().get(name) ?? '';
   }
 
   private emptyForm() {
@@ -311,17 +350,24 @@ export class ExpenseFormComponent implements OnInit {
     };
   }
 
-  protected computedSplitValues = () => {
+  protected computedSplitValues(): SplitValue[] {
     const total = this.form.amount;
     const count = this.members.length;
-    if (total <= 0 || count === 0) return [];
+    const key = `${total}-${count}-${this.form.installments}`;
+    if (this.splitCacheKey === key) return this.splitCacheValue;
+    this.splitCacheKey = key;
+    if (total <= 0 || count === 0) {
+      this.splitCacheValue = [];
+      return [];
+    }
     const base = Math.floor((total * 100) / count) / 100;
     const remainder = Math.round((total - base * count) * 100) / 100;
-    return this.members.map((name, i) => ({
+    this.splitCacheValue = this.members.map((name, i) => ({
       name,
       value: i === 0 ? +(base + remainder).toFixed(2) : base,
     }));
-  };
+    return this.splitCacheValue;
+  }
 
   isSomeSelected(name: string): boolean {
     return this.selectedSome().includes(name);
@@ -335,27 +381,32 @@ export class ExpenseFormComponent implements OnInit {
     });
   }
 
-  get selectedSomeCount() {
-    return () => this.selectedSome().length;
-  }
+  protected readonly selectedSomeCount = computed(() => this.selectedSome().length);
 
-  someValue(name: string): number {
+  protected someValue(name: string): number {
     const selected = this.selectedSome();
-    if (!selected.includes(name)) return 0;
-    const count = selected.length;
-    if (count === 0) return 0;
-    const base = Math.floor((this.form.amount * 100) / count) / 100;
-    const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
-    return name === selected[0] ? +(base + remainder).toFixed(2) : base;
+    const key = `${this.form.amount}-${selected.join(',')}`;
+    if (this.someCacheKey !== key) {
+      this.someCacheKey = key;
+      this.someCacheValues = new Map();
+      const count = selected.length;
+      if (count === 0) return 0;
+      const base = Math.floor((this.form.amount * 100) / count) / 100;
+      const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
+      for (const [i, name] of selected.entries()) {
+        this.someCacheValues.set(name, i === 0 ? +(base + remainder).toFixed(2) : base);
+      }
+    }
+    return this.someCacheValues.get(name) ?? 0;
   }
 
-  protected customTotal = () => {
+  protected customTotal(): number {
     const vals = Object.values(this.form.splitCustom);
-    return vals.reduce((sum, v) => sum + (Number(v) || 0), 0);
-  };
-
-  recalcCustom(): void {
-    // force change detection
+    const key = vals.join(',');
+    if (this.customCacheKey === key) return this.customCacheValue;
+    this.customCacheKey = key;
+    this.customCacheValue = vals.reduce((sum, v) => sum + (Number(v) || 0), 0);
+    return this.customCacheValue;
   }
 
   onInstallmentsChange(): void {

@@ -1,7 +1,8 @@
-import { Injectable, inject, computed, signal } from '@angular/core';
+import { Injectable, inject, computed, signal, DestroyRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export interface ResidentBalance {
   name: string;
@@ -20,6 +21,7 @@ export interface BalanceSummary {
 export class GroupStoreService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   private groupIdSignal = signal<string>('');
   readonly groupId = this.groupIdSignal.asReadonly();
@@ -30,6 +32,29 @@ export class GroupStoreService {
   readonly membersLoading = signal(false);
   readonly expenses = signal<any[]>([]);
   readonly expensesLoading = signal(false);
+  readonly expensesTotal = signal(0);
+
+  readonly normalizedExpenses = computed(() => {
+    const members = this.members();
+    const uuidToName = new Map<string, string>();
+    for (const m of members) {
+      uuidToName.set(m.user_id, m.nome ?? m.name);
+    }
+    return this.expenses().map((e: any) => ({
+      ...e,
+      paidBy: uuidToName.get(e.paid_by) ?? e.paid_by ?? e.paidBy,
+      competenceDate: e.competence_date ?? e.competenceDate,
+      dueDate: e.due_date ?? e.dueDate,
+      splitMode: e.split_mode ?? e.splitMode,
+      splitValues: Array.isArray(e.splitValues) ? e.splitValues.map((s: any) => ({
+        id: s.id,
+        name: s.name ?? s.user_name,
+        value: s.value ?? s.amount,
+        is_paid: s.is_paid ?? false,
+      })) : [],
+      fixed: e.is_fixed ?? e.fixed,
+    }));
+  });
   readonly tasks = signal<any[]>([]);
   readonly tasksLoading = signal(false);
 
@@ -55,7 +80,7 @@ export class GroupStoreService {
   });
 
   readonly balanceSummary = computed((): BalanceSummary => {
-    const expenses = this.expenses();
+    const expenses = this.normalizedExpenses();
     const allMembers = this.members();
     const currentUser = this.currentUser();
 
@@ -72,29 +97,21 @@ export class GroupStoreService {
     for (const exp of expenses) {
       const payer = exp.paidBy;
       const splits = exp.splitValues ?? [];
-      const payments = exp.payments ?? [];
 
       for (const sv of splits) {
-        if (sv.name === payer) continue;
+        if (sv.is_paid) continue;
 
-        const payment = payments.find((p: any) =>
-          (p.memberName === sv.name || p.memberName === sv.name) &&
-          p.status === 'approved'
-        );
+        const owesAmount = sv.value;
+        totalDebt += owesAmount;
 
-        if (!payment) {
-          const owesAmount = sv.value;
-          totalDebt += owesAmount;
+        const resident = map.get(sv.name);
+        if (resident) resident.owes += owesAmount;
 
-          const resident = map.get(sv.name);
-          if (resident) resident.owes += owesAmount;
+        const payerResident = map.get(payer);
+        if (payerResident) payerResident.toReceive += owesAmount;
 
-          const payerResident = map.get(payer);
-          if (payerResident) payerResident.toReceive += owesAmount;
-
-          if (sv.name === currentUser) youOwe += owesAmount;
-          if (payer === currentUser) youReceive += owesAmount;
-        }
+        if (sv.name === currentUser) youOwe += owesAmount;
+        if (payer === currentUser) youReceive += owesAmount;
       }
     }
 
@@ -102,16 +119,56 @@ export class GroupStoreService {
   });
 
   readonly recentExpenses = computed(() =>
-    [...this.expenses()]
+    [...this.normalizedExpenses()]
       .sort((a: any, b: any) => String(b.competenceDate ?? '').localeCompare(String(a.competenceDate ?? '')))
       .slice(0, 5)
   );
 
-  readonly pendingTasks = computed(() =>
-    this.tasks()
+  readonly pendingTasks = computed(() => {
+    const members = this.members();
+    return this.tasks()
       .filter((t: any) => t.status !== 'done')
-      .slice(0, 4)
-  );
+      .map((t: any) => ({
+        ...t,
+        assignedTo: members.find((m: any) => m.user_id === t.assignedTo)?.nome ?? t.assignedTo,
+      }))
+      .slice(0, 4);
+  });
+
+  refreshExpenses(limit?: number, offset?: number): void {
+    const groupId = this.groupIdSignal();
+    if (!groupId) return;
+    this.expensesLoading.set(true);
+    let url = `${environment.apiUrl}/groups/${groupId}/expenses`;
+    if (limit != null && offset != null) {
+      url += `?limit=${limit}&offset=${offset}`;
+    }
+    this.http.get<any>(url).subscribe({
+      next: res => {
+        if (res?.data !== undefined && res?.total !== undefined) {
+          this.expenses.set(res.data);
+          this.expensesTotal.set(res.total);
+        } else {
+          const data = Array.isArray(res) ? res : [];
+          this.expenses.set(data);
+          this.expensesTotal.set(data.length);
+        }
+      },
+      error: () => {},
+      complete: () => this.expensesLoading.set(false),
+    });
+  }
+
+  loadExpenseSplits(expenseId: string): void {
+    this.http.get<any>(`${environment.apiUrl}/expenses/${expenseId}/splits`).subscribe({
+      next: splits => {
+        const raw = Array.isArray(splits) ? splits : (splits as any)?.data ?? [];
+        this.expenses.update(list => list.map(e =>
+          e.id === expenseId ? { ...e, splitValues: raw } : e
+        ));
+      },
+    });
+  }
 
   setGroupId(id: string): void {
     this.groupIdSignal.set(id);
@@ -145,10 +202,16 @@ export class GroupStoreService {
     });
 
     this.expensesLoading.set(true);
-    this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/expenses`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/groups/${groupId}/expenses?limit=1000&offset=0`).subscribe({
       next: res => {
-        const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
-        this.expenses.set(data);
+        if (res?.data !== undefined && res?.total !== undefined) {
+          this.expenses.set(res.data);
+          this.expensesTotal.set(res.total);
+        } else {
+          const data = Array.isArray(res) ? res : [];
+          this.expenses.set(data);
+          this.expensesTotal.set(data.length);
+        }
       },
       error: () => this.expenses.set([]),
       complete: () => this.expensesLoading.set(false),
@@ -158,7 +221,11 @@ export class GroupStoreService {
     this.http.get<any[]>(`${environment.apiUrl}/groups/${groupId}/tasks`).subscribe({
       next: res => {
         const data = Array.isArray(res) ? res : (res as any)?.data ?? [];
-        this.tasks.set(data);
+        this.tasks.set(data.map((t: any) => ({
+          ...t,
+          dueDate: t.due_date ?? t.dueDate,
+          assignedTo: t.assigned_to ?? t.assignedTo,
+        })));
       },
       error: () => this.tasks.set([]),
       complete: () => this.tasksLoading.set(false),

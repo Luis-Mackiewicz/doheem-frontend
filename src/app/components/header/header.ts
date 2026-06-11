@@ -118,7 +118,10 @@ import { UsersApiService } from '../../services/users-api.service';
 export class HeaderComponent {
   protected theme = inject(ThemeService);
   protected usersApi = inject(UsersApiService);
-  protected avatarUrl = computed(() => this.usersApi.me.value()?.avatar_url ?? null);
+  protected avatarUrl = computed(() => {
+    const me = this.usersApi.me;
+    return me.hasValue() ? (me.value()?.avatar_url ?? null) : null;
+  });
   protected activeSection = signal('');
   protected mobileOpen = signal(false);
 

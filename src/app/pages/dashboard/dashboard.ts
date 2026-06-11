@@ -10,6 +10,7 @@ import {
   LucideClipboardList,
   LucideReceipt,
   LucideShare2,
+  LucideDollarSign,
 } from '@lucide/angular';
 
 @Component({
@@ -24,6 +25,7 @@ import {
     LucideClipboardList,
     LucideReceipt,
     LucideShare2,
+    LucideDollarSign,
   ],
   template: `
     <div class="flex flex-col gap-6 transition-colors duration-150">
@@ -36,7 +38,7 @@ import {
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="rounded-2xl bg-card border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
             <svg lucideArrowDown class="w-4 h-4 text-rose-400"></svg>
@@ -58,6 +60,14 @@ import {
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalDebt()) }}</p>
           <p class="text-muted text-xs mt-1">Em aberto</p>
+        </div>
+        <div class="rounded-2xl bg-card border-theme p-5">
+          <div class="flex items-center gap-2 mb-2">
+            <svg lucideDollarSign class="w-4 h-4 text-(--badge-purple)"></svg>
+            <p class="text-secondary text-sm font-medium">Total do mês</p>
+          </div>
+          <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalMonthExpenses()) }}</p>
+          <p class="text-muted text-xs mt-1">Em despesas</p>
         </div>
       </div>
 
@@ -191,6 +201,14 @@ export class DashboardPage {
     this.store.balanceSummary().totalDebt
   );
 
+  protected readonly totalMonthExpenses = computed(() => {
+    const now = new Date();
+    const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return this.store.expenses()
+      .filter((e: any) => (e.competence_date ?? e.competenceDate ?? '').startsWith(prefix))
+      .reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0);
+  });
+
   protected readonly recentExpenses = computed(() =>
     this.store.recentExpenses()
   );
@@ -204,7 +222,9 @@ export class DashboardPage {
   }
 
   protected dueDateLabel(dateStr: string): string {
-    const d = new Date(dateStr + 'T12:00:00');
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   }
 }

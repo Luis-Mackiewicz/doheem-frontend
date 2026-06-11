@@ -139,7 +139,10 @@ export class ProfilePage {
   private location = inject(Location);
   private router = inject(Router);
 
-  protected readonly profile = computed(() => this.usersApi.me.value());
+  protected readonly profile = computed(() => {
+    const me = this.usersApi.me;
+    return me.hasValue() ? me.value() : undefined;
+  });
 
   constructor() {
     const user = this.auth.currentUser();
@@ -153,6 +156,7 @@ export class ProfilePage {
     }, { validators: passwordsMatchValidator('newPassword', 'confirmPassword') });
 
     effect(() => {
+      if (!this.usersApi.me.hasValue()) return;
       const p = this.usersApi.me.value();
       if (p) {
         this.form.patchValue({

@@ -1,6 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { environment } from '../../../environments/environment';
 import { ButtonComponent } from '../../components/button/button';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
@@ -10,11 +13,9 @@ import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notific
 import { ExpenseCardComponent } from './expense-card';
 import { ExpenseFormComponent } from './expense-form';
 import { PayModalComponent } from './pay-modal';
-import { PendingModalComponent } from './pending-modal';
 import { DeleteConfirmComponent } from './delete-confirm';
 import {
   LucideDollarSign,
-  LucideBell,
   LucideCheck,
   LucideHouse,
   LucideZap,
@@ -28,8 +29,8 @@ import {
 @Component({
   selector: 'app-financial',
   imports: [FormsModule, ButtonComponent, PaginatorComponent, SearchComponent,
-    ExpenseCardComponent, ExpenseFormComponent, PayModalComponent, PendingModalComponent, DeleteConfirmComponent,
-    LucideDollarSign, LucideBell, LucideCheck,
+    ExpenseCardComponent, ExpenseFormComponent, PayModalComponent, DeleteConfirmComponent,
+    LucideDollarSign, LucideCheck,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage,
   ],
@@ -41,12 +42,7 @@ import {
           <p class="text-muted text-sm mt-0.5">{{ monthLabel() }}</p>
         </div>
         <div class="flex items-center gap-2">
-          @if (totalPendingCount() > 0) {
-              <button (click)="showPendingModal.set(true)" aria-label="Pagamentos pendentes ({{ totalPendingCount() }})" class="relative w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center hover:bg-amber-500/25 transition cursor-pointer">
-              <svg lucideBell class="w-5 h-5 text-amber-400"></svg>
-              <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ totalPendingCount() }}</span>
-            </button>
-          }
+
           <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
         </div>
       </div>
@@ -128,22 +124,28 @@ import {
 
       <!-- List -->
       <div class="flex-1 flex flex-col gap-3 min-h-0">
-        @for (e of paginatedExpenses(); track e.id) {
-          <app-expense-card
-            [expense]="e"
-            [payments]="payments()"
-            [currentUser]="CURRENT_USER()"
-            [categories]="categories"
-            (pay)="openPayModal($event)"
-            (edit)="openEdit($event)"
-            (delete)="confirmDelete($event)"
-            (expandReceipt)="expandReceipt.set($event)">
-          </app-expense-card>
-        } @empty {
+        @if (store.expensesLoading()) {
           <div class="rounded-2xl bg-card border border-theme p-10 text-center">
-            <svg lucidePackage class="w-8 h-8 text-card-strong mx-auto mb-3"></svg>
-            <p class="text-muted text-sm">Nenhuma despesa encontrada</p>
+            <div class="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p class="text-muted text-sm">Carregando despesas...</p>
           </div>
+        } @else {
+          @for (e of paginatedExpenses(); track e.id) {
+            <app-expense-card
+              [expense]="e"
+              [currentUser]="CURRENT_USER()"
+              [isAdmin]="isAdmin()"
+              [categories]="categories"
+              (pay)="openPayModal($event)"
+              (edit)="openEdit($event)"
+              (delete)="confirmDelete($event)">
+            </app-expense-card>
+          } @empty {
+            <div class="rounded-2xl bg-card border border-theme p-10 text-center">
+              <svg lucidePackage class="w-8 h-8 text-card-strong mx-auto mb-3"></svg>
+              <p class="text-muted text-sm">Nenhuma despesa encontrada</p>
+            </div>
+          }
         }
       </div>
 
@@ -151,17 +153,18 @@ import {
     </div>
 
     <!-- Create / Edit modal -->
-    @if (showModal()) {
-      <app-expense-form
-        [editingExpense]="editingExpense()"
-        [categories]="categories"
-        [members]="members()"
-        [splitOptions]="splitOptions"
-        [today]="today"
-        (save)="onSaveExpense($event)"
-        (cancel)="closeModal()">
-      </app-expense-form>
-    }
+    <app-expense-form
+      [hidden]="!showModal()"
+      [open]="showModal()"
+      [membersLoading]="store.membersLoading()"
+      [editingExpense]="editingExpense()"
+      [categories]="categories"
+      [members]="members()"
+      [splitOptions]="splitOptions"
+      [today]="today"
+      (save)="onSaveExpense($event)"
+      (cancel)="closeModal()">
+    </app-expense-form>
 
     <!-- Delete confirmation -->
     <app-delete-confirm [deleting]="deleting()" (confirm)="deleteExpense()" (cancel)="cancelDelete()" />
@@ -178,18 +181,7 @@ import {
       </app-pay-modal>
     }
 
-    <!-- Pending approvals modal -->
-    <app-pending-modal
-      [expenses]="expenses()"
-      [payments]="payments()"
-      [currentUser]="CURRENT_USER()"
-      [isAdmin]="isAdmin()"
-      [showPending]="showPendingModal()"
-      (approve)="approvePayment($event)"
-      (reject)="rejectPayment($event)"
-      (close)="showPendingModal.set(false)"
-      (expandReceipt)="expandReceipt.set($event)">
-    </app-pending-modal>
+
 
     <!-- Receipt expand -->
     @if (expandReceipt(); as url) {
@@ -208,13 +200,24 @@ import {
 })
 export class FinancialPage {
   private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
+  private destroyRef = inject(DestroyRef);
   protected store = inject(GroupStoreService);
   private expensesApi = inject(ExpensesApiService);
   private notif = inject(NotificationService);
 
+  protected groupId: string;
+  protected categoryMap = signal<Record<string, string>>({});
+
+  private reFetch(): void {
+    const page = this.currentPage();
+    this.store.refreshExpenses(this.pageSize, (page - 1) * this.pageSize);
+  }
+
   protected readonly members = computed(() => this.store.memberNames());
   protected readonly categories = this.store.categories;
   protected readonly today = new Date().toISOString().slice(0, 10);
+  protected readonly expenses = computed(() => this.store.normalizedExpenses());
   protected readonly splitOptions = [
     { value: 'equal', label: 'Todos' },
     { value: 'some', label: 'Alguns' },
@@ -238,13 +241,10 @@ export class FinancialPage {
     return 'Todas as despesas';
   }
 
-  protected expenses = signal<any[]>([]);
-  protected payments = signal<any[]>([]);
   protected showModal = signal(false);
   protected editingExpense = signal<any | null>(null);
   protected deleting = signal<any | null>(null);
   protected payingExpense = signal<any | null>(null);
-  protected showPendingModal = signal(false);
   protected payReceiptBase64 = signal('');
   protected expandReceipt = signal('');
   protected searchQuery = signal('');
@@ -255,15 +255,21 @@ export class FinancialPage {
   readonly currentPage = signal(1);
 
   constructor() {
-    const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(groupId);
-  }
+    this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(this.groupId);
+    this.reFetch();
 
-  protected totalPendingCount = computed(() => {
-    return this.expenses()
-      .filter((e: any) => this.isAdmin() || e.paidBy === this.CURRENT_USER())
-      .reduce((sum: number, e: any) => sum + this.payments().filter((p: any) => p.expenseId === e.id && p.status === 'awaiting').length, 0);
-  });
+    this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(res => {
+      const data = Array.isArray(res) ? res : res?.data ?? [];
+      const map: Record<string, string> = {};
+      for (const c of data) {
+        map[c.slug] = c.id;
+      }
+      this.categoryMap.set(map);
+    });
+  }
 
   protected readonly filteredExpenses = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -290,11 +296,15 @@ export class FinancialPage {
     return list;
   });
 
-  protected readonly totalFilteredPages = computed(() =>
-    Math.ceil(this.filteredExpenses().length / this.pageSize)
-  );
+  protected readonly totalFilteredPages = computed(() => {
+    const total = this.store.expensesTotal();
+    return Math.max(1, Math.ceil((total || this.filteredExpenses().length) / this.pageSize));
+  });
 
   protected readonly paginatedExpenses = computed(() => {
+    if (this.filteredExpenses().length <= this.pageSize) {
+      return this.filteredExpenses();
+    }
     const start = (this.currentPage() - 1) * this.pageSize;
     return this.filteredExpenses().slice(start, start + this.pageSize);
   });
@@ -380,8 +390,9 @@ export class FinancialPage {
 
   /* Payments */
   openPayModal(e: any): void {
-    this.payingExpense.set(e);
     this.payReceiptBase64.set('');
+    this.store.loadExpenseSplits(e.id);
+    this.payingExpense.set(e);
   }
 
   closePayModal(): void {
@@ -400,37 +411,23 @@ export class FinancialPage {
   confirmPay(): void {
     const expense = this.payingExpense();
     if (!expense) return;
-    this.payments.update((list: any[]) => {
-      const idx = list.findIndex((p: any) => p.expenseId === expense.id && p.memberName === this.CURRENT_USER());
-      const payment: any = {
-        expenseId: expense.id,
-        memberName: this.CURRENT_USER(),
-        status: 'awaiting',
-        paidAt: new Date().toISOString().slice(0, 10),
-        receiptBase64: this.payReceiptBase64() || undefined,
-      };
-      if (idx >= 0) {
-        const updated = [...list];
-        updated[idx] = payment;
-        return updated;
-      }
-      return [...list, payment];
+
+    const split = expense.splitValues?.find((sv: any) => sv.name === this.CURRENT_USER());
+    if (!split?.id) {
+      this.showToast('Split não encontrado para este usuário');
+      return;
+    }
+
+    this.http.patch(`${environment.apiUrl}/expenses/splits/${split.id}/pay`, {}).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.reFetch();
+        this.showToast('Pagamento confirmado');
+        this.closePayModal();
+      },
+      error: () => this.showToast('Erro ao registrar pagamento'),
     });
-    this.showToast('Pagamento registrado. Aguardando aprovação.');
-    this.closePayModal();
-  }
-
-  approvePayment(p: any): void {
-    this.payments.update((list: any[]) =>
-      list.map((p2: any) => p2.expenseId === p.expenseId && p2.memberName === p.memberName
-        ? { ...p2, status: 'approved', approvedBy: this.CURRENT_USER() } : p2)
-    );
-  }
-
-  rejectPayment(p: any): void {
-    this.payments.update((list: any[]) =>
-      list.filter((p2: any) => !(p2.expenseId === p.expenseId && p2.memberName === p.memberName))
-    );
   }
 
   onSearch(value: string): void {
@@ -441,6 +438,7 @@ export class FinancialPage {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalFilteredPages()) {
       this.currentPage.set(page);
+      this.reFetch();
     }
   }
 
@@ -461,30 +459,94 @@ export class FinancialPage {
 
   onSaveExpense(event: { expense: any; isNew: boolean }): void {
     const { expense, isNew } = event;
+    const members = this.store.members();
+    const nameToId = new Map<string, string>();
+    for (const m of members) {
+      nameToId.set(m.nome ?? m.name, m.user_id);
+    }
 
     if (!isNew) {
-      this.expenses.update((list: any[]) => list.map((e: any) => e.id === expense.id ? expense : e));
-      this.showToast('Despesa atualizada com sucesso');
-      this.showModal.set(false);
+      const updateData: Record<string, any> = {};
+      if (expense.description) updateData['description'] = expense.description;
+      if (expense.amount > 0) updateData['amount'] = expense.amount;
+      if (expense.competenceDate) updateData['competence_date'] = expense.competenceDate;
+      if (expense.dueDate) updateData['due_date'] = expense.dueDate;
+      updateData['split_mode'] = expense.splitMode === 'some' ? 'custom' : expense.splitMode;
+      const categoryId = this.categoryMap()[expense.category];
+      if (categoryId) updateData['category_id'] = categoryId;
+
+      this.http.put(`${environment.apiUrl}/expenses/${expense.id}`, updateData).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: () => {
+          this.reFetch();
+          this.closeModal();
+          this.showToast('Despesa atualizada com sucesso');
+        },
+        error: (err: any) => {
+          if (err.status === 403) {
+            this.showToast('Você não tem permissão para editar esta despesa');
+          } else {
+            this.showToast('Erro ao atualizar despesa');
+          }
+        },
+      });
       return;
     }
 
-    const toAdd: any[] = expense.installments > 1
-      ? this.expandInstallments(expense, Date.now())
-      : [expense];
+    const categoryId = this.categoryMap()[expense.category] ?? '';
+    const paidByUserId = nameToId.get(expense.paidBy) ?? expense.paidBy;
+    let splitMode = expense.splitMode;
+    let splits: { user_id: string; amount: number }[] = [];
 
-    this.expenses.update((list: any[]) => [...list, ...toAdd]);
+    if (splitMode === 'some') {
+      splitMode = 'custom';
+    }
+    splits = (expense.splitValues ?? []).map((sv: any) => ({
+      user_id: nameToId.get(sv.name) ?? sv.name,
+      amount: sv.value,
+    }));
 
-    if (expense.installments > 1) {
-      this.notif.add('expense', 'Nova despesa parcelada',
-        `${expense.description} (${expense.installments}x) — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
-    } else {
-      this.notif.add('expense', 'Nova despesa',
-        `${expense.description} — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
+    const createData: Record<string, any> = {
+      description: expense.description,
+      amount: expense.amount,
+      category_id: categoryId,
+      competence_date: expense.competenceDate,
+      due_date: expense.dueDate,
+      paid_by: paidByUserId,
+      split_mode: splitMode,
+      installments: expense.installments || 1,
+      is_fixed: expense.fixed || false,
+    };
+    if (expense.installments > 1 && expense.firstDueDate) {
+      createData['first_due_date'] = expense.firstDueDate;
+    }
+    if (splits.length > 0) {
+      createData['splits'] = splits;
     }
 
-    this.showToast('Despesa criada com sucesso');
-    this.showModal.set(false);
+    this.http.post(`${environment.apiUrl}/groups/${this.groupId}/expenses`, createData).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.reFetch();
+
+        if (expense.installments > 1) {
+          this.notif.add('expense', 'Nova despesa parcelada',
+            `${expense.description} (${expense.installments}x) — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
+        } else {
+          this.notif.add('expense', 'Nova despesa',
+            `${expense.description} — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
+        }
+
+        this.showToast('Despesa criada com sucesso');
+        this.showModal.set(false);
+      },
+      error: (err: any) => {
+        const msg = err?.error?.message || 'Erro ao criar despesa';
+        this.showToast(msg);
+      },
+    });
   }
 
   confirmDelete(e: any): void {
@@ -498,8 +560,25 @@ export class FinancialPage {
   deleteExpense(): void {
     const target = this.deleting();
     if (!target) return;
-    this.expenses.update((list: any[]) => list.filter((e: any) => e.id !== target.id));
-    this.showToast('Despesa excluída com sucesso');
-    this.deleting.set(null);
+    this.http.delete(`${environment.apiUrl}/expenses/${target.id}`).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.reFetch();
+        this.showToast('Despesa excluída com sucesso');
+        this.deleting.set(null);
+      },
+      error: (err: any) => {
+        if (err.status === 403) {
+          this.showToast('Você não tem permissão para excluir esta despesa');
+        } else if (err.status === 409) {
+          this.showToast('Não é possível excluir despesa com splits já pagos');
+        } else {
+          this.showToast('Erro ao excluir despesa');
+        }
+        this.deleting.set(null);
+      },
+    });
   }
+
 }

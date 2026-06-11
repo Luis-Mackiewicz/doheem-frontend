@@ -154,7 +154,10 @@ export class SidebarComponent {
   protected auth = inject(AuthService);
   protected store = inject(GroupStoreService);
   protected usersApi = inject(UsersApiService);
-  protected avatarUrl = computed(() => this.usersApi.me.value()?.avatar_url ?? null);
+  protected avatarUrl = computed(() => {
+    const me = this.usersApi.me;
+    return me.hasValue() ? (me.value()?.avatar_url ?? null) : null;
+  });
 
   constructor() {
     effect(() => {

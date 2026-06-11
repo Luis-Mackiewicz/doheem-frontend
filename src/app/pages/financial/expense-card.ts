@@ -12,17 +12,15 @@ import {
   LucideCircleCheck,
   LucidePen,
   LucideTrash2,
-  LucideImage,
   LucidePin,
 } from '@lucide/angular';
-import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../services/mock-data.service';
 
 @Component({
   selector: 'app-expense-card',
   imports: [DatePipe,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
-    LucidePen, LucideTrash2, LucideImage, LucidePin,
+    LucidePen, LucideTrash2, LucidePin,
   ],
   template: `
     <div class="rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10 hover:bg-card-hover transition">
@@ -56,15 +54,12 @@ import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../se
               <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(expense.splitMode) }}</span>
               @for (sv of expense.splitValues; track sv.name) {
                 <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
-                  @switch (paymentStatus(expense.id, sv.name)) {
-                    @case ('pending') { <span class="w-2 h-2 rounded-full bg-gray-400"></span> }
-                    @case ('awaiting') { <span class="w-2 h-2 rounded-full bg-amber-400"></span> }
-                    @case ('approved') { <span class="w-2 h-2 rounded-full bg-emerald-400"></span> }
+                  @if (sv.is_paid) {
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  } @else {
+                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
                   }
                   {{ sv.name }} R$ {{ fmt(sv.value) }}
-                  @if (getPayment(expense.id, sv.name)?.receiptBase64) {
-                    <button (click)="expandReceipt.emit(getPayment(expense.id, sv.name)!.receiptBase64!)" class="text-(--badge-purple) hover:text-(--badge-purple) transition cursor-pointer"><svg lucideImage class="w-3 h-3"></svg></button>
-                  }
                 </span>
               }
             </div>
@@ -73,10 +68,8 @@ import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../se
         <div class="flex items-start gap-2 shrink-0">
           <div class="flex flex-col items-end gap-2">
             <span class="text-primary font-bold text-base">R$ {{ fmt(expense.amount) }}</span>
-            @if (myPaymentStatus(expense.id); as p) {
-              @if (p.status === 'awaiting') {
-                <span class="text-[11px] text-amber-400 flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-lg"><svg lucideClock class="w-3 h-3"></svg> Aguardando</span>
-              } @else if (p.status === 'approved') {
+            @if (currentUserSplit(); as sv) {
+              @if (sv.is_paid) {
                 <span class="text-[11px] text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
               }
             } @else {
@@ -86,7 +79,7 @@ import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../se
               </button>
             }
           </div>
-          @if (expense.paidBy === currentUser) {
+          @if (expense.paidBy === currentUser || isAdmin) {
             <div class="flex flex-col gap-1 pt-0.5">
               <button (click)="edit.emit(expense)" aria-label="Editar despesa" class="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
               <button (click)="delete.emit(expense)" aria-label="Excluir despesa" class="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-rose-400 hover:bg-rose-500/15 transition cursor-pointer"><svg lucideTrash2 class="w-3.5 h-3.5"></svg></button>
@@ -98,15 +91,19 @@ import { Expense, Payment, PaymentStatus, SplitMode, SplitValue } from '../../se
   `,
 })
 export class ExpenseCardComponent {
-  @Input({ required: true }) expense!: Expense;
-  @Input({ required: true }) payments!: Payment[];
+  @Input({ required: true }) expense!: any;
   @Input({ required: true }) currentUser!: string;
+  @Input() isAdmin: boolean = false;
   @Input() categories: { value: string; label: string }[] = [];
 
-  @Output() pay = new EventEmitter<Expense>();
-  @Output() edit = new EventEmitter<Expense>();
-  @Output() delete = new EventEmitter<Expense>();
+  @Output() pay = new EventEmitter<any>();
+  @Output() edit = new EventEmitter<any>();
+  @Output() delete = new EventEmitter<any>();
   @Output() expandReceipt = new EventEmitter<string>();
+
+  protected get currentUserSplit(): any {
+    return this.expense.splitValues?.find((sv: any) => sv.name === this.currentUser) ?? null;
+  }
 
   protected fmt(val: number): string {
     return val.toFixed(2).replace('.', ',');
@@ -116,26 +113,12 @@ export class ExpenseCardComponent {
     return this.categories.find(c => c.value === value)?.label ?? value;
   }
 
-  protected splitModeLabel(mode: SplitMode): string {
+  protected splitModeLabel(mode: string): string {
     const options = [
       { value: 'equal', label: 'Todos' },
       { value: 'some', label: 'Alguns' },
       { value: 'custom', label: 'Personalizado' },
     ] as const;
     return options.find(o => o.value === mode)?.label ?? '';
-  }
-
-  protected paymentStatus(expenseId: number, memberName: string): 'pending' | 'awaiting' | 'approved' {
-    const p = this.payments.find(p => p.expenseId === expenseId && p.memberName === memberName);
-    if (!p) return 'pending';
-    return p.status;
-  }
-
-  protected getPayment(expenseId: number, memberName: string): Payment | undefined {
-    return this.payments.find(p => p.expenseId === expenseId && p.memberName === memberName);
-  }
-
-  protected myPaymentStatus(expenseId: number): Payment | undefined {
-    return this.payments.find(p => p.expenseId === expenseId && p.memberName === this.currentUser);
   }
 }

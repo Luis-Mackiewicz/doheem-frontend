@@ -1,6 +1,7 @@
 import { Component, ElementRef, viewChildren, afterNextRender, inject } from '@angular/core';
 import { ButtonComponent } from '../../components/button/button';
 import { PwaInstallService } from '../../services/pwa-install-service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -26,8 +27,12 @@ import { PwaInstallService } from '../../services/pwa-install-service';
             </p>
 
             <div class="flex flex-wrap gap-4 mt-2">
-              <app-button variant="solid" href="/register" label="Criar conta grátis"></app-button>
-              <app-button variant="outline" href="/login" label="Entrar"></app-button>
+              @if (auth.isAuthenticated()) {
+                <app-button variant="solid" href="/groups" label="Ir para grupos"></app-button>
+              } @else {
+                <app-button variant="solid" href="/register" label="Criar conta grátis"></app-button>
+                <app-button variant="outline" href="/login" label="Entrar"></app-button>
+              }
             </div>
 
             <p class="text-xs text-muted mt-1 flex items-center gap-1.5">
@@ -236,8 +241,10 @@ import { PwaInstallService } from '../../services/pwa-install-service';
             <h3 class="text-primary font-semibold text-sm mb-4" id="footer-links-heading">Links</h3>
             <nav aria-labelledby="footer-links-heading">
               <ul class="flex flex-col gap-2">
-                <li><a href="/login" class="text-sm text-secondary hover:text-accent transition-colors">Entrar</a></li>
-                <li><a href="/register" class="text-sm text-secondary hover:text-accent transition-colors">Registrar</a></li>
+                @if (!auth.isAuthenticated()) {
+                  <li><a href="/login" class="text-sm text-secondary hover:text-accent transition-colors">Entrar</a></li>
+                  <li><a href="/register" class="text-sm text-secondary hover:text-accent transition-colors">Registrar</a></li>
+                }
               </ul>
             </nav>
           </div>
@@ -256,6 +263,7 @@ import { PwaInstallService } from '../../services/pwa-install-service';
 })
 export class HomePage {
   protected pwaService = inject(PwaInstallService);
+  protected auth = inject(AuthService);
 
   private animatedSections = viewChildren<ElementRef<HTMLElement>>('animateSection');
 
