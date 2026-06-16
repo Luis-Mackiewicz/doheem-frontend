@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { PaginatorComponent } from '../../components/paginator/paginator';
@@ -153,6 +153,12 @@ export class HistoricalPage {
   constructor() {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.store.setGroupId(groupId);
+    this.store.refreshExpensesByMonth(this.selectedYear(), this.selectedMonth());
+    effect(() => {
+      const y = this.selectedYear();
+      const m = this.selectedMonth();
+      this.store.refreshExpensesByMonth(y, m);
+    });
   }
 
   protected fmt(val: number): string {
@@ -182,7 +188,7 @@ export class HistoricalPage {
   protected readonly selectedYear = signal(this.today.getFullYear());
   protected readonly selectedMonth = signal(this.today.getMonth());
 
-  private readonly allExpenses = computed(() => this.store.expenses());
+  private readonly allExpenses = computed(() => this.store.monthExpenses());
 
   private readonly minDate = computed(() => {
     const list = this.allExpenses();

@@ -33,6 +33,9 @@ export class GroupStoreService {
   readonly expenses = signal<any[]>([]);
   readonly expensesLoading = signal(false);
   readonly expensesTotal = signal(0);
+  readonly monthExpenses = signal<any[]>([]);
+  readonly monthExpensesLoading = signal(false);
+  readonly monthExpensesTotal = signal(0);
 
   readonly normalizedExpenses = computed(() => {
     const members = this.members();
@@ -156,6 +159,30 @@ export class GroupStoreService {
       },
       error: () => {},
       complete: () => this.expensesLoading.set(false),
+    });
+  }
+
+  refreshExpensesByMonth(year: number, month: number): void {
+    const groupId = this.groupIdSignal();
+    if (!groupId) return;
+    this.monthExpensesLoading.set(true);
+    const from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    const url = `${environment.apiUrl}/groups/${groupId}/expenses?competence_date_from=${from}&competence_date_to=${to}&limit=500&offset=0`;
+    this.http.get<any>(url).subscribe({
+      next: res => {
+        if (res?.data !== undefined && res?.total !== undefined) {
+          this.monthExpenses.set(res.data);
+          this.monthExpensesTotal.set(res.total);
+        } else {
+          const data = Array.isArray(res) ? res : [];
+          this.monthExpenses.set(data);
+          this.monthExpensesTotal.set(data.length);
+        }
+      },
+      error: () => this.monthExpenses.set([]),
+      complete: () => this.monthExpensesLoading.set(false),
     });
   }
 
