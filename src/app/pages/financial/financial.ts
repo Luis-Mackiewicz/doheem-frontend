@@ -294,19 +294,23 @@ export class FinancialPage {
       const search = this.searchQuery();
       const period = this.filterPeriod();
       const myExps = this.filterMyExpenses();
-      const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      const dateFrom = period === 'month' ? `${year}-${month}-01` : '';
-      const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
-      const dateTo = period === 'month' ? `${year}-${month}-${String(lastDay).padStart(2, '0')}` : '';
-      this.store.refreshExpenses(this.pageSize, (page - 1) * this.pageSize, search, dateFrom, dateTo, myExps);
+      this.refreshCurrentPage(page, search, period, myExps);
     });
   }
 
   private showToast(msg: string): void {
     this.toastMessage.set(msg);
     setTimeout(() => this.toastMessage.set(''), 3000);
+  }
+
+  private refreshCurrentPage(page: number, search: string, period: string, myExps: boolean): void {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const dateFrom = period === 'month' ? `${year}-${month}-01` : '';
+    const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+    const dateTo = period === 'month' ? `${year}-${month}-${String(lastDay).padStart(2, '0')}` : '';
+    this.store.refreshExpenses(this.pageSize, (page - 1) * this.pageSize, search, dateFrom, dateTo, myExps);
   }
 
   categoryLabel(value: string): string {
@@ -496,6 +500,7 @@ export class FinancialPage {
       next: () => {
         this.showToast('Despesa excluída com sucesso');
         this.deleting.set(null);
+        this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: (err: any) => {
         if (err.status === 403) {
