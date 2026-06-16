@@ -257,7 +257,6 @@ export class FinancialPage {
   constructor() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.store.setGroupId(this.groupId);
-    this.reFetch();
 
     this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
       takeUntilDestroyed(this.destroyRef),
@@ -471,7 +470,7 @@ export class FinancialPage {
       if (expense.amount > 0) updateData['amount'] = expense.amount;
       if (expense.competenceDate) updateData['competence_date'] = expense.competenceDate;
       if (expense.dueDate) updateData['due_date'] = expense.dueDate;
-      updateData['split_mode'] = expense.splitMode === 'some' ? 'custom' : expense.splitMode;
+      updateData['split_mode'] = expense.splitMode;
       const categoryId = this.categoryMap()[expense.category];
       if (categoryId) updateData['category_id'] = categoryId;
 
@@ -496,16 +495,15 @@ export class FinancialPage {
 
     const categoryId = this.categoryMap()[expense.category] ?? '';
     const paidByUserId = nameToId.get(expense.paidBy) ?? expense.paidBy;
-    let splitMode = expense.splitMode;
+    const splitMode = expense.splitMode;
     let splits: { user_id: string; amount: number }[] = [];
 
-    if (splitMode === 'some') {
-      splitMode = 'custom';
+    if (splitMode === 'custom') {
+      splits = (expense.splitValues ?? []).map((sv: any) => ({
+        user_id: nameToId.get(sv.name) ?? sv.name,
+        amount: sv.value,
+      }));
     }
-    splits = (expense.splitValues ?? []).map((sv: any) => ({
-      user_id: nameToId.get(sv.name) ?? sv.name,
-      amount: sv.value,
-    }));
 
     const createData: Record<string, any> = {
       description: expense.description,
@@ -520,6 +518,9 @@ export class FinancialPage {
     };
     if (expense.installments > 1 && expense.firstDueDate) {
       createData['first_due_date'] = expense.firstDueDate;
+    }
+    if (splitMode === 'some') {
+      createData['selected_user_ids'] = (expense.selectedMembers ?? []).map((name: string) => nameToId.get(name) ?? name);
     }
     if (splits.length > 0) {
       createData['splits'] = splits;

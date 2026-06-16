@@ -4,7 +4,7 @@ import { ToastService } from '../../services/toast.service';
 @Component({
   selector: 'app-toast',
   template: `
-    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div class="fixed top-4 right-4 z-100 flex flex-col gap-2 pointer-events-none">
       @for (toast of toastService.toasts(); track toast.id) {
         <div role="alert"
           class="pointer-events-auto animate-slide-in-right flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border backdrop-blur-xl text-sm font-medium max-w-sm transition cursor-pointer hover:opacity-90"

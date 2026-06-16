@@ -197,9 +197,14 @@ export class GroupStoreService {
     });
   }
 
+  private lastFetchedGroupId = '';
+
   setGroupId(id: string): void {
     this.groupIdSignal.set(id);
-    if (id) this.fetchAll(id);
+    if (id && id !== this.lastFetchedGroupId) {
+      this.lastFetchedGroupId = id;
+      this.fetchAll(id);
+    }
   }
 
   private fetchAll(groupId: string): void {

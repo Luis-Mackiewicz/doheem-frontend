@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter, signal, computed, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, signal, computed, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../components/button/button';
 import {
@@ -12,6 +12,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
 
 @Component({
   selector: 'app-expense-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonComponent, LucideX, LucideCheck],
   styles: [':host([hidden]) { display: none; }'],
   template: `
@@ -165,79 +166,81 @@ type SplitMode = 'equal' | 'some' | 'custom';
               </div>
 
               @if (members.length > 1) {
-                <div [hidden]="form.splitMode !== 'equal'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                  <span>Todos os membros dividem igualmente</span>
-                  <div class="grid grid-cols-2 gap-2 mt-1">
-                    @for (sv of computedSplitValues(); track sv.name) {
-                      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
-                        <span class="text-primary text-sm">{{ sv.name }}</span>
-                        <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
-                      </div>
-                    }
-                  </div>
-                </div>
-
-                <div [hidden]="form.splitMode !== 'some'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                  <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
-                  @if (submitted() && selectedSomeCount() < 2) {
-                    <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
-                  }
-                  <div class="grid grid-cols-2 gap-2 mt-1">
-                    @for (m of members; track m) {
-                      <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card-strong hover-bg transition cursor-pointer text-sm">
-                        <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
-                          [class.border-purple-400]="isSomeSelected(m)"
-                          [class.border-soft]="!isSomeSelected(m)">
-                          @if (isSomeSelected(m)) {
-                            <svg lucideCheck class="w-3 h-3 text-purple-400"></svg>
-                          }
+                @if (form.splitMode === 'equal') {
+                  <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                    <span>Todos os membros dividem igualmente</span>
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                      @for (sv of computedSplitValues(); track sv.name) {
+                        <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
+                          <span class="text-primary text-sm">{{ sv.name }}</span>
+                          <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
                         </div>
-                        <input type="checkbox" [checked]="isSomeSelected(m)" (change)="toggleSome(m)" class="hidden" />
-                        <div class="flex-1 min-w-0">
-                          <span class="text-primary text-sm block truncate">{{ m }}</span>
-                          <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
-                        </div>
-                        <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
-                      </label>
+                      }
+                    </div>
+                  </div>
+                } @else if (form.splitMode === 'some') {
+                  <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                    <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
+                    @if (submitted() && selectedSomeCount() < 2) {
+                      <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
                     }
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                      @for (m of members; track m) {
+                        <label class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-card-strong hover-bg transition cursor-pointer text-sm">
+                          <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition shrink-0"
+                            [class.border-purple-400]="selectedSomeSet().has(m)"
+                            [class.border-soft]="!selectedSomeSet().has(m)">
+                            @if (selectedSomeSet().has(m)) {
+                              <svg lucideCheck class="w-3 h-3 text-purple-400"></svg>
+                            }
+                          </div>
+                          <input type="checkbox" [checked]="selectedSomeSet().has(m)" (change)="toggleSome(m)" class="hidden" />
+                          <div class="flex-1 min-w-0">
+                            <span class="text-primary text-sm block truncate">{{ m }}</span>
+                            <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                          </div>
+                          <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
+                        </label>
+                      }
+                    </div>
                   </div>
-                </div>
+                } @else if (form.splitMode === 'custom') {
+                  <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+                    <span>Valores por morador  — {{ members.length }} participantes</span>
 
-                <div [hidden]="form.splitMode !== 'custom'" class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                  <span>Valores por morador  — {{ members.length }} participantes</span>
+                    <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
+                      <span class="text-secondary">Total distribuído</span>
+                      <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
+                      [class.text-emerald-400]="customTotal() === form.amount"
+                      [class.text-rose-400]="customTotal() !== form.amount">
+                      <span>Faltam</span>
+                      <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
+                    </div>
 
-                  <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
-                    <span class="text-secondary">Total distribuído</span>
-                    <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
-                    [class.text-emerald-400]="customTotal() === form.amount"
-                    [class.text-rose-400]="customTotal() !== form.amount">
-                    <span>Faltam</span>
-                    <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
-                  </div>
-
-                  @if (submitted() && customTotal() !== form.amount) {
-                    <span class="text-rose-400 text-xs">
-                      A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
-                    </span>
-                  }
-                  <div class="grid grid-cols-2 gap-2 mt-1">
-                    @for (m of members; track m) {
-                      <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
-                        <div class="min-w-0 flex-1">
-                          <span class="text-primary text-sm block truncate">{{ m }}</span>
-                          <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
-                          @if (form.installments > 1) {
-                            <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
-                          }
-                        </div>
-                        <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
-                          class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                      </div>
+                    @if (submitted() && customTotal() !== form.amount) {
+                      <span class="text-rose-400 text-xs">
+                        A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
+                      </span>
                     }
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                      @for (m of members; track m) {
+                        <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
+                          <div class="min-w-0 flex-1">
+                            <span class="text-primary text-sm block truncate">{{ m }}</span>
+                            <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
+                            @if (form.installments > 1) {
+                              <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
+                            }
+                          </div>
+                          <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
+                            class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                        </div>
+                      }
+                    </div>
                   </div>
-                </div>
+                }
               }
             }
           </div>
@@ -270,19 +273,14 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
     return map;
   });
 
-  private splitCacheKey = '';
-  private splitCacheValue: SplitValue[] = [];
-  private someCacheKey = '';
-  private someCacheValues = new Map<string, number>();
-  private customCacheKey = '';
-  private customCacheValue = 0;
-
   @Output() save = new EventEmitter<{ expense: any; isNew: boolean }>();
   @Output() cancel = new EventEmitter<void>();
 
   protected submitted = signal(false);
   protected submittedGeneralError = signal('');
   protected selectedSome = signal<string[]>([]);
+  protected readonly selectedSomeSet = computed(() => new Set(this.selectedSome()));
+  protected readonly selectedSomeCount = computed(() => this.selectedSome().length);
   protected form!: ReturnType<typeof this.emptyForm>;
 
   ngOnInit(): void {
@@ -292,6 +290,23 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open']?.currentValue) {
       this.resetForm();
+    }
+    if (changes['members']?.currentValue?.length && this.open && this.form) {
+      const members = changes['members'].currentValue as string[];
+      if (this.editingExpense) {
+        const splitByMember = new Map<string, number>();
+        for (const sv of this.editingExpense!.splitValues) {
+          splitByMember.set(sv.name, sv.value);
+        }
+        this.form.splitCustom = Object.fromEntries(members.map(m => [m, splitByMember.get(m) ?? 0])) as Record<string, number>;
+      } else {
+        if (!this.form.paidBy) {
+          this.form.paidBy = members[0] ?? '';
+        }
+        if (Object.keys(this.form.splitCustom).length !== members.length) {
+          this.form.splitCustom = Object.fromEntries(members.map(m => [m, 0]));
+        }
+      }
     }
   }
 
@@ -311,10 +326,13 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
         fixed: this.editingExpense.fixed,
         installments: this.editingExpense.installments,
         firstDueDate: this.editingExpense.firstDueDate,
-        splitCustom: Object.fromEntries(this.members.map(m => {
-          const sv = this.editingExpense!.splitValues.find((v: any) => v.name === m);
-          return [m, sv ? sv.value : 0];
-        })) as Record<string, number>,
+        splitCustom: (() => {
+          const splitByMember = new Map<string, number>();
+          for (const sv of this.editingExpense!.splitValues) {
+            splitByMember.set(sv.name, sv.value);
+          }
+          return Object.fromEntries(this.members.map(m => [m, splitByMember.get(m) ?? 0])) as Record<string, number>;
+        })(),
       };
     } else {
       this.selectedSome.set([...this.members]);
@@ -353,24 +371,13 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
   protected computedSplitValues(): SplitValue[] {
     const total = this.form.amount;
     const count = this.members.length;
-    const key = `${total}-${count}-${this.form.installments}`;
-    if (this.splitCacheKey === key) return this.splitCacheValue;
-    this.splitCacheKey = key;
-    if (total <= 0 || count === 0) {
-      this.splitCacheValue = [];
-      return [];
-    }
+    if (total <= 0 || count === 0) return [];
     const base = Math.floor((total * 100) / count) / 100;
     const remainder = Math.round((total - base * count) * 100) / 100;
-    this.splitCacheValue = this.members.map((name, i) => ({
+    return this.members.map((name, i) => ({
       name,
       value: i === 0 ? +(base + remainder).toFixed(2) : base,
     }));
-    return this.splitCacheValue;
-  }
-
-  isSomeSelected(name: string): boolean {
-    return this.selectedSome().includes(name);
   }
 
   toggleSome(name: string): void {
@@ -381,32 +388,18 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
     });
   }
 
-  protected readonly selectedSomeCount = computed(() => this.selectedSome().length);
-
   protected someValue(name: string): number {
     const selected = this.selectedSome();
-    const key = `${this.form.amount}-${selected.join(',')}`;
-    if (this.someCacheKey !== key) {
-      this.someCacheKey = key;
-      this.someCacheValues = new Map();
-      const count = selected.length;
-      if (count === 0) return 0;
-      const base = Math.floor((this.form.amount * 100) / count) / 100;
-      const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
-      for (const [i, name] of selected.entries()) {
-        this.someCacheValues.set(name, i === 0 ? +(base + remainder).toFixed(2) : base);
-      }
-    }
-    return this.someCacheValues.get(name) ?? 0;
+    const count = selected.length;
+    if (count === 0) return 0;
+    const total = this.form.amount;
+    const base = Math.floor((total * 100) / count) / 100;
+    const adjusted = +(base + Math.round((total - base * count) * 100) / 100).toFixed(2);
+    return selected.indexOf(name) === 0 ? adjusted : base;
   }
 
   protected customTotal(): number {
-    const vals = Object.values(this.form.splitCustom);
-    const key = vals.join(',');
-    if (this.customCacheKey === key) return this.customCacheValue;
-    this.customCacheKey = key;
-    this.customCacheValue = vals.reduce((sum, v) => sum + (Number(v) || 0), 0);
-    return this.customCacheValue;
+    return Object.values(this.form.splitCustom).reduce((sum, v) => sum + (Number(v) || 0), 0);
   }
 
   onInstallmentsChange(): void {
@@ -437,43 +430,20 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
 
     let splitValues: SplitValue[] = [];
 
-    if (this.members.length <= 1) {
-      splitValues = [{ name: this.members[0], value: this.form.amount }];
-    } else if (this.form.splitMode === 'equal') {
-      splitValues = this.computedSplitValues();
-    } else if (this.form.splitMode === 'some') {
-      const selected = this.selectedSome();
-      if (selected.length < 2) return;
-      const count = selected.length;
-      const base = Math.floor((this.form.amount * 100) / count) / 100;
-      const remainder = Math.round((this.form.amount - base * count) * 100) / 100;
-      splitValues = selected.map((name, i) => ({
-        name,
-        value: i === 0 ? +(base + remainder).toFixed(2) : base,
-      }));
-    } else if (this.form.splitMode === 'custom') {
+    if (this.form.splitMode === 'custom') {
       splitValues = this.members
         .filter(m => (Number(this.form.splitCustom[m]) || 0) > 0)
         .map(m => ({ name: m, value: Number(this.form.splitCustom[m]) || 0 }));
       const totalCustom = splitValues.reduce((s, v) => s + v.value, 0);
-      if (Math.abs(totalCustom - this.form.amount) > 0.01) return;
+      if (Math.abs(totalCustom - this.form.amount) > 0.01) {
+        this.submittedGeneralError.set('A soma dos valores deve ser igual ao valor total.');
+        return;
+      }
     }
 
-    if (splitValues.length < 2 && this.members.length > 1) {
+    if (this.form.splitMode === 'some' && this.selectedSome().length < 2) {
       this.submittedGeneralError.set('É necessário ao menos 2 moradores para ratear a despesa.');
       return;
-    }
-
-    const sumSplit = splitValues.reduce((s, v) => s + v.value, 0);
-    const diff = Math.round((this.form.amount - sumSplit) * 100) / 100;
-    if (Math.abs(diff) > 0.001) {
-      const payerIdx = splitValues.findIndex(v => v.name === this.form.paidBy);
-      if (payerIdx >= 0) {
-        splitValues[payerIdx] = {
-          ...splitValues[payerIdx],
-          value: +(splitValues[payerIdx].value + diff).toFixed(2),
-        };
-      }
     }
 
     const isNew = !this.editingExpense;
@@ -487,6 +457,7 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
       paidBy: this.form.paidBy,
       splitMode: this.form.splitMode,
       splitValues,
+      selectedMembers: this.form.splitMode === 'some' ? this.selectedSome() : [],
       installments: this.form.installments,
       firstDueDate: this.form.installments > 1 ? this.form.firstDueDate : '',
       fixed: this.form.fixed,

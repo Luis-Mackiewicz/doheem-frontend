@@ -72,9 +72,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; border: stri
                   }
                   <app-task-card
                     [task]="t"
-                    [isOverdue]="isOverdue(t)"
+                    [isOverdue]="t.is_overdue"
                     [isDragging]="draggedTaskId() === t.id"
-                    [canModify]="canModify(t)"
+                    [canModify]="t.can_modify"
                     [ADMIN_USER]="ADMIN_USER"
                     (edit)="openEdit(t)"
                     (delete)="deleteTask(t.id)"
@@ -105,7 +105,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; border: stri
 
     <!-- Detail modal -->
     @if (selectedTask(); as t) {
-      <app-task-detail [task]="t" [isOverdue]="isOverdue(t)" [ADMIN_USER]="ADMIN_USER" (close)="selectedTask.set(undefined)" />
+      <app-task-detail [task]="t" [isOverdue]="t.is_overdue" [ADMIN_USER]="ADMIN_USER" (close)="selectedTask.set(undefined)" />
     }
 
     <!-- Edit modal -->
@@ -169,11 +169,6 @@ export class TasksPage {
 
   protected get ADMIN_USER(): string {
     return this.store.adminUser();
-  }
-
-  protected isOverdue(task: any): boolean {
-    if (task.status === 'done' || !task.dueDate) return false;
-    return new Date(task.dueDate + 'T23:59:59') < new Date();
   }
 
   protected searchQuery = signal('');
@@ -497,10 +492,6 @@ export class TasksPage {
         this.showModal.set(false);
       },
     });
-  }
-
-  canModify(task: any): boolean {
-    return task.createdBy === this.CURRENT_USER || this.CURRENT_USER === this.ADMIN_USER;
   }
 
   confirmEdit(task: any, data: { title: string; description: string; assignedTo: string; dueDate: string }): void {

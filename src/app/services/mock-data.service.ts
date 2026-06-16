@@ -62,6 +62,8 @@ export interface Task {
   status: TaskStatus;
   createdAt: string;
   dueDate: string;
+  is_overdue: boolean;
+  can_modify: boolean;
 }
 
 export interface ResidentBalance {
@@ -126,14 +128,14 @@ const MOCK_HISTORICAL_EXPENSES: Expense[] = [
 ];
 
 const MOCK_TASKS: Task[] = [
-  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos Silva', createdBy: 'Carlos Silva', status: 'todo', createdAt: '2026-05-28', dueDate: '2026-06-05' },
-  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana Oliveira', createdBy: 'Ana Oliveira', status: 'todo', createdAt: '2026-05-29', dueDate: '2026-06-02' },
-  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro Santos', createdBy: 'Pedro Santos', status: 'todo', createdAt: '2026-05-30', dueDate: '2026-06-10' },
-  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana Costa', createdBy: 'Mariana Costa', status: 'doing', createdAt: '2026-05-25', dueDate: '2026-06-01' },
-  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João Pereira', createdBy: 'João Pereira', status: 'doing', createdAt: '2026-05-26', dueDate: '2026-06-03' },
-  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro Santos', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-20', dueDate: '2026-05-25' },
-  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana Oliveira', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-22', dueDate: '2026-05-28' },
-  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos Silva', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-23', dueDate: '2026-05-30' },
+  { id: 1, title: 'Consertar torneira da cozinha', description: 'A torneira da pia direita está vazando água sem parar. Precisa trocar o vedante.', assignedTo: 'Carlos Silva', createdBy: 'Carlos Silva', status: 'todo', createdAt: '2026-05-28', dueDate: '2026-06-05', is_overdue: false, can_modify: true },
+  { id: 2, title: 'Comprar lâmpadas novas', description: 'Duas lâmpadas da sala queimaram. Comprar LED 9W bocal E27.', assignedTo: 'Ana Oliveira', createdBy: 'Ana Oliveira', status: 'todo', createdAt: '2026-05-29', dueDate: '2026-06-02', is_overdue: false, can_modify: true },
+  { id: 3, title: 'Limpar caixa d\'água', description: 'A caixa d\'água precisa de limpeza urgente. Agendar para o sábado de manhã.', assignedTo: 'Pedro Santos', createdBy: 'Pedro Santos', status: 'todo', createdAt: '2026-05-30', dueDate: '2026-06-10', is_overdue: false, can_modify: true },
+  { id: 4, title: 'Organizar despensa', description: 'Separar alimentos por validade e organizar as prateleiras.', assignedTo: 'Mariana Costa', createdBy: 'Mariana Costa', status: 'doing', createdAt: '2026-05-25', dueDate: '2026-06-01', is_overdue: true, can_modify: true },
+  { id: 5, title: 'Lavar roupa de cama', description: 'Trocas os lençóis e fronhas de todos os quartos.', assignedTo: 'João Pereira', createdBy: 'João Pereira', status: 'doing', createdAt: '2026-05-26', dueDate: '2026-06-03', is_overdue: true, can_modify: true },
+  { id: 6, title: 'Limpar área externa', description: 'Varrer o quintal, lavar o chão e regar as plantas.', assignedTo: 'Pedro Santos', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-20', dueDate: '2026-05-25', is_overdue: false, can_modify: true },
+  { id: 7, title: 'Passar pano na sala', description: 'Passar pano úmido em toda a sala e lustrar os móveis.', assignedTo: 'Ana Oliveira', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-22', dueDate: '2026-05-28', is_overdue: false, can_modify: true },
+  { id: 8, title: 'Trocar filtro da água', description: 'O filtro do bebedouro venceu. Comprar um novo e trocar.', assignedTo: 'Carlos Silva', createdBy: 'Ana Oliveira', status: 'done', createdAt: '2026-05-23', dueDate: '2026-05-30', is_overdue: false, can_modify: true },
 ];
 
 const MOCK_GROUPS: Group[] = [
