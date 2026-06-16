@@ -71,6 +71,11 @@ import {
             @if (currentUserSplit(); as sv) {
               @if (sv.is_paid) {
                 <span class="text-[11px] text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
+              } @else {
+                <button (click)="pay.emit(expense)"
+                  class="px-3 py-1 text-[11px] font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                  Pagar
+                </button>
               }
             } @else {
               <button (click)="pay.emit(expense)"
