@@ -77,7 +77,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.dueDate"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
-                  @if (submitted() && form.dueDate && form.dueDate < today) {
+                  @if (submitted() && !form.dueDate) {
+                    <span class="text-rose-400 text-xs mt-1">A data de vencimento é obrigatória</span>
+                  } @else if (submitted() && form.dueDate && form.dueDate < today) {
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
                   }
                 </label>
@@ -98,7 +100,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
-                  @if (submitted() && form.firstDueDate && form.firstDueDate < today) {
+                  @if (submitted() && !form.firstDueDate) {
+                    <span class="text-rose-400 text-xs mt-1">A data de vencimento é obrigatória</span>
+                  } @else if (submitted() && form.firstDueDate && form.firstDueDate < today) {
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
                   }
                 </label>
@@ -439,7 +443,7 @@ export class ExpenseFormComponent implements OnChanges {
     if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.category || !this.form.paidBy || this.form.installments < 1) return;
 
     const dateField = this.form.installments > 1 ? this.form.firstDueDate : this.form.dueDate;
-    if (dateField && dateField < this.today) return;
+    if (!dateField || dateField < this.today) return;
 
     let splitValues: SplitValue[] = [];
 
