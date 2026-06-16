@@ -3,7 +3,7 @@ export type {
   Membro, SplitValue, SplitMode, PaymentStatus,
   Payment, Expense, TaskStatus, Task, Group,
 } from './mock-data.service';
-export { NotificationService, NOTIFICATION_CONFIG } from './notification-service';
+export { NotificationService } from './notification-service';
 export type { NotificationType, Notification } from './notification-service';
 export { AuthService } from './auth.service';
 export type { LoginRequest, RegisterRequest, AuthResponse, UserProfile } from './auth.service';

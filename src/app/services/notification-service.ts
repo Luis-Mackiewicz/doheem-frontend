@@ -1,8 +1,8 @@
 import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
-import { interval, Subject, merge, of } from 'rxjs';
-import { switchMap, map, catchError, startWith } from 'rxjs/operators';
+import { interval, Subject, merge, of, BehaviorSubject } from 'rxjs';
+import { switchMap, map, catchError, startWith, distinctUntilChanged } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export type NotificationType = 'expense' | 'debt_reminder' | 'task_reminder' | 'task_overdue' | 'info' | 'success';
@@ -45,12 +45,6 @@ function fromApiResponse(api: ApiNotificationResponse): Notification {
   };
 }
 
-export const NOTIFICATION_CONFIG = {
-  debtReminderDays: 3,
-  maxReminders: 5,
-  minIntervalDays: 3,
-};
-
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private http = inject(HttpClient);
@@ -58,21 +52,38 @@ export class NotificationService {
   private refresh$ = new Subject<void>();
 
   private readonly notificationsSignal = signal<Notification[]>([]);
-  private readonly reminderTracker = signal<Record<string, { count: number; lastSent: string }>>({});
+  private readonly totalSignal = signal(0);
 
   readonly notifications = this.notificationsSignal.asReadonly();
+  readonly total = this.totalSignal.asReadonly();
   readonly unreadCount = computed(() => this.notificationsSignal().filter(n => !n.read).length);
+
+  private readonly paramsSubject = new BehaviorSubject<{ limit: number; offset: number; search: string }>({ limit: 10, offset: 0, search: '' });
 
   constructor() {
     merge(
       interval(30_000).pipe(startWith(0)),
       this.refresh$,
     ).pipe(
-      switchMap(() => this.http.get<PaginatedResponse<ApiNotificationResponse>>(`${environment.apiUrl}/notifications`)),
-      map(res => res.data.map(fromApiResponse)),
+      switchMap(() => this.paramsSubject.pipe(
+        distinctUntilChanged((a, b) => a.limit === b.limit && a.offset === b.offset && a.search === b.search),
+      )),
+      switchMap(({ limit, offset, search }) => {
+        let url = `${environment.apiUrl}/notifications?limit=${limit}&offset=${offset}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        return this.http.get<PaginatedResponse<ApiNotificationResponse>>(url);
+      }),
+      map(res => {
+        this.totalSignal.set(res.total);
+        return res.data.map(fromApiResponse);
+      }),
       catchError(() => of<Notification[]>(this.notificationsSignal())),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(data => this.notificationsSignal.set(data));
+  }
+
+  setParams(limit: number, offset: number, search: string): void {
+    this.paramsSubject.next({ limit, offset, search });
   }
 
   add(type: NotificationType, title: string, message: string): void {
@@ -100,33 +111,13 @@ export class NotificationService {
   }
 
   clearAll(): void {
-    const ids = this.notificationsSignal().map(n => n.id);
     this.notificationsSignal.set([]);
-    for (const id of ids) {
-      this.http.delete<void>(`${environment.apiUrl}/notifications/${id}`)
-        .pipe(catchError(() => of(null)))
-        .subscribe({ error: () => this.refresh$.next() });
-    }
+    this.http.delete<void>(`${environment.apiUrl}/notifications`)
+      .pipe(catchError(() => of(null)))
+      .subscribe({ error: () => this.refresh$.next() });
   }
 
-  canSendReminder(expenseId: number, memberName: string): boolean {
-    const key = `${expenseId}_${memberName}`;
-    const entry = this.reminderTracker()[key];
-    if (!entry) return true;
-    if (entry.count >= NOTIFICATION_CONFIG.maxReminders) return false;
-    const last = new Date(entry.lastSent);
-    const diff = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
-    return diff >= NOTIFICATION_CONFIG.minIntervalDays;
-  }
-
-  registerReminder(expenseId: number, memberName: string): void {
-    const key = `${expenseId}_${memberName}`;
-    this.reminderTracker.update(map => ({
-      ...map,
-      [key]: {
-        count: (map[key]?.count ?? 0) + 1,
-        lastSent: new Date().toISOString(),
-      },
-    }));
+  refresh(): void {
+    this.refresh$.next();
   }
 }

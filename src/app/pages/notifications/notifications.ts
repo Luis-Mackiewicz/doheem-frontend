@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
 import { NotificationService } from '../../services/notification-service';
@@ -32,9 +32,9 @@ const TYPE_BADGE: Record<NotificationType, string> = {
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 class="text-3xl font-bold text-primary tracking-tight">Notificações</h1>
-          <p class="text-secondary text-sm">{{ filteredNotifications().length }} notificação{{ filteredNotifications().length !== 1 ? 's' : '' }}{{ unreadCount() > 0 ? ', ' + unreadCount() + ' não lida' + (unreadCount() !== 1 ? 's' : '') : '' }}</p>
+          <p class="text-secondary text-sm">{{ svc.notifications().length }} notificação{{ svc.notifications().length !== 1 ? 's' : '' }}{{ svc.unreadCount() > 0 ? ', ' + svc.unreadCount() + ' não lida' + (svc.unreadCount() !== 1 ? 's' : '') : '' }}</p>
         </div>
-        @if (filteredNotifications().length > 0) {
+        @if (svc.notifications().length > 0) {
           <div class="flex gap-2">
             <button (click)="markAllAsRead()"
               aria-label="Marcar todas como lidas"
@@ -53,7 +53,7 @@ const TYPE_BADGE: Record<NotificationType, string> = {
       <app-search placeholder="Pesquisar notificações..." (searchChange)="onSearch($event)" />
 
       <div class="flex-1 flex flex-col gap-3 min-h-0">
-        @for (n of paginatedNotifications(); track n.id) {
+        @for (n of svc.notifications(); track n.id) {
           <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 transition"
             [class.opacity-60]="n.read"
             [class.border-l-4]="!n.read"
@@ -98,7 +98,7 @@ const TYPE_BADGE: Record<NotificationType, string> = {
           </div>
         }
       </div>
-      <app-paginator [currentPage]="currentPage()" [totalPages]="totalNotifPages()" (pageChange)="goToNotifPage($event)" />
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
     </div>
   `,
 })
@@ -109,38 +109,25 @@ export class NotificationsPage {
   protected readonly currentPage = signal(1);
   protected readonly searchQuery = signal('');
 
-  protected readonly unreadCount = computed(() =>
-    this.filteredNotifications().filter(n => !n.read).length
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.svc.total() / this.pageSize))
   );
 
-  protected readonly filteredNotifications = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    let list = this.svc.notifications();
-    if (query) {
-      list = list.filter(n =>
-        n.title.toLowerCase().includes(query) ||
-        n.message.toLowerCase().includes(query)
-      );
-    }
-    return list;
-  });
-
-  protected readonly paginatedNotifications = computed(() => {
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredNotifications().slice(start, start + this.pageSize);
-  });
-
-  protected readonly totalNotifPages = computed(() =>
-    Math.ceil(this.filteredNotifications().length / this.pageSize)
-  );
+  constructor() {
+    effect(() => {
+      const page = this.currentPage();
+      const search = this.searchQuery();
+      this.svc.setParams(this.pageSize, (page - 1) * this.pageSize, search);
+    });
+  }
 
   protected createdAtLabel(dateStr: string): string {
     const d = new Date(dateStr + 'T12:00:00');
     return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 
-  protected goToNotifPage(page: number): void {
-    if (page >= 1 && page <= this.totalNotifPages()) {
+  protected goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
   }

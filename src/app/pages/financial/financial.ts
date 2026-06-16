@@ -9,7 +9,7 @@ import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
 import { GroupStoreService } from '../../services/group-store.service';
 import { ExpensesApiService } from '../../services/expenses-api.service';
-import { NotificationService, NOTIFICATION_CONFIG } from '../../services/notification-service';
+import { NotificationService } from '../../services/notification-service';
 import { ExpenseCardComponent } from './expense-card';
 import { ExpenseFormComponent } from './expense-form';
 import { PayModalComponent } from './pay-modal';
