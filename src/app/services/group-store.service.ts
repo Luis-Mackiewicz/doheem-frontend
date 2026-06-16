@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, switchMap, of } from 'rxjs';
 
 export interface ResidentBalance {
   name: string;
@@ -49,10 +50,10 @@ export class GroupStoreService {
       competenceDate: e.competence_date ?? e.competenceDate,
       dueDate: e.due_date ?? e.dueDate,
       splitMode: e.split_mode ?? e.splitMode,
-      splitValues: Array.isArray(e.splitValues) ? e.splitValues.map((s: any) => ({
+      splitValues: Array.isArray(e.splits) ? e.splits.map((s: any) => ({
         id: s.id,
-        name: s.name ?? s.user_name,
-        value: s.value ?? s.amount,
+        name: s.user_name,
+        value: s.amount,
         is_paid: s.is_paid ?? false,
       })) : [],
       fixed: e.is_fixed ?? e.fixed,
@@ -138,27 +139,35 @@ export class GroupStoreService {
       .slice(0, 4);
   });
 
-  refreshExpenses(limit?: number, offset?: number): void {
-    const groupId = this.groupIdSignal();
-    if (!groupId) return;
-    this.expensesLoading.set(true);
-    let url = `${environment.apiUrl}/groups/${groupId}/expenses`;
-    if (limit != null && offset != null) {
-      url += `?limit=${limit}&offset=${offset}`;
-    }
-    this.http.get<any>(url).subscribe({
+  private searchDebouncer = new Subject<{ limit: number; offset: number; search: string; dateFrom: string; dateTo: string; myExpenses: boolean }>();
+
+  refreshExpenses(limit: number, offset: number, search = '', dateFrom = '', dateTo = '', myExpenses = false): void {
+    this.searchDebouncer.next({ limit, offset, search, dateFrom, dateTo, myExpenses });
+  }
+
+  private initDebounce(): void {
+    this.searchDebouncer.pipe(
+      switchMap(({ limit, offset, search, dateFrom, dateTo, myExpenses }) => {
+        const groupId = this.groupIdSignal();
+        if (!groupId) return of(null);
+        this.expensesLoading.set(true);
+        let url = `${environment.apiUrl}/groups/${groupId}/expenses?limit=${limit}&offset=${offset}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (dateFrom) url += `&competence_date_from=${dateFrom}`;
+        if (dateTo) url += `&competence_date_to=${dateTo}`;
+        if (myExpenses) url += `&my_expenses=true`;
+        return this.http.get<any>(url);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: res => {
-        if (res?.data !== undefined && res?.total !== undefined) {
+        if (res && res?.data !== undefined && res?.total !== undefined) {
           this.expenses.set(res.data);
           this.expensesTotal.set(res.total);
-        } else {
-          const data = Array.isArray(res) ? res : [];
-          this.expenses.set(data);
-          this.expensesTotal.set(data.length);
         }
+        this.expensesLoading.set(false);
       },
-      error: () => {},
-      complete: () => this.expensesLoading.set(false),
+      error: () => this.expensesLoading.set(false),
     });
   }
 
@@ -186,17 +195,6 @@ export class GroupStoreService {
     });
   }
 
-  loadExpenseSplits(expenseId: string): void {
-    this.http.get<any>(`${environment.apiUrl}/expenses/${expenseId}/splits`).subscribe({
-      next: splits => {
-        const raw = Array.isArray(splits) ? splits : (splits as any)?.data ?? [];
-        this.expenses.update(list => list.map(e =>
-          e.id === expenseId ? { ...e, splitValues: raw } : e
-        ));
-      },
-    });
-  }
-
   private lastFetchedGroupId = '';
 
   setGroupId(id: string): void {
@@ -208,6 +206,8 @@ export class GroupStoreService {
   }
 
   private fetchAll(groupId: string): void {
+    this.initDebounce();
+
     this.groupLoading.set(true);
     this.http.get<any>(`${environment.apiUrl}/groups/${groupId}`).subscribe({
       next: res => this.group.set(res),
@@ -231,22 +231,6 @@ export class GroupStoreService {
       },
       error: () => this.members.set([]),
       complete: () => this.membersLoading.set(false),
-    });
-
-    this.expensesLoading.set(true);
-    this.http.get<any>(`${environment.apiUrl}/groups/${groupId}/expenses?limit=1000&offset=0`).subscribe({
-      next: res => {
-        if (res?.data !== undefined && res?.total !== undefined) {
-          this.expenses.set(res.data);
-          this.expensesTotal.set(res.total);
-        } else {
-          const data = Array.isArray(res) ? res : [];
-          this.expenses.set(data);
-          this.expensesTotal.set(data.length);
-        }
-      },
-      error: () => this.expenses.set([]),
-      complete: () => this.expensesLoading.set(false),
     });
 
     this.tasksLoading.set(true);
