@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
   LucideHouse,
@@ -8,7 +8,6 @@ import {
   LucideShoppingCart,
   LucideSparkles,
   LucidePackage,
-  LucideClock,
   LucideCircleCheck,
   LucidePen,
   LucideTrash2,
@@ -17,9 +16,10 @@ import {
 
 @Component({
   selector: 'app-expense-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
-    LucideSparkles, LucidePackage, LucideClock, LucideCircleCheck,
+    LucideSparkles, LucidePackage, LucideCircleCheck,
     LucidePen, LucideTrash2, LucidePin,
   ],
   template: `
@@ -68,7 +68,7 @@ import {
         <div class="flex items-start gap-2 shrink-0">
           <div class="flex flex-col items-end gap-2">
             <span class="text-primary font-bold text-base">R$ {{ fmt(expense.amount) }}</span>
-            @if (currentUserSplit(); as sv) {
+            @if (currentUserSplit; as sv) {
               @if (sv.is_paid) {
                 <span class="text-[11px] text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
               } @else {
