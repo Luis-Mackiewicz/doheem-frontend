@@ -416,6 +416,7 @@ export class FinancialPage {
         next: () => {
           this.closeModal();
           this.showToast('Despesa atualizada com sucesso');
+          this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
         },
         error: (err: any) => {
           if (err.status === 403) {
@@ -475,6 +476,7 @@ export class FinancialPage {
 
         this.showToast('Despesa criada com sucesso');
         this.showModal.set(false);
+        this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: (err: any) => {
         const msg = err?.error?.message || 'Erro ao criar despesa';
