@@ -1,4 +1,4 @@
-import { Component, inject, Input, Output, EventEmitter, signal, computed, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, Input, Output, EventEmitter, signal, computed, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../components/button/button';
 import {
@@ -42,7 +42,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Valor total
-                <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.amount" (keydown)="preventNegative($event)"
+                <input type="number" step="0.01" min="0" placeholder="0,00" [ngModel]="form.amount" (ngModelChange)="onAmountChange($event)" (keydown)="preventNegative($event)"
                   class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                 @if (submitted() && form.amount <= 0) {
                   <span class="text-rose-400 text-xs mt-1">O valor deve ser maior que 0</span>
@@ -170,7 +170,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   <div class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                     <span>Todos os membros dividem igualmente</span>
                     <div class="grid grid-cols-2 gap-2 mt-1">
-                      @for (sv of computedSplitValues(); track sv.name) {
+                      @for (sv of splitValuesSignal(); track sv.name) {
                         <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
                           <span class="text-primary text-sm">{{ sv.name }}</span>
                           <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
@@ -197,9 +197,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                           <input type="checkbox" [checked]="selectedSomeSet().has(m)" (change)="toggleSome(m)" class="hidden" />
                           <div class="flex-1 min-w-0">
                             <span class="text-primary text-sm block truncate">{{ m }}</span>
-                            <span class="text-muted text-[10px] block truncate">{{ phoneOf(m) }}</span>
+                            <span class="text-muted text-[10px] block truncate">{{ phoneMap().get(m) ?? '' }}</span>
                           </div>
-                          <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(someValue(m) / (form.installments || 1)) }}</span>
+                          <span class="text-secondary text-xs shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt((someValuesMap().get(m) ?? 0) / (form.installments || 1)) }}</span>
                         </label>
                       }
                     </div>
@@ -210,18 +210,18 @@ type SplitMode = 'equal' | 'some' | 'custom';
 
                     <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm mt-1">
                       <span class="text-secondary">Total distribuído</span>
-                      <span class="text-primary font-semibold">R$ {{ fmt(customTotal()) }}</span>
+                      <span class="text-primary font-semibold">R$ {{ fmt(customTotalSig()) }}</span>
                     </div>
                     <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong text-sm"
-                      [class.text-emerald-400]="customTotal() === form.amount"
-                      [class.text-rose-400]="customTotal() !== form.amount">
+                      [class.text-emerald-400]="customTotalSig() === form.amount"
+                      [class.text-rose-400]="customTotalSig() !== form.amount">
                       <span>Faltam</span>
-                      <span class="font-semibold">R$ {{ fmt(form.amount > customTotal() ? form.amount - customTotal() : 0) }}</span>
+                      <span class="font-semibold">R$ {{ fmt(form.amount > customTotalSig() ? form.amount - customTotalSig() : 0) }}</span>
                     </div>
 
-                    @if (submitted() && customTotal() !== form.amount) {
+                    @if (submitted() && customTotalSig() !== form.amount) {
                       <span class="text-rose-400 text-xs">
-                        A soma (R$ {{ fmt(customTotal()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
+                        A soma (R$ {{ fmt(customTotalSig()) }}) deve ser igual ao valor total (R$ {{ fmt(form.amount) }})
                       </span>
                     }
                     <div class="grid grid-cols-2 gap-2 mt-1">
@@ -229,12 +229,12 @@ type SplitMode = 'equal' | 'some' | 'custom';
                         <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-card-strong">
                           <div class="min-w-0 flex-1">
                             <span class="text-primary text-sm block truncate">{{ m }}</span>
-                            <span class="text-muted text-[10px] block">{{ phoneOf(m) }}</span>
+                            <span class="text-muted text-[10px] block">{{ phoneMap().get(m) ?? '' }}</span>
                             @if (form.installments > 1) {
                               <span class="text-secondary text-[10px]">{{ form.installments }}x R$ {{ fmt((form.splitCustom[m] || 0) / form.installments) }}</span>
                             }
                           </div>
-                          <input type="number" step="0.01" min="0" placeholder="0,00" [(ngModel)]="form.splitCustom[m]"
+                          <input type="number" step="0.01" min="0" placeholder="0,00" [ngModel]="form.splitCustom[m]" (ngModelChange)="onCustomChange(m, $event)"
                             class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                         </div>
                       }
@@ -254,7 +254,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
     </div>
   `,
 })
-export class ExpenseFormComponent implements OnInit, OnChanges {
+export class ExpenseFormComponent implements OnChanges {
   @Input() editingExpense: any = null;
   @Input() categories: { value: string; label: string }[] = [];
   @Input() members: string[] = [];
@@ -264,14 +264,47 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
   @Input() membersLoading = false;
 
   private store = inject(GroupStoreService);
+  private readonly membersSig = signal<string[]>([]);
+  protected readonly amountSig = signal(0);
+  protected readonly splitCustomSig = signal<Record<string, number>>({});
 
-  private readonly phoneMap = computed(() => {
+  protected readonly phoneMap = computed(() => {
     const map = new Map<string, string>();
     for (const m of this.store.members()) {
       map.set(m.nome ?? m.name, m.telefone ?? m.phone ?? '');
     }
     return map;
   });
+
+  protected readonly splitValuesSignal = computed(() => {
+    const total = this.amountSig();
+    const count = this.membersSig().length;
+    if (total <= 0 || count === 0) return [];
+    const base = Math.floor((total * 100) / count) / 100;
+    const remainder = Math.round((total - base * count) * 100) / 100;
+    return this.membersSig().map((name, i) => ({
+      name,
+      value: i === 0 ? +(base + remainder).toFixed(2) : base,
+    }));
+  });
+
+  protected readonly someValuesMap = computed(() => {
+    const selected = this.selectedSome();
+    const count = selected.length;
+    const total = this.amountSig();
+    if (count === 0 || total <= 0) return new Map<string, number>();
+    const base = Math.floor((total * 100) / count) / 100;
+    const adjusted = +(base + Math.round((total - base * count) * 100) / 100).toFixed(2);
+    const map = new Map<string, number>();
+    for (const name of selected) {
+      map.set(name, selected.indexOf(name) === 0 ? adjusted : base);
+    }
+    return map;
+  });
+
+  protected readonly customTotalSig = computed(() =>
+    Object.values(this.splitCustomSig()).reduce((sum, v) => sum + (Number(v) || 0), 0)
+  );
 
   @Output() save = new EventEmitter<{ expense: any; isNew: boolean }>();
   @Output() cancel = new EventEmitter<void>();
@@ -281,32 +314,23 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
   protected selectedSome = signal<string[]>([]);
   protected readonly selectedSomeSet = computed(() => new Set(this.selectedSome()));
   protected readonly selectedSomeCount = computed(() => this.selectedSome().length);
-  protected form!: ReturnType<typeof this.emptyForm>;
-
-  ngOnInit(): void {
-    this.resetForm();
-  }
+  protected form = this.emptyForm();
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['open']?.currentValue) {
-      this.resetForm();
-    }
     if (changes['members']?.currentValue?.length && this.open && this.form) {
-      const members = changes['members'].currentValue as string[];
-      if (this.editingExpense) {
-        const splitByMember = new Map<string, number>();
-        for (const sv of this.editingExpense!.splitValues) {
-          splitByMember.set(sv.name, sv.value);
-        }
-        this.form.splitCustom = Object.fromEntries(members.map(m => [m, splitByMember.get(m) ?? 0])) as Record<string, number>;
-      } else {
-        if (!this.form.paidBy) {
-          this.form.paidBy = members[0] ?? '';
-        }
-        if (Object.keys(this.form.splitCustom).length !== members.length) {
-          this.form.splitCustom = Object.fromEntries(members.map(m => [m, 0]));
+      const newMembers = changes['members'].currentValue as string[];
+      this.membersSig.set(newMembers);
+      for (const m of newMembers) {
+        if (!(m in this.form.splitCustom)) {
+          this.form.splitCustom[m] = 0;
         }
       }
+      this.splitCustomSig.set({ ...this.form.splitCustom });
+    } else if (changes['members']?.currentValue) {
+      this.membersSig.set(changes['members'].currentValue as string[]);
+    }
+    if (changes['open']?.currentValue) {
+      this.resetForm();
     }
   }
 
@@ -315,6 +339,13 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
     this.submittedGeneralError.set('');
     if (this.editingExpense) {
       this.selectedSome.set(this.editingExpense.splitValues.map((sv: any) => sv.name));
+      const splitCustom = (() => {
+        const splitByMember = new Map<string, number>();
+        for (const sv of this.editingExpense!.splitValues) {
+          splitByMember.set(sv.name, sv.value);
+        }
+        return Object.fromEntries(this.members.map(m => [m, splitByMember.get(m) ?? 0])) as Record<string, number>;
+      })();
       this.form = {
         description: this.editingExpense.description,
         amount: this.editingExpense.amount,
@@ -326,14 +357,10 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
         fixed: this.editingExpense.fixed,
         installments: this.editingExpense.installments,
         firstDueDate: this.editingExpense.firstDueDate,
-        splitCustom: (() => {
-          const splitByMember = new Map<string, number>();
-          for (const sv of this.editingExpense!.splitValues) {
-            splitByMember.set(sv.name, sv.value);
-          }
-          return Object.fromEntries(this.members.map(m => [m, splitByMember.get(m) ?? 0])) as Record<string, number>;
-        })(),
+        splitCustom,
       };
+      this.amountSig.set(this.editingExpense.amount);
+      this.splitCustomSig.set(splitCustom);
     } else {
       this.selectedSome.set([...this.members]);
       this.form = {
@@ -341,15 +368,13 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
         competenceDate: this.today,
         paidBy: this.members[0] ?? '',
       };
+      this.amountSig.set(0);
+      this.splitCustomSig.set(this.form.splitCustom);
     }
   }
 
   protected fmt(val: number): string {
     return val.toFixed(2).replace('.', ',');
-  }
-
-  protected phoneOf(name: string): string {
-    return this.phoneMap().get(name) ?? '';
   }
 
   private emptyForm() {
@@ -368,16 +393,14 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
     };
   }
 
-  protected computedSplitValues(): SplitValue[] {
-    const total = this.form.amount;
-    const count = this.members.length;
-    if (total <= 0 || count === 0) return [];
-    const base = Math.floor((total * 100) / count) / 100;
-    const remainder = Math.round((total - base * count) * 100) / 100;
-    return this.members.map((name, i) => ({
-      name,
-      value: i === 0 ? +(base + remainder).toFixed(2) : base,
-    }));
+  protected onAmountChange(val: number): void {
+    this.form.amount = val;
+    this.amountSig.set(val);
+  }
+
+  protected onCustomChange(member: string, val: number): void {
+    this.form.splitCustom[member] = val;
+    this.splitCustomSig.set({ ...this.form.splitCustom });
   }
 
   toggleSome(name: string): void {
@@ -386,20 +409,6 @@ export class ExpenseFormComponent implements OnInit, OnChanges {
       if (list.includes(name)) return list.filter(n => n !== name);
       return [...list, name];
     });
-  }
-
-  protected someValue(name: string): number {
-    const selected = this.selectedSome();
-    const count = selected.length;
-    if (count === 0) return 0;
-    const total = this.form.amount;
-    const base = Math.floor((total * 100) / count) / 100;
-    const adjusted = +(base + Math.round((total - base * count) * 100) / 100).toFixed(2);
-    return selected.indexOf(name) === 0 ? adjusted : base;
-  }
-
-  protected customTotal(): number {
-    return Object.values(this.form.splitCustom).reduce((sum, v) => sum + (Number(v) || 0), 0);
   }
 
   onInstallmentsChange(): void {

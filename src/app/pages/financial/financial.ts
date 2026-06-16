@@ -1,14 +1,14 @@
-import { Component, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy, DestroyRef, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, debounceTime } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ButtonComponent } from '../../components/button/button';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { SearchComponent } from '../../components/search/search';
 import { GroupStoreService } from '../../services/group-store.service';
-import { ExpensesApiService } from '../../services/expenses-api.service';
 import { NotificationService } from '../../services/notification-service';
 import { ExpenseCardComponent } from './expense-card';
 import { ExpenseFormComponent } from './expense-form';
@@ -28,6 +28,7 @@ import {
 
 @Component({
   selector: 'app-financial',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonComponent, PaginatorComponent, SearchComponent,
     ExpenseCardComponent, ExpenseFormComponent, PayModalComponent, DeleteConfirmComponent,
     LucideDollarSign, LucideCheck,
@@ -42,7 +43,6 @@ import {
           <p class="text-muted text-sm mt-0.5">{{ monthLabel() }}</p>
         </div>
         <div class="flex items-center gap-2">
-
           <app-button type="button" variant="solid" label="+ Nova Despesa" (click)="openCreate()"></app-button>
         </div>
       </div>
@@ -50,14 +50,14 @@ import {
       <!-- Filters -->
       <div class="flex flex-wrap items-center gap-2">
         <div class="flex bg-card-strong rounded-xl p-0.5 gap-0.5 border border-soft">
-          <button type="button" (click)="filterPeriod.set('month')"
+          <button type="button" (click)="setPeriod('month')"
             class="text-xs px-3.5 py-1.5 rounded-lg transition-all font-medium cursor-pointer"
             [class.bg-page]="filterPeriod() === 'month'"
             [class.text-accent]="filterPeriod() === 'month'"
             [class.text-secondary]="filterPeriod() !== 'month'"
             [class.shadow-sm]="filterPeriod() === 'month'"
             aria-label="Filtrar por este mês">Este mês</button>
-          <button type="button" (click)="filterPeriod.set('all')"
+          <button type="button" (click)="setPeriod('all')"
             class="text-xs px-3.5 py-1.5 rounded-lg transition-all font-medium cursor-pointer"
             [class.bg-page]="filterPeriod() === 'all'"
             [class.text-accent]="filterPeriod() === 'all'"
@@ -65,7 +65,7 @@ import {
             [class.shadow-sm]="filterPeriod() === 'all'"
             aria-label="Mostrar todos os meses">Todas</button>
         </div>
-        <button (click)="filterMyExpenses.set(!filterMyExpenses())"
+        <button (click)="toggleMyExpenses()"
           class="text-xs px-3.5 py-1.5 rounded-lg transition-all font-medium cursor-pointer border"
           [class.badge-purple]="filterMyExpenses()"
           [class.border-soft]="!filterMyExpenses()"
@@ -130,7 +130,7 @@ import {
             <p class="text-muted text-sm">Carregando despesas...</p>
           </div>
         } @else {
-          @for (e of paginatedExpenses(); track e.id) {
+          @for (e of expenses(); track e.id) {
             <app-expense-card
               [expense]="e"
               [currentUser]="CURRENT_USER()"
@@ -149,7 +149,7 @@ import {
         }
       </div>
 
-      <app-paginator [currentPage]="currentPage()" [totalPages]="totalFilteredPages()" (pageChange)="goToPage($event)" />
+      <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
     </div>
 
     <!-- Create / Edit modal -->
@@ -181,8 +181,6 @@ import {
       </app-pay-modal>
     }
 
-
-
     <!-- Receipt expand -->
     @if (expandReceipt(); as url) {
       <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-60 p-4" (click)="expandReceipt.set('')">
@@ -203,16 +201,10 @@ export class FinancialPage {
   private http = inject(HttpClient);
   private destroyRef = inject(DestroyRef);
   protected store = inject(GroupStoreService);
-  private expensesApi = inject(ExpensesApiService);
   private notif = inject(NotificationService);
 
   protected groupId: string;
   protected categoryMap = signal<Record<string, string>>({});
-
-  private reFetch(): void {
-    const page = this.currentPage();
-    this.store.refreshExpenses(this.pageSize, (page - 1) * this.pageSize);
-  }
 
   protected readonly members = computed(() => this.store.memberNames());
   protected readonly categories = this.store.categories;
@@ -248,65 +240,16 @@ export class FinancialPage {
   protected payReceiptBase64 = signal('');
   protected expandReceipt = signal('');
   protected searchQuery = signal('');
+  private searchSubject = new Subject<string>();
   protected filterPeriod = signal<'all' | 'month'>('month');
   protected filterMyExpenses = signal(false);
   protected toastMessage = signal('');
-  readonly pageSize = 3;
+  readonly pageSize = 10;
   readonly currentPage = signal(1);
 
-  constructor() {
-    this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
-    this.store.setGroupId(this.groupId);
-
-    this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(res => {
-      const data = Array.isArray(res) ? res : res?.data ?? [];
-      const map: Record<string, string> = {};
-      for (const c of data) {
-        map[c.slug] = c.id;
-      }
-      this.categoryMap.set(map);
-    });
-  }
-
-  protected readonly filteredExpenses = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    let list = this.expenses();
-    if (query) {
-      list = list.filter((e: any) =>
-        (e.description ?? '').toLowerCase().includes(query) ||
-        this.categoryLabel(e.category).toLowerCase().includes(query) ||
-        (e.paidBy ?? '').toLowerCase().includes(query)
-      );
-    }
-    if (this.filterPeriod() === 'month') {
-      const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      list = list.filter((e: any) => (e.competenceDate ?? '').startsWith(`${year}-${month}`));
-    }
-    if (this.filterMyExpenses()) {
-      list = list.filter((e: any) =>
-        (e.splitValues ?? []).some((sv: any) => sv.name === this.CURRENT_USER()) ||
-        e.paidBy === this.CURRENT_USER()
-      );
-    }
-    return list;
-  });
-
-  protected readonly totalFilteredPages = computed(() => {
-    const total = this.store.expensesTotal();
-    return Math.max(1, Math.ceil((total || this.filteredExpenses().length) / this.pageSize));
-  });
-
-  protected readonly paginatedExpenses = computed(() => {
-    if (this.filteredExpenses().length <= this.pageSize) {
-      return this.filteredExpenses();
-    }
-    const start = (this.currentPage() - 1) * this.pageSize;
-    return this.filteredExpenses().slice(start, start + this.pageSize);
-  });
+  protected readonly totalPages = computed(() =>
+    Math.max(1, Math.ceil((this.store.expensesTotal() || 1) / this.pageSize))
+  );
 
   protected readonly totalAmount = computed(() =>
     this.expenses().reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0)
@@ -323,74 +266,66 @@ export class FinancialPage {
       .sort((a, b) => b.amount - a.amount);
   });
 
+  constructor() {
+    this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.store.setGroupId(this.groupId);
+
+    this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(res => {
+      const data = Array.isArray(res) ? res : res?.data ?? [];
+      const map: Record<string, string> = {};
+      for (const c of data) {
+        map[c.slug] = c.id;
+      }
+      this.categoryMap.set(map);
+    });
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(value => {
+      this.searchQuery.set(value);
+      this.currentPage.set(1);
+    });
+
+    effect(() => {
+      const page = this.currentPage();
+      const search = this.searchQuery();
+      const period = this.filterPeriod();
+      const myExps = this.filterMyExpenses();
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const dateFrom = period === 'month' ? `${year}-${month}-01` : '';
+      const lastDay = new Date(year, now.getMonth() + 1, 0).getDate();
+      const dateTo = period === 'month' ? `${year}-${month}-${String(lastDay).padStart(2, '0')}` : '';
+      this.store.refreshExpenses(this.pageSize, (page - 1) * this.pageSize, search, dateFrom, dateTo, myExps);
+    });
+  }
+
   private showToast(msg: string): void {
     this.toastMessage.set(msg);
     setTimeout(() => this.toastMessage.set(''), 3000);
-  }
-
-  private addMonths(dateStr: string, months: number): string {
-    if (!dateStr) return '';
-    const d = new Date(dateStr + 'T12:00:00');
-    d.setMonth(d.getMonth() + months);
-    return d.toISOString().slice(0, 10);
-  }
-
-  private expandInstallments(expense: any, startId: number): any[] {
-    const n = expense.installments;
-    if (n <= 1) return [expense];
-
-    const perPerson = expense.splitValues.map((sv: any) => {
-      const raw = sv.value / n;
-      const base = Math.floor(raw * 100) / 100;
-      const remainder = Math.round((raw - base) * n * 100) / 100;
-      return { name: sv.name, base, remainder };
-    });
-
-    const result: any[] = [];
-    for (let i = 0; i < n; i++) {
-      const splitValues = perPerson.map((p: any) => ({
-        name: p.name,
-        value: i === 0 ? +(p.base + p.remainder).toFixed(2) : p.base,
-      }));
-      const total = splitValues.reduce((s: number, v: any) => s + v.value, 0);
-      const diff = Math.round((expense.amount / n - total) * 100) / 100;
-      if (Math.abs(diff) > 0.001) {
-        splitValues[splitValues.length - 1] = {
-          ...splitValues[splitValues.length - 1],
-          value: +(splitValues[splitValues.length - 1].value + diff).toFixed(2),
-        };
-      }
-
-      result.push({
-        ...expense,
-        id: startId + i,
-        amount: Math.round(expense.amount / n * 100) / 100,
-        dueDate: this.addMonths(expense.firstDueDate || expense.dueDate, i),
-        competenceDate: this.addMonths(expense.competenceDate, i),
-        installments: 1,
-        firstDueDate: '',
-        installmentGroup: { id: expense.id, index: i + 1, total: n },
-      });
-    }
-    const sum = result.reduce((s: number, e: any) => s + e.amount, 0);
-    const diffTotal = Math.round((expense.amount - sum) * 100) / 100;
-    if (Math.abs(diffTotal) > 0.001) {
-      result[result.length - 1] = {
-        ...result[result.length - 1],
-        amount: +(result[result.length - 1].amount + diffTotal).toFixed(2),
-      };
-    }
-    return result;
   }
 
   categoryLabel(value: string): string {
     return this.store.categories.find(c => c.value === value)?.label ?? value;
   }
 
+  setPeriod(period: 'all' | 'month'): void {
+    this.filterPeriod.set(period);
+    this.currentPage.set(1);
+  }
+
+  toggleMyExpenses(): void {
+    this.filterMyExpenses.update(v => !v);
+    this.currentPage.set(1);
+  }
+
   /* Payments */
   openPayModal(e: any): void {
     this.payReceiptBase64.set('');
-    this.store.loadExpenseSplits(e.id);
     this.payingExpense.set(e);
   }
 
@@ -421,7 +356,6 @@ export class FinancialPage {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => {
-        this.reFetch();
         this.showToast('Pagamento confirmado');
         this.closePayModal();
       },
@@ -430,14 +364,12 @@ export class FinancialPage {
   }
 
   onSearch(value: string): void {
-    this.searchQuery.set(value);
-    this.currentPage.set(1);
+    this.searchSubject.next(value);
   }
 
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalFilteredPages()) {
+    if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
-      this.reFetch();
     }
   }
 
@@ -478,7 +410,6 @@ export class FinancialPage {
         takeUntilDestroyed(this.destroyRef),
       ).subscribe({
         next: () => {
-          this.reFetch();
           this.closeModal();
           this.showToast('Despesa atualizada com sucesso');
         },
@@ -530,8 +461,6 @@ export class FinancialPage {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => {
-        this.reFetch();
-
         if (expense.installments > 1) {
           this.notif.add('expense', 'Nova despesa parcelada',
             `${expense.description} (${expense.installments}x) — R$ ${expense.amount.toFixed(2).replace('.', ',')}`);
@@ -565,7 +494,6 @@ export class FinancialPage {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => {
-        this.reFetch();
         this.showToast('Despesa excluída com sucesso');
         this.deleting.set(null);
       },
@@ -581,5 +509,4 @@ export class FinancialPage {
       },
     });
   }
-
 }
