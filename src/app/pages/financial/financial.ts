@@ -204,7 +204,6 @@ export class FinancialPage {
   private notif = inject(NotificationService);
 
   protected groupId: string;
-  protected categoryMap = signal<Record<string, string>>({});
 
   protected readonly members = computed(() => this.store.memberNames());
   protected readonly categories = this.store.categories;
@@ -269,17 +268,6 @@ export class FinancialPage {
   constructor() {
     this.groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.store.setGroupId(this.groupId);
-
-    this.http.get<any>(`${environment.apiUrl}/categories`).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(res => {
-      const data = Array.isArray(res) ? res : res?.data ?? [];
-      const map: Record<string, string> = {};
-      for (const c of data) {
-        map[c.slug] = c.id;
-      }
-      this.categoryMap.set(map);
-    });
 
     this.searchSubject.pipe(
       debounceTime(300),
@@ -407,7 +395,7 @@ export class FinancialPage {
       if (expense.competenceDate) updateData['competence_date'] = expense.competenceDate;
       if (expense.dueDate) updateData['due_date'] = expense.dueDate;
       updateData['split_mode'] = expense.splitMode;
-      const categoryId = this.categoryMap()[expense.category];
+      const categoryId = this.store.slugToCategoryId()[expense.category];
       if (categoryId) updateData['category_id'] = categoryId;
 
       this.http.put(`${environment.apiUrl}/expenses/${expense.id}`, updateData).pipe(
@@ -429,7 +417,7 @@ export class FinancialPage {
       return;
     }
 
-    const categoryId = this.categoryMap()[expense.category] ?? '';
+    const categoryId = this.store.slugToCategoryId()[expense.category] ?? '';
     const paidByUserId = nameToId.get(expense.paidBy) ?? expense.paidBy;
     const splitMode = expense.splitMode;
     let splits: { user_id: string; amount: number }[] = [];

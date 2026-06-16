@@ -44,8 +44,10 @@ export class GroupStoreService {
     for (const m of members) {
       uuidToName.set(m.user_id, m.nome ?? m.name);
     }
+    const idToSlug = this.categoryIdToSlug();
     return this.expenses().map((e: any) => ({
       ...e,
+      category: idToSlug[e.category_id] ?? e.category_id ?? e.category,
       paidBy: uuidToName.get(e.paid_by) ?? e.paid_by ?? e.paidBy,
       competenceDate: e.competence_date ?? e.competenceDate,
       dueDate: e.due_date ?? e.dueDate,
@@ -63,6 +65,9 @@ export class GroupStoreService {
   readonly tasksLoading = signal(false);
 
   readonly currentUser = computed(() => this.auth.currentUser()?.name ?? '');
+
+  readonly slugToCategoryId = signal<Record<string, string>>({});
+  readonly categoryIdToSlug = signal<Record<string, string>>({});
 
   readonly categories = [
     { value: 'aluguel', label: 'Aluguel' },
@@ -231,6 +236,20 @@ export class GroupStoreService {
       },
       error: () => this.members.set([]),
       complete: () => this.membersLoading.set(false),
+    });
+
+    this.http.get<any>(`${environment.apiUrl}/categories`).subscribe({
+      next: res => {
+        const data = Array.isArray(res) ? res : res?.data ?? [];
+        const slugToId: Record<string, string> = {};
+        const idToSlug: Record<string, string> = {};
+        for (const c of data) {
+          slugToId[c.slug] = c.id;
+          idToSlug[c.id] = c.slug;
+        }
+        this.slugToCategoryId.set(slugToId);
+        this.categoryIdToSlug.set(idToSlug);
+      },
     });
 
     this.tasksLoading.set(true);

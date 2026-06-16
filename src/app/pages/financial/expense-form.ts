@@ -52,10 +52,14 @@ type SplitMode = 'equal' | 'some' | 'custom';
                 Categoria
                 <select [(ngModel)]="form.category"
                   class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
+                  <option value="" disabled class="bg-page text-muted">Selecione...</option>
                   @for (c of categories; track c.value) {
                     <option [value]="c.value" class="bg-page text-primary">{{ c.label }}</option>
                   }
                 </select>
+                @if (submitted() && !form.category) {
+                  <span class="text-rose-400 text-xs mt-1">Selecione uma categoria</span>
+                }
               </label>
             </div>
 
@@ -381,7 +385,7 @@ export class ExpenseFormComponent implements OnChanges {
     return {
       description: '',
       amount: 0,
-      category: 'outros',
+      category: '',
       competenceDate: '',
       dueDate: '',
       paidBy: '',
@@ -432,7 +436,7 @@ export class ExpenseFormComponent implements OnChanges {
     this.submitted.set(true);
     this.submittedGeneralError.set('');
 
-    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.paidBy || this.form.installments < 1) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.category || !this.form.paidBy || this.form.installments < 1) return;
 
     const dateField = this.form.installments > 1 ? this.form.firstDueDate : this.form.dueDate;
     if (dateField && dateField < this.today) return;
