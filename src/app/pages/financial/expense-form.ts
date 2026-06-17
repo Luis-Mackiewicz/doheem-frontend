@@ -97,14 +97,15 @@ type SplitMode = 'equal' | 'some' | 'custom';
               </label>
               @if (form.installments > 1) {
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
-                  Data de vencimento
+                  Vencimento da 1ª parcela
                   <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
                     class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
                   @if (submitted() && !form.firstDueDate) {
-                    <span class="text-rose-400 text-xs mt-1">A data de vencimento é obrigatória</span>
+                    <span class="text-rose-400 text-xs mt-1">O vencimento da 1ª parcela é obrigatório</span>
                   } @else if (submitted() && form.firstDueDate && form.firstDueDate < today) {
-                    <span class="text-rose-400 text-xs mt-1">A data de vencimento deve ser a partir de hoje</span>
+                    <span class="text-rose-400 text-xs mt-1">O vencimento deve ser a partir de hoje</span>
                   }
+                  <span class="text-muted text-xs">As demais parcelas vencerão no mesmo dia dos meses seguintes.</span>
                 </label>
               }
             </div>
@@ -440,10 +441,14 @@ export class ExpenseFormComponent implements OnChanges {
     this.submitted.set(true);
     this.submittedGeneralError.set('');
 
-    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.category || !this.form.paidBy || this.form.installments < 1) return;
+    if (!this.form.description.trim() || this.form.amount <= 0 || !this.form.competenceDate || !this.form.category || !this.form.paidBy || this.form.installments < 1) {
+      this.submittedGeneralError.set('Preencha todos os campos obrigatórios.');
+      return;
+    }
 
+    const isEdit = !!this.editingExpense;
     const dateField = this.form.installments > 1 ? this.form.firstDueDate : this.form.dueDate;
-    if (!dateField || dateField < this.today) return;
+    if (!dateField || (!isEdit && dateField < this.today)) return;
 
     let splitValues: SplitValue[] = [];
 

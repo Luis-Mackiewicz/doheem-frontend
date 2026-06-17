@@ -16,15 +16,19 @@ import { Expense } from '../../services/mock-data.service';
               <button (click)="cancel.emit()" aria-label="Fechar" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
             </div>
             <p class="text-secondary text-sm mb-1">{{ expense.description }}</p>
-            @for (sv of expense.splitValues; track sv.name) {
-              @if (sv.name === currentUser) {
-                <p class="text-primary font-semibold text-lg">Sua cota: R$ {{ fmt(sv.value) }}</p>
+            @if (payingSplit; as sv) {
+              <p class="text-primary font-semibold text-lg">{{ sv.name === currentUser ? 'Sua cota' : 'Cota de ' + sv.name }}: R$ {{ fmt(sv.value) }}</p>
+            } @else {
+              @for (sv of expense.splitValues; track sv.name) {
+                @if (sv.name === currentUser) {
+                  <p class="text-primary font-semibold text-lg">Sua cota: R$ {{ fmt(sv.value) }}</p>
+                }
               }
             }
             <div class="mt-4 flex flex-col gap-2">
               <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Comprovante (opcional)
-                <input type="file" accept="image/*" (change)="receiptSelected.emit($event)"
+                <input type="file" accept="image/*,application/pdf" (change)="receiptSelected.emit($event)"
                   class="text-secondary text-sm file:bg-white/10 file:border file:border-theme file:rounded-lg file:px-3 file:py-1.5 file:text-primary file:cursor-pointer file:mr-3" />
               </label>
               @if (payReceiptBase64) {
@@ -33,7 +37,7 @@ import { Expense } from '../../services/mock-data.service';
             </div>
             <div class="flex gap-3 mt-6">
               <app-button type="button" variant="outline" label="Cancelar" (click)="cancel.emit()"></app-button>
-              <app-button type="button" variant="solid" label="Confirmar pagamento" (click)="confirm.emit()"></app-button>
+              <app-button type="button" variant="solid" label="Confirmar" (click)="confirm.emit()"></app-button>
             </div>
           </div>
         </div>
@@ -44,6 +48,7 @@ import { Expense } from '../../services/mock-data.service';
 export class PayModalComponent {
   @Input() expense: Expense | null = null;
   @Input() currentUser = '';
+  @Input() payingSplit: any = null;
   @Input() payReceiptBase64 = '';
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();

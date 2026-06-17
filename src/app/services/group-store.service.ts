@@ -57,7 +57,41 @@ export class GroupStoreService {
         name: s.user_name,
         value: s.amount,
         is_paid: s.is_paid ?? false,
+        receipt_data: s.receipt_data,
+        receipt_type: s.receipt_type,
+        receipt_file_name: s.receipt_file_name,
       })) : [],
+      createdBy: e.created_by ?? e.createdBy,
+      installmentGroup: e.installment_index ? { index: e.installment_index, total: e.installment_total } : undefined,
+      fixed: e.is_fixed ?? e.fixed,
+    }));
+  });
+
+  readonly normalizedMonthExpenses = computed(() => {
+    const members = this.members();
+    const uuidToName = new Map<string, string>();
+    for (const m of members) {
+      uuidToName.set(m.user_id, m.nome ?? m.name);
+    }
+    const idToSlug = this.categoryIdToSlug();
+    return this.monthExpenses().map((e: any) => ({
+      ...e,
+      category: idToSlug[e.category_id] ?? e.category_id ?? e.category,
+      paidBy: uuidToName.get(e.paid_by) ?? e.paid_by ?? e.paidBy,
+      competenceDate: e.competence_date ?? e.competenceDate,
+      dueDate: e.due_date ?? e.dueDate,
+      splitMode: e.split_mode ?? e.splitMode,
+      splitValues: Array.isArray(e.splits) ? e.splits.map((s: any) => ({
+        id: s.id,
+        name: s.user_name,
+        value: s.amount,
+        is_paid: s.is_paid ?? false,
+        receipt_data: s.receipt_data,
+        receipt_type: s.receipt_type,
+        receipt_file_name: s.receipt_file_name,
+      })) : [],
+      createdBy: e.created_by ?? e.createdBy,
+      installmentGroup: e.installment_index ? { index: e.installment_index, total: e.installment_total } : undefined,
       fixed: e.is_fixed ?? e.fixed,
     }));
   });

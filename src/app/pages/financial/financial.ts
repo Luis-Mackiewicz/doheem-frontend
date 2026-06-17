@@ -24,6 +24,8 @@ import {
   LucideShoppingCart,
   LucideSparkles,
   LucidePackage,
+  LucideImage,
+  LucideDownload,
 } from '@lucide/angular';
 
 @Component({
@@ -33,7 +35,7 @@ import {
     ExpenseCardComponent, ExpenseFormComponent, PayModalComponent, DeleteConfirmComponent,
     LucideDollarSign, LucideCheck,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
-    LucideSparkles, LucidePackage,
+    LucideSparkles, LucidePackage, LucideImage, LucideDownload,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full transition-colors duration-150">
@@ -174,6 +176,7 @@ import {
       <app-pay-modal
         [expense]="exp"
         [currentUser]="CURRENT_USER()"
+        [payingSplit]="payingSplit()"
         [payReceiptBase64]="payReceiptBase64()"
         (confirm)="confirmPay()"
         (cancel)="closePayModal()"
@@ -184,7 +187,24 @@ import {
     <!-- Receipt expand -->
     @if (expandReceipt(); as url) {
       <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-60 p-4" (click)="expandReceipt.set('')">
-        <img [src]="url" class="max-w-full max-h-full object-contain rounded-2xl" (click)="$event.stopPropagation()" />
+        <div (click)="$event.stopPropagation()" class="relative max-w-full max-h-full">
+          @if (expandReceiptType() === 'application/pdf') {
+            <div class="flex flex-col items-center gap-4 bg-card border border-theme rounded-2xl p-8 shadow-2xl">
+              <svg lucideImage class="w-16 h-16 text-red-400"></svg>
+              <p class="text-primary font-medium">Comprovante em PDF</p>
+              <a [href]="url" download="comprovante.pdf" class="inline-flex items-center gap-2 bg-purple-medium text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition cursor-pointer">
+                <svg lucideDownload class="w-5 h-5"></svg> Baixar PDF
+              </a>
+            </div>
+          } @else {
+            <div class="flex flex-col items-center gap-4">
+              <img [src]="url" class="max-w-full max-h-[80vh] object-contain rounded-2xl" />
+              <a [href]="url" download="comprovante.png" class="inline-flex items-center gap-2 bg-purple-medium text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition cursor-pointer text-sm">
+                <svg lucideDownload class="w-4 h-4"></svg> Baixar imagem
+              </a>
+            </div>
+          }
+        </div>
       </div>
     }
 
@@ -237,7 +257,10 @@ export class FinancialPage {
   protected deleting = signal<any | null>(null);
   protected payingExpense = signal<any | null>(null);
   protected payReceiptBase64 = signal('');
+  protected payReceiptType = signal('');
+  protected payReceiptFileName = signal('');
   protected expandReceipt = signal('');
+  protected expandReceiptType = signal('');
   protected searchQuery = signal('');
   private searchSubject = new Subject<string>();
   protected filterPeriod = signal<'all' | 'month'>('month');
@@ -316,19 +339,29 @@ export class FinancialPage {
   }
 
   /* Payments */
-  openPayModal(e: any): void {
+  protected payingSplit = signal<any | null>(null);
+
+  openPayModal(e: { expense: any; split: any }): void {
     this.payReceiptBase64.set('');
-    this.payingExpense.set(e);
+    this.payReceiptType.set('');
+    this.payReceiptFileName.set('');
+    this.payingExpense.set(e.expense);
+    this.payingSplit.set(e.split);
   }
 
   closePayModal(): void {
     this.payingExpense.set(null);
+    this.payingSplit.set(null);
     this.payReceiptBase64.set('');
+    this.payReceiptType.set('');
+    this.payReceiptFileName.set('');
   }
 
   onReceiptSelected(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    this.payReceiptType.set(file.type);
+    this.payReceiptFileName.set(file.name);
     const reader = new FileReader();
     reader.onload = () => this.payReceiptBase64.set(reader.result as string);
     reader.readAsDataURL(file);
@@ -338,18 +371,27 @@ export class FinancialPage {
     const expense = this.payingExpense();
     if (!expense) return;
 
-    const split = expense.splitValues?.find((sv: any) => sv.name === this.CURRENT_USER());
+    const split = this.payingSplit() ?? expense.splitValues?.find((sv: any) => sv.name === this.CURRENT_USER());
     if (!split?.id) {
-      this.showToast('Split não encontrado para este usuário');
+      this.showToast('Dívida não encontrada para este usuário');
       return;
     }
 
-    this.http.patch(`${environment.apiUrl}/expenses/splits/${split.id}/pay`, {}).pipe(
+    const body: any = {};
+    const receiptData = this.payReceiptBase64();
+    if (receiptData) {
+      body.receipt_data = receiptData;
+      body.receipt_type = this.payReceiptType() || 'image/png';
+      body.receipt_file_name = this.payReceiptFileName() || 'comprovante';
+    }
+
+    this.http.patch(`${environment.apiUrl}/expenses/splits/${split.id}/pay`, body).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: () => {
         this.showToast('Pagamento confirmado');
         this.closePayModal();
+        this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: () => this.showToast('Erro ao registrar pagamento'),
     });
@@ -409,6 +451,8 @@ export class FinancialPage {
         error: (err: any) => {
           if (err.status === 403) {
             this.showToast('Você não tem permissão para editar esta despesa');
+          } else if (err.status === 409) {
+            this.showToast('Não é possível editar uma despesa com pagamentos já realizados');
           } else {
             this.showToast('Erro ao atualizar despesa');
           }

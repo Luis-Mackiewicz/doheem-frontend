@@ -19,6 +19,7 @@ import {
   LucideInbox,
   LucideCheckCircle,
   LucideImage,
+  LucideDownload,
 } from '@lucide/angular';
 
 @Component({
@@ -26,7 +27,7 @@ import {
   imports: [DatePipe, PaginatorComponent, SearchComponent,
     LucideHouse, LucideZap, LucideWifi, LucideDroplets, LucideShoppingCart,
     LucideSparkles, LucidePackage, LucideChevronLeft, LucideChevronRight,
-    LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage,
+    LucideHistory, LucidePin, LucideInbox, LucideCheckCircle, LucideImage, LucideDownload,
   ],
   template: `
     <div class="flex flex-col gap-8 h-full transition-colors duration-150">
@@ -100,23 +101,25 @@ import {
             @if (paymentsByExpense().get(e.id)?.length) {
               <div class="border-t border-theme mt-4 pt-4">
                 <p class="text-secondary text-xs font-medium mb-3 flex items-center gap-1.5"><svg lucideCheckCircle class="w-3.5 h-3.5 text-emerald-400"></svg> Comprovantes</p>
-                @for (p of paymentsByExpense().get(e.id)!; track p.memberName) {
+                @for (sv of paymentsByExpense().get(e.id)!; track sv.name) {
                   <div class="flex items-start gap-3 rounded-xl bg-card-strong p-3 mb-2 last:mb-0">
-                    @if (p.receiptBase64) {
-                      <img [src]="p.receiptBase64" class="w-12 h-12 rounded-lg object-cover border border-theme shrink-0 cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(p.receiptBase64)" />
+                    @if (sv.receipt_data) {
+                      @if (sv.receipt_type === 'application/pdf') {
+                        <div class="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 border border-theme cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(sv.receipt_data); expandReceiptType.set(sv.receipt_type)">
+                          <svg lucideImage class="w-5 h-5 text-red-400"></svg>
+                        </div>
+                      } @else {
+                        <img [src]="sv.receipt_data" class="w-12 h-12 rounded-lg object-cover border border-theme shrink-0 cursor-pointer hover:opacity-80 transition" (click)="expandReceipt.set(sv.receipt_data); expandReceiptType.set(sv.receipt_type)" />
+                      }
                     } @else {
                       <div class="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-dashed border-amber-500/30"><svg lucideImage class="w-5 h-5 text-amber-400/60"></svg></div>
                     }
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-primary text-sm font-semibold">{{ p.memberName }}</span>
-                        <span class="text-muted text-[11px]">{{ p.paidAt }}</span>
+                        <span class="text-primary text-sm font-semibold">{{ sv.name }}</span>
                       </div>
                       <div class="flex items-center gap-2 flex-wrap mt-0.5">
-                        <span class="text-secondary text-xs">R$ {{ fmt(paymentAmount(e, p)) }}</span>
-                        @if (p.approvedBy) {
-                          <span class="text-[11px] text-emerald-400/80">Aprovado por {{ p.approvedBy }}</span>
-                        }
+                        <span class="text-secondary text-xs">R$ {{ fmt(sv.value) }}</span>
                       </div>
                     </div>
                   </div>
@@ -140,7 +143,24 @@ import {
     <!-- Receipt expand -->
     @if (expandReceipt(); as url) {
       <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-60 p-4" (click)="expandReceipt.set('')">
-        <img [src]="url" class="max-w-full max-h-full object-contain rounded-2xl" (click)="$event.stopPropagation()" />
+        <div (click)="$event.stopPropagation()" class="relative max-w-full max-h-full">
+          @if (expandReceiptType() === 'application/pdf') {
+            <div class="flex flex-col items-center gap-4 bg-card border border-theme rounded-2xl p-8 shadow-2xl">
+              <svg lucideImage class="w-16 h-16 text-red-400"></svg>
+              <p class="text-primary font-medium">Comprovante em PDF</p>
+              <a [href]="url" download="comprovante.pdf" class="inline-flex items-center gap-2 bg-purple-medium text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition cursor-pointer">
+                <svg lucideDownload class="w-5 h-5"></svg> Baixar PDF
+              </a>
+            </div>
+          } @else {
+            <div class="flex flex-col items-center gap-4">
+              <img [src]="url" class="max-w-full max-h-[80vh] object-contain rounded-2xl" />
+              <a [href]="url" download="comprovante.png" class="inline-flex items-center gap-2 bg-purple-medium text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition cursor-pointer text-sm">
+                <svg lucideDownload class="w-4 h-4"></svg> Baixar imagem
+              </a>
+            </div>
+          }
+        </div>
       </div>
     }
   `,
@@ -166,29 +186,28 @@ export class HistoricalPage {
   }
 
   protected expandReceipt = signal('');
+  protected expandReceiptType = signal('');
 
   protected readonly paymentsByExpense = computed(() => {
     const map = new Map<number, any[]>();
-    for (const exp of this.store.expenses()) {
-      const pList = (exp as any).payments ?? [];
-      for (const p of pList) {
-        if (p.status !== 'approved' && p.status !== 'awaiting') continue;
-        const list = map.get(exp.id) ?? [];
-        list.push(p);
-        map.set(exp.id, list);
+    for (const exp of this.allExpenses()) {
+      const splits = (exp as any).splitValues ?? [];
+      const paidSplits = splits.filter((sv: any) => sv.is_paid && sv.receipt_data);
+      if (paidSplits.length) {
+        map.set(exp.id, paidSplits);
       }
     }
     return map;
   });
 
   protected paymentAmount(expense: any, payment: any): number {
-    return expense.splitValues?.find((sv: any) => sv.name === payment.memberName)?.value ?? 0;
+    return payment.value ?? 0;
   }
 
   protected readonly selectedYear = signal(this.today.getFullYear());
   protected readonly selectedMonth = signal(this.today.getMonth());
 
-  private readonly allExpenses = computed(() => this.store.monthExpenses());
+  private readonly allExpenses = computed(() => this.store.normalizedMonthExpenses());
 
   private readonly minDate = computed(() => {
     const list = this.allExpenses();
