@@ -24,23 +24,24 @@ import {
   ],
   template: `
     <div class="rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10 hover:bg-card-hover transition">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex items-start gap-3 min-w-0 flex-1">
-          <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
-            @switch (expense.category) {
-              @case ('aluguel') { <svg lucideHouse class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @case ('energia') { <svg lucideZap class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @case ('internet') { <svg lucideWifi class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @case ('agua') { <svg lucideDroplets class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @case ('compras') { <svg lucideShoppingCart class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @case ('limpeza') { <svg lucideSparkles class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-              @default { <svg lucidePackage class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
-            }
-          </div>
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap">
+      <!-- Top row: icon + description + amount -->
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
+          @switch (expense.category) {
+            @case ('aluguel') { <svg lucideHouse class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @case ('energia') { <svg lucideZap class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @case ('internet') { <svg lucideWifi class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @case ('agua') { <svg lucideDroplets class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @case ('compras') { <svg lucideShoppingCart class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @case ('limpeza') { <svg lucideSparkles class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+            @default { <svg lucidePackage class="w-4.5 h-4.5 text-(--badge-purple)"></svg> }
+          }
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0 flex-1">
               <p class="text-primary font-semibold truncate text-sm">{{ expense.description }}</p>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 @if (expense.installmentGroup; as ig) {
                   <span class="text-[10px] font-medium badge-purple px-2 py-0.5 rounded-full">Parcela {{ ig.index }}/{{ ig.total }}</span>
                 }
@@ -49,67 +50,76 @@ import {
                 }
               </div>
             </div>
-            <p class="text-muted text-xs mt-0.5">{{ categoryLabel(expense.category) }} · {{ expense.competenceDate | date:'dd/MM/yyyy' }} · {{ expense.paidBy }} @if (expense.dueDate) { · Vence {{ expense.dueDate | date:'dd/MM/yyyy' }} }</p>
-            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
-              <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(expense.splitMode) }}</span>
-              @for (sv of expense.splitValues; track sv.name) {
-                @if (sv.is_paid) {
-                  <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    {{ sv.name }} R$ {{ fmt(sv.value) }}
-                  </span>
-                } @else if (isAdmin || sv.name === currentUser) {
-                  <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary rounded-full overflow-hidden">
-                    <span class="flex items-center gap-1 pl-2 py-0.5">
-                      <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                      {{ sv.name }} R$ {{ fmt(sv.value) }}
-                    </span>
-                    <button (click)="pay.emit({ expense, split: sv })"
-                      class="px-2 py-0.5 font-semibold bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
-                      Pagar
-                    </button>
-                  </span>
-                } @else {
-                  <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-                    {{ sv.name }} R$ {{ fmt(sv.value) }}
-                  </span>
-                }
-              }
-            </div>
+            <span class="text-primary font-bold text-base shrink-0">R$ {{ fmt(expense.amount) }}</span>
           </div>
         </div>
-        <div class="flex items-start gap-2 shrink-0">
-          <div class="flex flex-col items-end gap-1">
-            <span class="text-primary font-bold text-base">R$ {{ fmt(expense.amount) }}</span>
+      </div>
+
+      <!-- Meta line -->
+      <p class="text-muted text-xs mt-1.5">{{ categoryLabel(expense.category) }} · {{ expense.competenceDate | date:'dd/MM/yyyy' }} · {{ expense.paidBy }} @if (expense.dueDate) { · Vence {{ expense.dueDate | date:'dd/MM/yyyy' }} }</p>
+
+      <!-- Split chips -->
+      <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+        <span class="text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">{{ splitModeLabel(expense.splitMode) }}</span>
+        @for (sv of expense.splitValues; track sv.name) {
+          @if (sv.is_paid) {
+            <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              {{ sv.name }} R$ {{ fmt(sv.value) }}
+            </span>
+          } @else if (isAdmin || sv.name === currentUser) {
+            <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary rounded-full overflow-hidden">
+              <span class="flex items-center gap-1 pl-2 py-0.5">
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                {{ sv.name }} R$ {{ fmt(sv.value) }}
+              </span>
+              <button (click)="pay.emit({ expense, split: sv })"
+                class="px-2 py-1 font-semibold bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                Pagar
+              </button>
+            </span>
+          } @else {
+            <span class="flex items-center gap-1 text-[11px] bg-card-strong text-secondary px-2 py-0.5 rounded-full">
+              <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+              {{ sv.name }} R$ {{ fmt(sv.value) }}
+            </span>
+          }
+        }
+      </div>
+
+      <!-- Footer: status + actions -->
+      @if (totalPaid > 0 || currentUserSplit || !expense.splitValues?.length || ((expense.paidBy === currentUser || expense.createdBy === currentUser || isAdmin) && !hasPaidSplits)) {
+        <div class="flex items-center justify-between mt-2 pt-2 border-t border-theme/50 gap-2">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
             @if (totalPaid > 0) {
-              <span class="text-[11px] text-secondary whitespace-nowrap">Pago: R$ {{ fmt(totalPaid) }} · Restante: R$ {{ fmt(remaining) }}</span>
+              <span class="text-secondary">Pago: R$ {{ fmt(totalPaid) }}</span>
+              <span class="text-secondary">Restante: R$ {{ fmt(remaining) }}</span>
             }
             @if (currentUserSplit; as sv) {
-              <span class="text-[11px] text-secondary whitespace-nowrap">Sua parte: R$ {{ fmt(sv.value) }}</span>
+              <span class="text-secondary">Sua parte: R$ {{ fmt(sv.value) }}</span>
               @if (sv.is_paid) {
-                <span class="text-[11px] text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg whitespace-nowrap"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
+                <span class="text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
               } @else {
                 <button (click)="pay.emit({ expense, split: sv })"
-                  class="px-3 py-1 text-[11px] font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                  class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
                   Pagar
                 </button>
               }
             } @else if (!expense.splitValues?.length) {
               <button (click)="pay.emit({ expense, split: null })"
-                class="px-3 py-1 text-[11px] font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
                 Pagar
               </button>
             }
           </div>
           @if ((expense.paidBy === currentUser || expense.createdBy === currentUser || isAdmin) && !hasPaidSplits) {
-            <div class="flex flex-col gap-1 pt-0.5">
-              <button (click)="edit.emit(expense)" aria-label="Editar despesa" class="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
-              <button (click)="delete.emit(expense)" aria-label="Excluir despesa" class="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-rose-400 hover:bg-rose-500/15 transition cursor-pointer"><svg lucideTrash2 class="w-3.5 h-3.5"></svg></button>
+            <div class="flex items-center gap-1 shrink-0">
+              <button (click)="edit.emit(expense)" aria-label="Editar despesa" class="w-9 h-9 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
+              <button (click)="delete.emit(expense)" aria-label="Excluir despesa" class="w-9 h-9 flex items-center justify-center rounded-lg text-muted hover:text-rose-400 hover:bg-rose-500/15 transition cursor-pointer"><svg lucideTrash2 class="w-3.5 h-3.5"></svg></button>
             </div>
           }
         </div>
-      </div>
+      }
     </div>
   `,
 })

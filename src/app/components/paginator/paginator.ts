@@ -5,26 +5,26 @@ import { LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
   selector: 'app-paginator',
   imports: [LucideChevronLeft, LucideChevronRight],
   template: `
-    <div class="flex items-center justify-center gap-1 mt-auto px-4 py-3 border-t border-theme">
+    <div class="flex items-center justify-center gap-1 mt-auto px-4 py-3 border-t border-theme overflow-x-auto">
       @if (totalPages > 1) {
         <button (click)="goTo(currentPage - 1)"
           [class.opacity-30]="currentPage === 1"
           [disabled]="currentPage === 1"
-          class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
+          class="text-secondary hover:text-primary transition px-2 py-1.5 sm:py-1 text-sm disabled:cursor-default">
           <svg lucideChevronLeft class="w-4 h-4"></svg>
         </button>
         @for (page of visiblePages; track page) {
           <button (click)="goTo(page)"
             [class]="page === currentPage
-              ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1 text-sm'
-              : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1 text-sm'">
+              ? 'bg-white text-purple-dark font-semibold rounded-lg px-3 py-1.5 sm:py-1 text-sm'
+              : 'text-secondary hover:text-primary transition rounded-lg px-3 py-1.5 sm:py-1 text-sm'">
             {{ page }}
           </button>
         }
         <button (click)="goTo(currentPage + 1)"
           [class.opacity-30]="currentPage === totalPages"
           [disabled]="currentPage === totalPages"
-          class="text-secondary hover:text-primary transition px-2 py-1 text-sm disabled:cursor-default">
+          class="text-secondary hover:text-primary transition px-2 py-1.5 sm:py-1 text-sm disabled:cursor-default">
           <svg lucideChevronRight class="w-4 h-4"></svg>
         </button>
       }

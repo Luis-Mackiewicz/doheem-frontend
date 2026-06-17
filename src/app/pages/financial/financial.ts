@@ -38,10 +38,10 @@ import {
     LucideSparkles, LucidePackage, LucideImage, LucideDownload,
   ],
   template: `
-    <div class="flex flex-col gap-8 h-full transition-colors duration-150">
+    <div class="flex flex-col gap-6 sm:gap-8 h-full transition-colors duration-150">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 class="text-3xl font-bold text-primary tracking-tight">Financeiro</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold text-primary tracking-tight">Financeiro</h1>
           <p class="text-muted text-sm mt-0.5">{{ monthLabel() }}</p>
         </div>
         <div class="flex items-center gap-2">
@@ -88,7 +88,7 @@ import {
               </div>
               <div>
                 <p class="text-muted text-xs font-medium">Total exibido (página {{ currentPage() }})</p>
-                <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
+                <p class="text-xl sm:text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
               </div>
             </div>
             <span class="text-muted text-xs bg-card-strong rounded-lg px-2.5 py-1">{{ expenses().length }} de {{ store.expensesTotal() }} despesa{{ store.expensesTotal() !== 1 ? 's' : '' }}</span>
@@ -137,7 +137,7 @@ import {
               [expense]="e"
               [currentUser]="CURRENT_USER()"
               [isAdmin]="isAdmin()"
-              [categories]="categories"
+              [categories]="categories()"
               (pay)="openPayModal($event)"
               (edit)="openEdit($event)"
               (delete)="confirmDelete($event)">
@@ -160,7 +160,7 @@ import {
       [open]="showModal()"
       [membersLoading]="store.membersLoading()"
       [editingExpense]="editingExpense()"
-      [categories]="categories"
+      [categories]="categories()"
       [members]="members()"
       [splitOptions]="splitOptions"
       [today]="today"

@@ -169,7 +169,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                   <div class="flex bg-card-strong rounded-xl p-1 gap-1">
                     @for (opt of splitOptions; track opt.value) {
                       <button type="button" (click)="setSplitMode(opt.value)"
-                        class="flex-1 text-xs py-2 rounded-lg transition font-medium cursor-pointer"
+                        class="flex-1 text-xs py-2.5 rounded-lg transition font-medium cursor-pointer"
                         [class.bg-white/65]="form.splitMode === opt.value"
                         [class.text-purple-dark]="form.splitMode === opt.value"
                         [class.text-secondary]="form.splitMode !== opt.value">
