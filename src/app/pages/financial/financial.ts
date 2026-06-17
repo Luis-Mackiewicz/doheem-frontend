@@ -80,46 +80,73 @@ import {
 
       <!-- Total + Category summary -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2 rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
-                <svg lucideDollarSign class="w-5 h-5 text-(--badge-purple)"></svg>
-              </div>
-              <div>
-                <p class="text-muted text-xs font-medium">Total exibido (página {{ currentPage() }})</p>
-                <p class="text-xl sm:text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
+        @if (store.expensesLoading()) {
+          <div class="md:col-span-2 rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
+            <div class="animate-pulse flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-card-strong shrink-0"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-card-strong rounded w-32"></div>
+                <div class="h-6 bg-card-strong rounded w-40"></div>
               </div>
             </div>
-            <span class="text-muted text-xs bg-card-strong rounded-lg px-2.5 py-1">{{ expenses().length }} de {{ store.expensesTotal() }} despesa{{ store.expensesTotal() !== 1 ? 's' : '' }}</span>
           </div>
-        </div>
-
-        <div class="rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
-          <p class="text-xs text-secondary font-medium mb-3 flex items-center gap-1.5">
-            <svg lucidePackage class="w-3.5 h-3.5"></svg>
-            Por categoria
-          </p>
-          <div class="flex flex-col gap-2">
-            @for (cat of categoryTotals(); track cat.value) {
-              <div class="flex items-center justify-between">
-                <span class="text-xs text-secondary flex items-center gap-1.5">
-                  @switch (cat.value) {
-                    @case ('aluguel') { <svg lucideHouse class="w-3.5 h-3.5"></svg> }
-                    @case ('energia') { <svg lucideZap class="w-3.5 h-3.5"></svg> }
-                    @case ('internet') { <svg lucideWifi class="w-3.5 h-3.5"></svg> }
-                    @case ('agua') { <svg lucideDroplets class="w-3.5 h-3.5"></svg> }
-                    @case ('compras') { <svg lucideShoppingCart class="w-3.5 h-3.5"></svg> }
-                    @case ('limpeza') { <svg lucideSparkles class="w-3.5 h-3.5"></svg> }
-                    @default { <svg lucidePackage class="w-3.5 h-3.5"></svg> }
-                  }
-                  {{ cat.label }}
-                </span>
-                <span class="text-xs text-primary font-semibold">R$ {{ fmt(cat.amount) }}</span>
+          <div class="rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
+            <div class="animate-pulse space-y-3">
+              <div class="h-3 bg-card-strong rounded w-24"></div>
+              <div class="h-3 bg-card-strong rounded w-full"></div>
+              <div class="h-3 bg-card-strong rounded w-3/4"></div>
+              <div class="h-3 bg-card-strong rounded w-1/2"></div>
+            </div>
+          </div>
+        } @else {
+          <div class="md:col-span-2 rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
+                  <svg lucideDollarSign class="w-5 h-5 text-(--badge-purple)" aria-label="Total de despesas"></svg>
+                </div>
+                <div>
+                  <p class="text-muted text-xs font-medium">Total exibido (página {{ currentPage() }})</p>
+                  <p class="text-xl sm:text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
+                </div>
               </div>
-            }
+              <span class="text-muted text-xs bg-card-strong rounded-lg px-2.5 py-1">{{ expenses().length }} de {{ store.expensesTotal() }} despesa{{ store.expensesTotal() !== 1 ? 's' : '' }}</span>
+            </div>
           </div>
-        </div>
+
+          <div class="rounded-2xl bg-card border border-theme p-4 shadow-lg shadow-black/10">
+            <p class="text-xs text-secondary font-medium mb-3 flex items-center gap-1.5">
+              <svg lucidePackage class="w-3.5 h-3.5" aria-label="Categorias"></svg>
+              Por categoria
+            </p>
+            <div class="flex flex-col gap-2.5">
+              @let maxCat = (categoryTotals().length > 0 ? categoryTotals()[0].amount : 1);
+              @for (cat of categoryTotals(); track cat.value) {
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-secondary flex items-center gap-1.5">
+                      @switch (cat.value) {
+                        @case ('aluguel') { <svg lucideHouse class="w-3.5 h-3.5"></svg> }
+                        @case ('energia') { <svg lucideZap class="w-3.5 h-3.5"></svg> }
+                        @case ('internet') { <svg lucideWifi class="w-3.5 h-3.5"></svg> }
+                        @case ('agua') { <svg lucideDroplets class="w-3.5 h-3.5"></svg> }
+                        @case ('compras') { <svg lucideShoppingCart class="w-3.5 h-3.5"></svg> }
+                        @case ('limpeza') { <svg lucideSparkles class="w-3.5 h-3.5"></svg> }
+                        @default { <svg lucidePackage class="w-3.5 h-3.5"></svg> }
+                      }
+                      {{ cat.label }}
+                    </span>
+                    <span class="text-xs text-primary font-semibold">R$ {{ fmt(cat.amount) }}</span>
+                  </div>
+                  <div class="w-full h-1.5 rounded-full bg-card-strong overflow-hidden">
+                    <div class="h-full rounded-full bg-gradient-to-r from-purple-dark to-purple-medium transition-all duration-300"
+                      [style.width.%]="(cat.amount / maxCat) * 100"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
 
       <app-search placeholder="Pesquisar por descrição, categoria ou responsável..." (searchChange)="onSearch($event)" />
@@ -163,13 +190,14 @@ import {
       [categories]="categories()"
       [members]="members()"
       [splitOptions]="splitOptions"
+      [saving]="formSaving()"
       [today]="today"
       (save)="onSaveExpense($event)"
       (cancel)="closeModal()">
     </app-expense-form>
 
     <!-- Delete confirmation -->
-    <app-delete-confirm [deleting]="deleting()" (confirm)="deleteExpense()" (cancel)="cancelDelete()" />
+    <app-delete-confirm [deleting]="deleting()" [saving]="deleteSaving()" (confirm)="deleteExpense()" (cancel)="cancelDelete()" />
 
     <!-- Payment modal -->
     @if (payingExpense(); as exp) {
@@ -178,6 +206,7 @@ import {
         [currentUser]="CURRENT_USER()"
         [payingSplit]="payingSplit()"
         [payReceiptBase64]="payReceiptBase64()"
+        [saving]="paySaving()"
         (confirm)="confirmPay()"
         (cancel)="closePayModal()"
         (receiptSelected)="onReceiptSelected($event)">
@@ -268,6 +297,9 @@ export class FinancialPage {
   protected filterPeriod = signal<'all' | 'month'>('month');
   protected filterMyExpenses = signal(false);
   protected toastMessage = signal('');
+  protected formSaving = signal(false);
+  protected paySaving = signal(false);
+  protected deleteSaving = signal(false);
   protected toastIsError = signal(false);
   private toastTimeout: any;
   readonly pageSize = 10;
@@ -392,6 +424,7 @@ export class FinancialPage {
       body.receipt_file_name = this.payReceiptFileName() || 'comprovante';
     }
 
+    this.paySaving.set(true);
     this.http.patch(`${environment.apiUrl}/expenses/splits/${split.id}/pay`, body).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
@@ -400,7 +433,10 @@ export class FinancialPage {
         this.closePayModal();
         this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
-      error: () => this.showToast('Erro ao registrar pagamento', true),
+      error: () => {
+        this.paySaving.set(false);
+        this.showToast('Erro ao registrar pagamento', true);
+      },
     });
   }
 
@@ -415,16 +451,19 @@ export class FinancialPage {
   }
 
   openCreate(): void {
+    this.formSaving.set(false);
     this.editingExpense.set(null);
     this.showModal.set(true);
   }
 
   openEdit(e: any): void {
+    this.formSaving.set(false);
     this.editingExpense.set(e);
     this.showModal.set(true);
   }
 
   closeModal(): void {
+    this.formSaving.set(false);
     this.showModal.set(false);
     this.editingExpense.set(null);
   }
@@ -456,6 +495,7 @@ export class FinancialPage {
         }));
       }
 
+      this.formSaving.set(true);
       this.http.put(`${environment.apiUrl}/expenses/${expense.id}`, updateData).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe({
@@ -465,12 +505,13 @@ export class FinancialPage {
           this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
         },
         error: (err: any) => {
+          this.formSaving.set(false);
           if (err.status === 403) {
             this.showToast('Você não tem permissão para editar esta despesa');
           } else if (err.status === 409) {
             this.showToast('Não é possível editar uma despesa com pagamentos já realizados');
           } else {
-            const msg = err?.error?.message || 'Erro ao atualizar despesa';
+            const msg = err?.error?.message || 'Erro ao editar despesa';
             this.showToast(msg, true);
           }
         },
@@ -511,6 +552,7 @@ export class FinancialPage {
       createData['splits'] = splits;
     }
 
+    this.formSaving.set(true);
     this.http.post(`${environment.apiUrl}/groups/${this.groupId}/expenses`, createData).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
@@ -528,6 +570,7 @@ export class FinancialPage {
         this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: (err: any) => {
+        this.formSaving.set(false);
         const msg = err?.error?.message || 'Erro ao criar despesa';
         this.showToast(msg, true);
       },
@@ -539,12 +582,14 @@ export class FinancialPage {
   }
 
   cancelDelete(): void {
+    this.deleteSaving.set(false);
     this.deleting.set(null);
   }
 
   deleteExpense(): void {
     const target = this.deleting();
     if (!target) return;
+    this.deleteSaving.set(true);
     this.http.delete(`${environment.apiUrl}/expenses/${target.id}`).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
@@ -554,6 +599,7 @@ export class FinancialPage {
         this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: (err: any) => {
+        this.deleteSaving.set(false);
         if (err.status === 403) {
           this.showToast('Você não tem permissão para excluir esta despesa', true);
         } else if (err.status === 409) {
@@ -561,7 +607,6 @@ export class FinancialPage {
         } else {
           this.showToast('Erro ao excluir despesa', true);
         }
-        this.deleting.set(null);
       },
     });
   }

@@ -32,38 +32,68 @@ import {
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-primary">{{ groupName() }}</h1>
         <button (click)="showInviteModal.set(true)"
-          class="inline-flex items-center gap-2 border border-theme text-primary font-semibold rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer px-4 py-2 text-sm">
+          class="inline-flex items-center gap-2 border border-theme text-primary font-semibold rounded-xl hover-bg transition backdrop-blur-sm cursor-pointer px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60">
           <svg lucideShare2 class="w-4 h-4"></svg>
           Convidar
         </button>
       </div>
 
+      @if (store.groupLoading()) {
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          @for (i of [1,2,3,4]; track i) {
+            <div class="rounded-2xl bg-card border border-theme p-5 animate-pulse">
+              <div class="h-4 bg-card-strong rounded w-24 mb-3"></div>
+              <div class="h-7 bg-card-strong rounded w-32"></div>
+            </div>
+          }
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-2xl bg-card border border-theme p-5 animate-pulse">
+            <div class="h-5 bg-card-strong rounded w-40 mb-4"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-card-strong rounded w-full"></div>
+              <div class="h-4 bg-card-strong rounded w-3/4"></div>
+              <div class="h-4 bg-card-strong rounded w-1/2"></div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4">
+            <div class="rounded-2xl bg-card border border-theme p-5 animate-pulse">
+              <div class="h-5 bg-card-strong rounded w-36 mb-4"></div>
+              <div class="h-4 bg-card-strong rounded w-full"></div>
+            </div>
+            <div class="rounded-2xl bg-card border border-theme p-5 animate-pulse">
+              <div class="h-5 bg-card-strong rounded w-36 mb-4"></div>
+              <div class="h-4 bg-card-strong rounded w-full"></div>
+            </div>
+          </div>
+        </div>
+      } @else {
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideArrowDown class="w-4 h-4 text-rose-400"></svg>
+            <svg lucideArrowDown class="w-4 h-4 text-rose-400" aria-label="Você deve"></svg>
             <p class="text-secondary text-sm font-medium">Você deve</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(youOwe()) }}</p>
         </div>
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideArrowUp class="w-4 h-4 text-emerald-400"></svg>
+            <svg lucideArrowUp class="w-4 h-4 text-emerald-400" aria-label="Você tem a receber"></svg>
             <p class="text-secondary text-sm font-medium">Você tem a receber</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(youReceive()) }}</p>
         </div>
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideWallet class="w-4 h-4 text-(--badge-purple)"></svg>
+            <svg lucideWallet class="w-4 h-4 text-(--badge-purple)" aria-label="Dívida total do grupo"></svg>
             <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalDebt()) }}</p>
           <p class="text-muted text-xs mt-1">Em aberto</p>
         </div>
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5">
           <div class="flex items-center gap-2 mb-2">
-            <svg lucideDollarSign class="w-4 h-4 text-(--badge-purple)"></svg>
+            <svg lucideDollarSign class="w-4 h-4 text-(--badge-purple)" aria-label="Total do mês"></svg>
             <p class="text-secondary text-sm font-medium">Total do mês</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(totalMonthExpenses()) }}</p>
@@ -74,12 +104,34 @@ import {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <a [routerLink]="['/groups', groupId, 'balances']"
            aria-label="Ver saldo dos moradores"
-           class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
+           class="block rounded-2xl bg-card border border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
           <div class="flex items-center gap-2 mb-4">
-            <svg lucideUsers class="w-5 h-5 text-(--badge-purple)"></svg>
+            <svg lucideUsers class="w-5 h-5 text-(--badge-purple)" aria-label="Moradores"></svg>
             <h2 class="text-primary font-semibold">Saldo dos Moradores</h2>
           </div>
-          <div class="overflow-x-auto">
+          <!-- Mobile: list -->
+          <div class="flex flex-col gap-2 md:hidden">
+            @for (r of residents(); track r.name) {
+              <div class="flex items-center justify-between py-2 border-b border-soft last:border-b-0">
+                <span class="text-primary text-sm font-medium">{{ r.name }}</span>
+                <div class="text-right text-xs">
+                  @if (r.owes > 0) {
+                    <span class="text-rose-400 block">Deve: R$ {{ fmt(r.owes) }}</span>
+                  }
+                  @if (r.toReceive > 0) {
+                    <span class="text-emerald-400 block">A receber: R$ {{ fmt(r.toReceive) }}</span>
+                  }
+                  @if (r.owes === 0 && r.toReceive === 0) {
+                    <span class="text-muted">Em dia</span>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <p class="text-muted text-sm text-center py-6">Nenhum morador</p>
+            }
+          </div>
+          <!-- Desktop: table -->
+          <div class="overflow-x-auto hidden md:block">
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-muted border-b border-theme">
@@ -120,9 +172,9 @@ import {
         <div class="flex flex-col gap-4">
           <a [routerLink]="['/groups', groupId, 'tasks']"
              aria-label="Ver tarefas pendentes"
-             class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
+             class="block rounded-2xl bg-card border border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
-              <svg lucideClipboardList class="w-5 h-5 text-(--badge-purple)"></svg>
+              <svg lucideClipboardList class="w-5 h-5 text-(--badge-purple)" aria-label="Tarefas"></svg>
               <h2 class="text-primary font-semibold">Tarefas a Fazer</h2>
             </div>
             <div class="flex flex-col gap-2">
@@ -141,9 +193,9 @@ import {
 
           <a [routerLink]="['/groups', groupId, 'financial']"
              aria-label="Ver despesas recentes"
-             class="block rounded-2xl bg-card border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
+             class="block rounded-2xl bg-card border border-theme p-5 cursor-pointer hover:scale-105 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-purple-400/60 outline-none">
             <div class="flex items-center gap-2 mb-4">
-              <svg lucideReceipt class="w-5 h-5 text-(--badge-purple)"></svg>
+              <svg lucideReceipt class="w-5 h-5 text-(--badge-purple)" aria-label="Despesas"></svg>
               <h2 class="text-primary font-semibold">Despesas Recentes</h2>
             </div>
             <div class="flex flex-col gap-2">
@@ -162,6 +214,7 @@ import {
           </a>
         </div>
       </div>
+      }
     </div>
 
     @if (showInviteModal()) {

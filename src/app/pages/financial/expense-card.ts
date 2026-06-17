@@ -74,7 +74,7 @@ import {
                 {{ sv.name }} R$ {{ fmt(sv.value) }}
               </span>
               <button (click)="pay.emit({ expense, split: sv })"
-                class="px-2 py-1 font-semibold bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                class="px-3 min-h-[36px] text-xs font-semibold bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60 focus-visible:ring-inset">
                 Pagar
               </button>
             </span>
@@ -100,22 +100,22 @@ import {
               @if (sv.is_paid) {
                 <span class="text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg"><svg lucideCircleCheck class="w-3 h-3"></svg> Pago</span>
               } @else {
-                <button (click)="pay.emit({ expense, split: sv })"
-                  class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+              <button (click)="pay.emit({ expense, split: sv })"
+                class="px-4 py-2 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60">
                   Pagar
                 </button>
               }
             } @else if (!expense.splitValues?.length) {
               <button (click)="pay.emit({ expense, split: null })"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap">
+                class="px-4 py-2 text-xs font-semibold rounded-lg bg-purple-500/15 text-(--badge-purple) hover:bg-purple-500/25 hover:text-purple-200 transition-all cursor-pointer whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60">
                 Pagar
               </button>
             }
           </div>
           @if ((expense.paidBy === currentUser || expense.createdBy === currentUser || isAdmin) && !hasPaidSplits) {
             <div class="flex items-center gap-1 shrink-0">
-              <button (click)="edit.emit(expense)" aria-label="Editar despesa" class="w-9 h-9 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer"><svg lucidePen class="w-3.5 h-3.5"></svg></button>
-              <button (click)="delete.emit(expense)" aria-label="Excluir despesa" class="w-9 h-9 flex items-center justify-center rounded-lg text-muted hover:text-rose-400 hover:bg-rose-500/15 transition cursor-pointer"><svg lucideTrash2 class="w-3.5 h-3.5"></svg></button>
+              <button (click)="edit.emit(expense)" aria-label="Editar despesa" class="w-10 h-10 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60"><svg lucidePen class="w-4 h-4"></svg></button>
+              <button (click)="delete.emit(expense)" aria-label="Excluir despesa" class="w-10 h-10 flex items-center justify-center rounded-lg text-muted hover:text-rose-400 hover:bg-rose-500/15 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60"><svg lucideTrash2 class="w-4 h-4"></svg></button>
             </div>
           }
         </div>

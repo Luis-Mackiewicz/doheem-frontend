@@ -19,12 +19,12 @@ type SplitMode = 'equal' | 'some' | 'custom';
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="cancel.emit()">
       <div (click)="$event.stopPropagation()" class="w-full max-w-lg max-h-[90vh] flex flex-col">
         <div class="rounded-2xl bg-card border border-theme shadow-2xl flex flex-col overflow-hidden">
-          <div class="flex items-center justify-between px-6 pt-6 pb-0 shrink-0">
+          <div class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-0 shrink-0">
             <h2 class="text-primary font-bold text-lg">{{ editingExpense ? 'Editar despesa' : 'Nova despesa' }}</h2>
-            <button (click)="cancel.emit()" aria-label="Fechar" class="text-muted hover:text-primary transition cursor-pointer"><svg lucideX class="w-5 h-5"></svg></button>
+            <button (click)="cancel.emit()" aria-label="Fechar" class="w-10 h-10 flex items-center justify-center rounded-lg text-muted hover:text-primary hover-bg transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/60"><svg lucideX class="w-5 h-5"></svg></button>
           </div>
 
-          <div class="flex flex-col gap-4 overflow-y-auto p-6">
+          <div class="flex flex-col gap-4 overflow-y-auto p-4 sm:p-6">
             @if (submitted() && submittedGeneralError()) {
               <div class="bg-rose-500/15 border border-rose-500/30 text-rose-400 text-sm font-medium rounded-xl px-4 py-3">
                 {{ submittedGeneralError() }}
@@ -33,7 +33,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Descrição
               <input type="text" placeholder="Ex: Conta de luz" [(ngModel)]="form.description"
-                class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full" />
+                class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full" />
               @if (submitted() && !form.description.trim()) {
                 <span class="text-rose-400 text-xs mt-1">A descrição é obrigatória</span>
               }
@@ -51,7 +51,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
               <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Categoria
                 <select [(ngModel)]="form.category"
-                  class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
+                  class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full appearance-none cursor-pointer">
                   <option value="" disabled class="bg-page text-muted">Selecione...</option>
                   @for (c of categories; track c.value) {
                     <option [value]="c.value" class="bg-page text-primary">{{ c.label }}</option>
@@ -67,7 +67,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
               <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                 Data de competência
                 <input type="date" [(ngModel)]="form.competenceDate"
-                  class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
+                  class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full scheme-dark" />
                 @if (submitted() && !form.competenceDate) {
                   <span class="text-rose-400 text-xs mt-1">A data de competência é obrigatória</span>
                 }
@@ -76,7 +76,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Data de vencimento
                   <input type="date" [min]="today" [(ngModel)]="form.dueDate"
-                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full scheme-dark" />
                   @if (submitted() && !form.dueDate) {
                     <span class="text-rose-400 text-xs mt-1">A data de vencimento é obrigatória</span>
                   } @else if (submitted() && form.dueDate && form.dueDate < today) {
@@ -99,7 +99,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                 <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
                   Vencimento da 1ª parcela
                   <input type="date" [min]="today" [(ngModel)]="form.firstDueDate"
-                    class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full scheme-dark" />
+                    class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full scheme-dark" />
                   @if (submitted() && !form.firstDueDate) {
                     <span class="text-rose-400 text-xs mt-1">O vencimento da 1ª parcela é obrigatório</span>
                   } @else if (submitted() && form.firstDueDate && form.firstDueDate < today) {
@@ -116,7 +116,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
             <label class="flex flex-col gap-1.5 text-sm font-medium text-secondary">
               Pago por
               <select [(ngModel)]="form.paidBy"
-                class="bg-input border border-theme rounded-xl px-4 py-3 text-primary outline-none focus:border-purple-400/60 transition w-full appearance-none cursor-pointer">
+                class="bg-input border border-theme rounded-xl px-4 py-3.5 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-full appearance-none cursor-pointer">
                  <option value="" disabled class="bg-page text-muted">Selecione...</option>
                  @for (m of members; track m) {
                    <option [value]="m" class="bg-page text-primary">{{ m }}</option>
@@ -256,7 +256,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
                             }
                           </div>
                           <input type="number" step="0.01" min="0" placeholder="0,00" [ngModel]="form.splitCustom[m]" (ngModelChange)="onCustomChange(m, $event)"
-                            class="bg-input border border-theme rounded-lg px-2 py-1.5 text-primary outline-none focus:border-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                            class="bg-input border border-theme rounded-lg px-2 py-2 text-primary outline-none focus:border-purple-400/60 focus-visible:ring-2 focus-visible:ring-purple-400/60 transition w-24 shrink-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                         </div>
                       }
                     </div>
@@ -266,9 +266,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
             }
           </div>
 
-          <div class="flex gap-3 px-6 pb-6 pt-4 shrink-0 border-t border-theme justify-end">
+          <div class="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6 pt-4 shrink-0 border-t border-theme justify-end">
             <app-button type="button" variant="outline" label="Cancelar" (click)="cancel.emit()"></app-button>
-            <app-button type="button" variant="solid" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
+            <app-button type="button" variant="solid" [loading]="saving()" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
           </div>
         </div>
       </div>
@@ -283,6 +283,7 @@ export class ExpenseFormComponent implements OnChanges {
   @Input() today = '';
   @Input() open = false;
   @Input() membersLoading = false;
+  @Input() saving = false;
 
   private store = inject(GroupStoreService);
   private readonly membersSig = signal<string[]>([]);
