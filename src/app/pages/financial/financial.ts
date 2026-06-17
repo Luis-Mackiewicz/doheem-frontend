@@ -87,11 +87,11 @@ import {
                 <svg lucideDollarSign class="w-5 h-5 text-(--badge-purple)"></svg>
               </div>
               <div>
-                <p class="text-muted text-xs font-medium">Total {{ filterPeriod() === 'month' ? 'do mês' : 'geral' }}</p>
+                <p class="text-muted text-xs font-medium">Total exibido (página {{ currentPage() }})</p>
                 <p class="text-2xl font-bold text-primary tracking-tight">R$ {{ fmt(totalAmount()) }}</p>
               </div>
             </div>
-            <span class="text-muted text-xs bg-card-strong rounded-lg px-2.5 py-1">{{ expenses().length }} despesa{{ expenses().length !== 1 ? 's' : '' }}</span>
+            <span class="text-muted text-xs bg-card-strong rounded-lg px-2.5 py-1">{{ expenses().length }} de {{ store.expensesTotal() }} despesa{{ store.expensesTotal() !== 1 ? 's' : '' }}</span>
           </div>
         </div>
 
@@ -210,7 +210,9 @@ import {
 
     <!-- Toast -->
     @if (toastMessage(); as msg) {
-      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl text-sm font-medium animate-fade-in-up pointer-events-none">
+      <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-2xl text-sm font-medium animate-fade-in-up pointer-events-none"
+        [class.bg-emerald-600]="!toastIsError()"
+        [class.bg-rose-600]="toastIsError()">
         {{ msg }}
       </div>
     }
@@ -226,7 +228,7 @@ export class FinancialPage {
   protected groupId: string;
 
   protected readonly members = computed(() => this.store.memberNames());
-  protected readonly categories = this.store.categories;
+  protected readonly categories = computed(() => this.store.categories());
   protected readonly today = new Date().toISOString().slice(0, 10);
   protected readonly expenses = computed(() => this.store.normalizedExpenses());
   protected readonly splitOptions = [
@@ -266,6 +268,8 @@ export class FinancialPage {
   protected filterPeriod = signal<'all' | 'month'>('month');
   protected filterMyExpenses = signal(false);
   protected toastMessage = signal('');
+  protected toastIsError = signal(false);
+  private toastTimeout: any;
   readonly pageSize = 10;
   readonly currentPage = signal(1);
 
@@ -282,7 +286,8 @@ export class FinancialPage {
     for (const e of this.expenses()) {
       map.set(e.category, (map.get(e.category) ?? 0) + (e.amount ?? 0));
     }
-    return this.categories
+    const cats = this.categories();
+    return cats
       .filter(c => (map.get(c.value) ?? 0) > 0)
       .map(c => ({ label: c.label, value: c.value, amount: map.get(c.value) ?? 0 }))
       .sort((a, b) => b.amount - a.amount);
@@ -309,9 +314,11 @@ export class FinancialPage {
     });
   }
 
-  private showToast(msg: string): void {
+  private showToast(msg: string, isError = false): void {
+    clearTimeout(this.toastTimeout);
     this.toastMessage.set(msg);
-    setTimeout(() => this.toastMessage.set(''), 3000);
+    this.toastIsError.set(isError);
+    this.toastTimeout = setTimeout(() => this.toastMessage.set(''), 3000);
   }
 
   private refreshCurrentPage(page: number, search: string, period: string, myExps: boolean): void {
@@ -325,7 +332,7 @@ export class FinancialPage {
   }
 
   categoryLabel(value: string): string {
-    return this.store.categories.find(c => c.value === value)?.label ?? value;
+    return this.store.categories().find(c => c.value === value)?.label ?? value;
   }
 
   setPeriod(period: 'all' | 'month'): void {
@@ -393,7 +400,7 @@ export class FinancialPage {
         this.closePayModal();
         this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
-      error: () => this.showToast('Erro ao registrar pagamento'),
+      error: () => this.showToast('Erro ao registrar pagamento', true),
     });
   }
 
@@ -439,6 +446,15 @@ export class FinancialPage {
       updateData['split_mode'] = expense.splitMode;
       const categoryId = this.store.slugToCategoryId()[expense.category];
       if (categoryId) updateData['category_id'] = categoryId;
+      if (expense.splitMode === 'some') {
+        updateData['selected_user_ids'] = (expense.selectedMembers ?? []).map((name: string) => nameToId.get(name) ?? name);
+      }
+      if (expense.splitMode === 'custom' && expense.splitValues?.length) {
+        updateData['splits'] = expense.splitValues.map((sv: any) => ({
+          user_id: nameToId.get(sv.name) ?? sv.name,
+          amount: sv.value,
+        }));
+      }
 
       this.http.put(`${environment.apiUrl}/expenses/${expense.id}`, updateData).pipe(
         takeUntilDestroyed(this.destroyRef),
@@ -454,7 +470,8 @@ export class FinancialPage {
           } else if (err.status === 409) {
             this.showToast('Não é possível editar uma despesa com pagamentos já realizados');
           } else {
-            this.showToast('Erro ao atualizar despesa');
+            const msg = err?.error?.message || 'Erro ao atualizar despesa';
+            this.showToast(msg, true);
           }
         },
       });
@@ -512,7 +529,7 @@ export class FinancialPage {
       },
       error: (err: any) => {
         const msg = err?.error?.message || 'Erro ao criar despesa';
-        this.showToast(msg);
+        this.showToast(msg, true);
       },
     });
   }
@@ -538,11 +555,11 @@ export class FinancialPage {
       },
       error: (err: any) => {
         if (err.status === 403) {
-          this.showToast('Você não tem permissão para excluir esta despesa');
+          this.showToast('Você não tem permissão para excluir esta despesa', true);
         } else if (err.status === 409) {
-          this.showToast('Não é possível excluir despesa com splits já pagos');
+          this.showToast('Não é possível excluir despesa com splits já pagos', true);
         } else {
-          this.showToast('Erro ao excluir despesa');
+          this.showToast('Erro ao excluir despesa', true);
         }
         this.deleting.set(null);
       },

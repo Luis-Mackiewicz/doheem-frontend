@@ -300,7 +300,7 @@ export class HistoricalPage {
   }
 
   categoryLabel(value: string): string {
-    return this.store.categories.find(c => c.value === value)?.label ?? value;
+    return this.store.categories().find(c => c.value === value)?.label ?? value;
   }
 
   splitModeLabel(mode: string): string {

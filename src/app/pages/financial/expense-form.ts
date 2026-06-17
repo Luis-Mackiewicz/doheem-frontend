@@ -130,14 +130,20 @@ type SplitMode = 'equal' | 'some' | 'custom';
             <label class="flex items-center justify-between text-sm font-medium text-secondary py-2">
               <span id="fixed-label">Despesa fixa</span>
               <button type="button" role="switch" [attr.aria-checked]="form.fixed" [attr.aria-labelledby]="'fixed-label'"
-                (click)="form.fixed = !form.fixed"
-                class="relative w-11 h-6 rounded-full transition cursor-pointer"
+                (click)="form.installments > 1 || (form.fixed = !form.fixed)"
+                class="relative w-11 h-6 rounded-full transition"
+                [class.opacity-50]="form.installments > 1"
+                [class.cursor-pointer]="form.installments <= 1"
+                [class.cursor-not-allowed]="form.installments > 1"
                 [class.bg-purple-500]="form.fixed"
                 [class.bg-white/20]="!form.fixed">
                 <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition shadow"
                   [class.translate-x-5]="form.fixed"></span>
               </button>
             </label>
+            @if (form.installments > 1) {
+              <p class="text-muted text-xs -mt-2">Não disponível para despesas parceladas</p>
+            }
 
             @if (membersLoading) {
               <div class="animate-pulse flex flex-col gap-2.5">
@@ -181,8 +187,11 @@ type SplitMode = 'equal' | 'some' | 'custom';
                     <div class="grid grid-cols-2 gap-2 mt-1">
                       @for (sv of splitValuesSignal(); track sv.name) {
                         <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-card-strong">
-                          <span class="text-primary text-sm">{{ sv.name }}</span>
-                          <span class="text-secondary text-sm font-medium">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
+                          <div class="min-w-0 flex-1">
+                            <span class="text-primary text-sm block truncate">{{ sv.name }}</span>
+                            <span class="text-muted text-[10px] block truncate">{{ phoneMap().get(sv.name) ?? '' }}</span>
+                          </div>
+                          <span class="text-secondary text-sm font-medium shrink-0">@if (form.installments > 1) { {{ form.installments }}x } R$ {{ fmt(sv.value / (form.installments || 1)) }}</span>
                         </div>
                       }
                     </div>
@@ -192,6 +201,9 @@ type SplitMode = 'equal' | 'some' | 'custom';
                     <span>Selecione os participantes (mínimo 2)  — {{ selectedSome().length }} selecionados</span>
                     @if (submitted() && selectedSomeCount() < 2) {
                       <span class="text-rose-400 text-xs">Selecione ao menos 2 moradores</span>
+                    }
+                    @if (selectedSomeCount() === 2 && members.length > 2) {
+                      <span class="text-muted text-xs">É necessário ao menos 2 participantes</span>
                     }
                     <div class="grid grid-cols-2 gap-2 mt-1">
                       @for (m of members; track m) {
@@ -363,7 +375,7 @@ export class ExpenseFormComponent implements OnChanges {
         dueDate: this.editingExpense.dueDate,
         paidBy: this.editingExpense.paidBy,
         splitMode: this.editingExpense.splitMode,
-        fixed: this.editingExpense.fixed,
+        fixed: this.editingExpense.is_fixed ?? this.editingExpense.fixed,
         installments: this.editingExpense.installments,
         firstDueDate: this.editingExpense.firstDueDate,
         splitCustom,
@@ -424,6 +436,7 @@ export class ExpenseFormComponent implements OnChanges {
     if (this.form.installments < 1) this.form.installments = 1;
     this.form.installments = Math.round(this.form.installments);
     if (this.form.installments <= 1) this.form.firstDueDate = '';
+    if (this.form.installments > 1) this.form.fixed = false;
   }
 
   setSplitMode(mode: string): void {
@@ -457,7 +470,7 @@ export class ExpenseFormComponent implements OnChanges {
         .filter(m => (Number(this.form.splitCustom[m]) || 0) > 0)
         .map(m => ({ name: m, value: Number(this.form.splitCustom[m]) || 0 }));
       const totalCustom = splitValues.reduce((s, v) => s + v.value, 0);
-      if (Math.abs(totalCustom - this.form.amount) > 0.01) {
+      if (Math.abs(totalCustom - this.form.amount) >= 0.01) {
         this.submittedGeneralError.set('A soma dos valores deve ser igual ao valor total.');
         return;
       }

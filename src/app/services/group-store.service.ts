@@ -63,7 +63,7 @@ export class GroupStoreService {
       })) : [],
       createdBy: e.created_by ?? e.createdBy,
       installmentGroup: e.installment_index ? { index: e.installment_index, total: e.installment_total } : undefined,
-      fixed: e.is_fixed ?? e.fixed,
+      fixed: e.is_fixed || e.fixed_source_id != null,
     }));
   });
 
@@ -92,7 +92,7 @@ export class GroupStoreService {
       })) : [],
       createdBy: e.created_by ?? e.createdBy,
       installmentGroup: e.installment_index ? { index: e.installment_index, total: e.installment_total } : undefined,
-      fixed: e.is_fixed ?? e.fixed,
+      fixed: e.is_fixed || e.fixed_source_id != null,
     }));
   });
   readonly tasks = signal<any[]>([]);
@@ -102,16 +102,11 @@ export class GroupStoreService {
 
   readonly slugToCategoryId = signal<Record<string, string>>({});
   readonly categoryIdToSlug = signal<Record<string, string>>({});
+  private readonly allCategories = signal<any[]>([]);
 
-  readonly categories = [
-    { value: 'aluguel', label: 'Aluguel' },
-    { value: 'energia', label: 'Energia' },
-    { value: 'internet', label: 'Internet' },
-    { value: 'agua', label: 'Água' },
-    { value: 'compras', label: 'Compras' },
-    { value: 'limpeza', label: 'Limpeza' },
-    { value: 'outros', label: 'Outros' },
-  ];
+  readonly categories = computed(() =>
+    this.allCategories().map((c: any) => ({ value: c.slug, label: c.label }))
+  );
 
   readonly memberNames = computed(() =>
     this.members().map((m: any) => m.nome ?? m.name ?? '')
@@ -179,12 +174,11 @@ export class GroupStoreService {
   });
 
   private searchDebouncer = new Subject<{ limit: number; offset: number; search: string; dateFrom: string; dateTo: string; myExpenses: boolean }>();
-
-  refreshExpenses(limit: number, offset: number, search = '', dateFrom = '', dateTo = '', myExpenses = false): void {
-    this.searchDebouncer.next({ limit, offset, search, dateFrom, dateTo, myExpenses });
-  }
+  private debounceInitialized = false;
 
   private initDebounce(): void {
+    if (this.debounceInitialized) return;
+    this.debounceInitialized = true;
     this.searchDebouncer.pipe(
       switchMap(({ limit, offset, search, dateFrom, dateTo, myExpenses }) => {
         const groupId = this.groupIdSignal();
@@ -210,6 +204,10 @@ export class GroupStoreService {
     });
   }
 
+  refreshExpenses(limit: number, offset: number, search = '', dateFrom = '', dateTo = '', myExpenses = false): void {
+    this.searchDebouncer.next({ limit, offset, search, dateFrom, dateTo, myExpenses });
+  }
+
   refreshExpensesByMonth(year: number, month: number): void {
     const groupId = this.groupIdSignal();
     if (!groupId) return;
@@ -217,7 +215,7 @@ export class GroupStoreService {
     const from = `${year}-${String(month + 1).padStart(2, '0')}-01`;
     const lastDay = new Date(year, month + 1, 0).getDate();
     const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    const url = `${environment.apiUrl}/groups/${groupId}/expenses?competence_date_from=${from}&competence_date_to=${to}&limit=500&offset=0`;
+    const url = `${environment.apiUrl}/groups/${groupId}/expenses?competence_date_from=${from}&competence_date_to=${to}&limit=10000&offset=0`;
     this.http.get<any>(url).subscribe({
       next: res => {
         if (res?.data !== undefined && res?.total !== undefined) {
@@ -228,9 +226,12 @@ export class GroupStoreService {
           this.monthExpenses.set(data);
           this.monthExpensesTotal.set(data.length);
         }
+        this.monthExpensesLoading.set(false);
       },
-      error: () => this.monthExpenses.set([]),
-      complete: () => this.monthExpensesLoading.set(false),
+      error: () => {
+        this.monthExpenses.set([]);
+        this.monthExpensesLoading.set(false);
+      },
     });
   }
 
@@ -275,6 +276,7 @@ export class GroupStoreService {
     this.http.get<any>(`${environment.apiUrl}/categories`).subscribe({
       next: res => {
         const data = Array.isArray(res) ? res : res?.data ?? [];
+        this.allCategories.set(data);
         const slugToId: Record<string, string> = {};
         const idToSlug: Record<string, string> = {};
         for (const c of data) {
