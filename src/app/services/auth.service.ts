@@ -48,6 +48,7 @@ export interface UserProfile {
 export class AuthService {
   private readonly tokenSignal = signal<string | null>(this.loadToken());
   private readonly userSignal = signal<UserProfile | null>(this.loadUser());
+  private http: HttpClient;
 
   readonly token = this.tokenSignal.asReadonly();
   readonly currentUser = this.userSignal.asReadonly();
@@ -59,10 +60,10 @@ export class AuthService {
     private destroyRef: DestroyRef,
     private injector: Injector,
   ) {
+    this.http = this.injector.get(HttpClient);
     const user = this.userSignal();
     if (this.tokenSignal() && user && !user.name) {
-      const http = this.injector.get(HttpClient);
-      http.get<any>(`${environment.apiUrl}/users/me`).pipe(
+      this.http.get<any>(`${environment.apiUrl}/users/me`).pipe(
         takeUntilDestroyed(this.destroyRef),
       ).subscribe({
         next: profile => {
