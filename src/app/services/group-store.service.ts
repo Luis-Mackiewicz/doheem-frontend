@@ -138,6 +138,7 @@ export class GroupStoreService {
 
       for (const sv of splits) {
         if (sv.is_paid) continue;
+        if (sv.name === payer) continue;
 
         const owesAmount = sv.value;
         totalDebt += owesAmount;
