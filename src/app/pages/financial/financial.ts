@@ -431,6 +431,7 @@ export class FinancialPage {
       next: () => {
         this.showToast('Pagamento confirmado');
         this.closePayModal();
+        this.store.markSplitPaid(expense.id, split.id);
         this.refreshCurrentPage(this.currentPage(), this.searchQuery(), this.filterPeriod(), this.filterMyExpenses());
       },
       error: () => {

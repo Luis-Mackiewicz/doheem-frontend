@@ -195,7 +195,13 @@ export class ProfilePage {
     reader.onload = () => {
       const result = reader.result as string;
       this.photoPreview.set(result);
-      this.usersApi.updateProfile({ avatar_url: result }).subscribe();
+      this.usersApi.updateProfile({ avatar_url: result }).subscribe({
+        next: () => this.usersApi.reloadMe(),
+        error: (err) => {
+          this.photoPreview.set(null);
+          this.toast.show(err.error?.message ?? 'Erro ao salvar foto', 'error');
+        },
+      });
     };
     reader.readAsDataURL(file);
   }

@@ -44,8 +44,8 @@ interface Member {
         <div class="flex items-start gap-5">
           <div class="relative shrink-0">
             <div class="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center bg-purple-500/15">
-              @if (group()?.imagemBase64) {
-                <img [src]="group()!.imagemBase64" alt="Foto do grupo" class="w-full h-full object-cover" />
+              @if (group()?.photo_url) {
+                <img [src]="group()!.photo_url" alt="Foto do grupo" class="w-full h-full object-cover" />
               } @else {
                 <svg lucideUsers class="w-8 h-8 text-secondary"></svg>
               }
@@ -180,8 +180,8 @@ interface Member {
                 <div class="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-purple-500/15 border-2 border-dashed border-theme">
                   @if (editFotoPreview()) {
                     <img [src]="editFotoPreview()" alt="Preview da foto do grupo" class="w-full h-full object-cover" />
-                  } @else if (group()?.imagemBase64) {
-                    <img [src]="group()!.imagemBase64" alt="Foto do grupo" class="w-full h-full object-cover" />
+                  } @else if (group()?.photo_url) {
+                    <img [src]="group()!.photo_url" alt="Foto do grupo" class="w-full h-full object-cover" />
                   } @else {
                     <svg lucideUsers class="w-10 h-10 text-secondary"></svg>
                   }
@@ -353,8 +353,10 @@ export class GroupPage {
     this.groupsApi.update(this.groupId, {
       name: this.editName,
       description: this.editDescription,
-      imagemBase64: this.editFotoPreview() || undefined,
-    }).subscribe(() => {
+      photo_url: this.editFotoPreview() || undefined,
+    }).subscribe((res) => {
+      this.store.group.set(res);
+      this.groupsApi.reloadList();
       this.closeSettings();
     });
   }

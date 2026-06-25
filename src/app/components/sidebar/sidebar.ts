@@ -55,7 +55,7 @@ import {
                 </span>
                 <span class="flex-1">{{ item.label }}</span>
                @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
-               <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
+               <span class="bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1">{{ notif.unreadCount() }}</span>
              }
            </a>
          }
@@ -125,7 +125,7 @@ import {
                  @case ('Notificações') { <svg lucideBell class="w-5 h-5"></svg> }
                }
              @if (item.label === 'Notificações' && notif.unreadCount() > 0) {
-              <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
+              <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[8px] font-bold rounded-full min-w-3.5 h-3.5 flex items-center justify-center">{{ notif.unreadCount() > 9 ? '9+' : notif.unreadCount() }}</span>
             }
           </span>
           <span class="truncate w-full text-center">{{ item.label }}</span>

@@ -37,8 +37,8 @@ import { LucideHome, LucideUsers, LucideLoader } from '@lucide/angular';
             </div>
           } @else if (group(); as g) {
             <div class="flex flex-col items-center text-center gap-4">
-              @if (g.imagemBase64) {
-                <img [src]="g.imagemBase64" alt="" class="w-20 h-20 rounded-2xl object-cover border border-theme" />
+              @if (g.photo_url) {
+                <img [src]="g.photo_url" alt="" class="w-20 h-20 rounded-2xl object-cover border border-theme" />
               } @else {
                 <div class="w-20 h-20 rounded-2xl badge-purple flex items-center justify-center">
                   <svg lucideHome class="w-10 h-10"></svg>

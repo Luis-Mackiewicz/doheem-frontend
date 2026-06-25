@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { GroupStoreService, ResidentBalance } from '../../services/group-store.service';
+import { GroupStoreService } from '../../services/group-store.service';
 import { SearchComponent } from '../../components/search/search';
 import { PaginatorComponent } from '../../components/paginator/paginator';
 import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@lucide/angular';
@@ -22,22 +22,40 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
         <span class="text-muted text-xs border border-theme rounded-lg px-2.5 py-1">{{ filtered().length }} moradores</span>
       </div>
 
+      @if (loading()) {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (i of [1,2,3]; track i) {
+            <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 animate-pulse">
+              <div class="h-4 bg-card-strong rounded w-24 mb-3"></div>
+              <div class="h-7 bg-card-strong rounded w-32"></div>
+            </div>
+          }
+        </div>
+        <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10 animate-pulse">
+          <div class="h-6 bg-card-strong rounded w-40 mb-4"></div>
+          <div class="space-y-3">
+            @for (i of [1,2,3]; track i) {
+              <div class="h-4 bg-card-strong rounded w-full"></div>
+            }
+          </div>
+        </div>
+      } @else {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
           <div class="flex items-center gap-2 mb-2">
             <svg lucideArrowDown class="w-4 h-4 text-rose-400"></svg>
             <p class="text-secondary text-sm font-medium">Você deve</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(youOwe()) }}</p>
         </div>
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
           <div class="flex items-center gap-2 mb-2">
             <svg lucideArrowUp class="w-4 h-4 text-emerald-400"></svg>
             <p class="text-secondary text-sm font-medium">Você tem a receber</p>
           </div>
           <p class="text-2xl font-bold text-primary">R$ {{ fmt(youReceive()) }}</p>
         </div>
-        <div class="rounded-2xl bg-card border-theme p-5">
+        <div class="rounded-2xl bg-card border border-theme p-5 shadow-lg shadow-black/10">
           <div class="flex items-center gap-2 mb-2">
             <svg lucideWallet class="w-4 h-4 text-(--badge-purple)"></svg>
             <p class="text-secondary text-sm font-medium">Dívida total do grupo</p>
@@ -90,6 +108,7 @@ import { LucideUsers, LucideArrowDown, LucideArrowUp, LucideWallet } from '@luci
         </div>
       </div>
       <app-paginator [currentPage]="currentPage()" [totalPages]="totalPages()" (pageChange)="goToPage($event)" />
+      }
     </div>
   `,
 })
@@ -105,6 +124,10 @@ export class BalancesPage {
     const groupId = this.route.parent?.snapshot.paramMap.get('id') ?? '';
     this.store.setGroupId(groupId);
   }
+
+  protected readonly loading = computed(() =>
+    this.store.balancesLoading()
+  );
 
   protected readonly youOwe = computed(() => this.store.balanceSummary().youOwe);
   protected readonly youReceive = computed(() => this.store.balanceSummary().youReceive);

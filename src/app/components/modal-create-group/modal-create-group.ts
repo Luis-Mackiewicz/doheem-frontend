@@ -67,7 +67,7 @@ import { LucideX, LucideCamera, LucideBuilding2 } from '@lucide/angular';
 })
 export class CreateGroupModalComponent {
   @Output() close = new EventEmitter<void>();
-  @Output() created = new EventEmitter<{ name: string; description: string; currency: string; imagemBase64: string }>();
+  @Output() created = new EventEmitter<{ name: string; description: string; currency: string; photo_url?: string }>();
 
   @ViewChild('fileInput') fileInputRef!: ElementRef<HTMLInputElement>;
 
@@ -76,7 +76,7 @@ export class CreateGroupModalComponent {
   protected currency = 'BRL';
 
   protected currencies = ['BRL', 'USD', 'EUR', 'GBP', 'ARS', 'PYG', 'UYU'];
-  protected imagemBase64 = '';
+  protected photoBase64 = '';
   protected readonly imagemPreview = signal('');
 
   onFileSelected(e: Event): void {
@@ -85,7 +85,7 @@ export class CreateGroupModalComponent {
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      this.imagemBase64 = dataUrl;
+      this.photoBase64 = dataUrl;
       this.imagemPreview.set(dataUrl);
     };
     reader.readAsDataURL(file);
@@ -97,8 +97,7 @@ export class CreateGroupModalComponent {
       name: this.name.trim(),
       description: this.description.trim(),
       currency: this.currency,
-      imagemBase64: this.imagemBase64,
-
+      photo_url: this.photoBase64 || undefined,
     });
     this.close.emit();
   }

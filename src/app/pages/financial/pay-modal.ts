@@ -56,7 +56,7 @@ export class PayModalComponent {
   @Output() cancel = new EventEmitter<void>();
   @Output() receiptSelected = new EventEmitter<Event>();
 
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.expense) this.cancel.emit();
   }

@@ -34,6 +34,10 @@ export class GroupStoreService {
   readonly expenses = signal<any[]>([]);
   readonly expensesLoading = signal(false);
   readonly expensesTotal = signal(0);
+
+  readonly balances = signal<any>({ residents: [], total_debt: 0 });
+  readonly balancesLoading = signal(false);
+  readonly balanceError = signal(false);
   readonly monthExpenses = signal<any[]>([]);
   readonly monthExpensesLoading = signal(false);
   readonly monthExpensesTotal = signal(0);
@@ -118,43 +122,34 @@ export class GroupStoreService {
   });
 
   readonly balanceSummary = computed((): BalanceSummary => {
-    const expenses = this.normalizedExpenses();
-    const allMembers = this.members();
+    const b = this.balances();
+    const members = this.members();
     const currentUser = this.currentUser();
 
-    const map = new Map<string, ResidentBalance>();
-    for (const m of allMembers) {
-      const name = m.nome ?? m.name ?? '';
-      map.set(name, { name, owes: 0, toReceive: 0 });
+    const nameMap = new Map<string, string>();
+    for (const m of members) {
+      nameMap.set(m.user_id, m.nome ?? m.name ?? '');
     }
+
+    const raw = Array.isArray(b.residents) ? b.residents : [];
+    const residents: ResidentBalance[] = raw.map((r: any) => ({
+      name: nameMap.get(r.user_id) ?? r.name ?? '',
+      owes: Number(r.owes ?? 0),
+      toReceive: Number(r.to_receive ?? 0),
+    }));
 
     let youOwe = 0;
     let youReceive = 0;
-    let totalDebt = 0;
+    const totalDebt = Number(b.total_debt ?? 0);
 
-    for (const exp of expenses) {
-      const payer = exp.paidBy;
-      const splits = exp.splitValues ?? [];
-
-      for (const sv of splits) {
-        if (sv.is_paid) continue;
-        if (sv.name === payer) continue;
-
-        const owesAmount = sv.value;
-        totalDebt += owesAmount;
-
-        const resident = map.get(sv.name);
-        if (resident) resident.owes += owesAmount;
-
-        const payerResident = map.get(payer);
-        if (payerResident) payerResident.toReceive += owesAmount;
-
-        if (sv.name === currentUser) youOwe += owesAmount;
-        if (payer === currentUser) youReceive += owesAmount;
+    for (const r of residents) {
+      if (r.name === currentUser) {
+        youOwe += r.owes;
+        youReceive += r.toReceive;
       }
     }
 
-    return { youOwe, youReceive, totalDebt, residents: [...map.values()] };
+    return { youOwe, youReceive, totalDebt, residents };
   });
 
   readonly recentExpenses = computed(() =>
@@ -205,6 +200,21 @@ export class GroupStoreService {
     });
   }
 
+  markSplitPaid(expenseId: string, splitId: string): void {
+    this.expenses.update(list =>
+      list.map(e =>
+        e.id === expenseId
+          ? {
+              ...e,
+              splits: Array.isArray(e.splits)
+                ? e.splits.map(s => s.id === splitId ? { ...s, is_paid: true } : s)
+                : e.splits,
+            }
+          : e,
+      ),
+    );
+  }
+
   refreshExpenses(limit: number, offset: number, search = '', dateFrom = '', dateTo = '', myExpenses = false): void {
     this.searchDebouncer.next({ limit, offset, search, dateFrom, dateTo, myExpenses });
   }
@@ -232,6 +242,25 @@ export class GroupStoreService {
       error: () => {
         this.monthExpenses.set([]);
         this.monthExpensesLoading.set(false);
+      },
+    });
+  }
+
+  fetchBalances(groupId: string): void {
+    this.balancesLoading.set(true);
+    this.balanceError.set(false);
+    this.http.get<any>(`${environment.apiUrl}/groups/${groupId}/balances`).subscribe({
+      next: res => {
+        this.balances.set({
+          residents: Array.isArray(res.residents) ? res.residents : [],
+          total_debt: res.total_debt ?? 0,
+        });
+        this.balancesLoading.set(false);
+      },
+      error: () => {
+        this.balances.set({ residents: [], total_debt: 0 });
+        this.balanceError.set(true);
+        this.balancesLoading.set(false);
       },
     });
   }
@@ -273,6 +302,8 @@ export class GroupStoreService {
       error: () => this.members.set([]),
       complete: () => this.membersLoading.set(false),
     });
+
+    this.fetchBalances(groupId);
 
     this.http.get<any>(`${environment.apiUrl}/categories`).subscribe({
       next: res => {

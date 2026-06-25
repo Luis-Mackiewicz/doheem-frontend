@@ -29,6 +29,7 @@ export interface AuthResponse {
     name: string;
     email: string;
     phone: string;
+    avatar_url?: string;
   };
 }
 
@@ -40,7 +41,7 @@ export interface UserProfile {
   documento?: string;
   dataNascimento?: string;
   cep?: string;
-  fotoBase64?: string;
+  avatar_url?: string;
   admin?: boolean;
 }
 

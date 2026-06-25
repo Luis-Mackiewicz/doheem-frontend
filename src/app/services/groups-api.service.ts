@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -8,14 +8,13 @@ export interface CreateGroupRequest {
   name: string;
   description: string;
   currency: string;
-  imagemBase64: string;
-
+  photo_url?: string;
 }
 
 export interface UpdateGroupRequest {
   name: string;
   description: string;
-  imagemBase64?: string;
+  photo_url?: string;
 }
 
 export interface AddMemberRequest {
@@ -31,12 +30,18 @@ export interface UpdateMemberRoleRequest {
 export class GroupsApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private reloadCounter = signal(0);
 
   readonly list = httpResource<any[]>(() => {
     const token = this.auth.token();
     if (!token) return undefined;
+    this.reloadCounter();
     return `${environment.apiUrl}/groups`;
   });
+
+  reloadList(): void {
+    this.reloadCounter.update(v => v + 1);
+  }
 
   getById(id: string) {
     return httpResource<any>(() => `${environment.apiUrl}/groups/${id}`);

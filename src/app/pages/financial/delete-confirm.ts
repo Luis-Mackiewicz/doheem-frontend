@@ -39,7 +39,7 @@ export class DeleteConfirmComponent {
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
 
-  @HostListener('document:keydown.escape', ['$event'])
+  @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.deleting) this.cancel.emit();
   }

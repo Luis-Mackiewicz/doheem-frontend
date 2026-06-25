@@ -268,7 +268,7 @@ type SplitMode = 'equal' | 'some' | 'custom';
 
           <div class="flex gap-3 px-4 sm:px-6 pb-4 sm:pb-6 pt-4 shrink-0 border-t border-theme justify-end">
             <app-button type="button" variant="outline" label="Cancelar" (click)="cancel.emit()"></app-button>
-            <app-button type="button" variant="solid" [loading]="saving()" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
+            <app-button type="button" variant="solid" [loading]="saving" label="{{ editingExpense ? 'Salvar' : 'Criar' }}" (click)="handleSave()"></app-button>
           </div>
         </div>
       </div>

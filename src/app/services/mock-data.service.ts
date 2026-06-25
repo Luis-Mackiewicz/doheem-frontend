@@ -80,7 +80,7 @@ export interface Group {
   monthlyFee: number;
   cnpj: string;
   cep: string;
-  imagemBase64?: string;
+  photo_url?: string;
   inviteLink?: string;
 }
 
@@ -190,7 +190,7 @@ export class MockDataService {
   readonly groupsSignal = signal<Group[]>([...MOCK_GROUPS]);
   readonly groups = this.groupsSignal.asReadonly();
 
-  createGroup(data: { name: string; description: string; currency: string; imagemBase64: string; cnpj: string; cep: string }): string {
+  createGroup(data: { name: string; description: string; currency: string; photo_url?: string; cnpj: string; cep: string }): string {
     const newId = crypto.randomUUID();
     this.groupsSignal.update(list => [...list, {
       id: newId,
@@ -200,7 +200,7 @@ export class MockDataService {
       monthlyFee: 0,
       cnpj: data.cnpj || '',
       cep: data.cep || '',
-      imagemBase64: data.imagemBase64 || undefined,
+      photo_url: data.photo_url || undefined,
     }]);
     return newId;
   }
@@ -234,9 +234,9 @@ export class MockDataService {
     return this.membersSignal().some(m => m.nome === name);
   }
 
-  updateGroup(id: string, data: { name: string; description: string; imagemBase64?: string }): void {
+  updateGroup(id: string, data: { name: string; description: string; photo_url?: string }): void {
     this.groupsSignal.update(list =>
-      list.map(g => g.id === id ? { ...g, name: data.name, description: data.description, imagemBase64: data.imagemBase64 ?? g.imagemBase64 } : g)
+      list.map(g => g.id === id ? { ...g, name: data.name, description: data.description, photo_url: data.photo_url ?? g.photo_url } : g)
     );
   }
 

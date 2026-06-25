@@ -63,8 +63,8 @@ import {
                 <a [routerLink]="'/groups/' + group.id + '/dashboard'"
                   class="flex items-center justify-between py-4 px-3 -mx-3 rounded-xl transition cursor-pointer border-b border-theme last:border-b-0 hover-bg">
                   <div class="flex items-center gap-4 min-w-0">
-                    @if (group.imagemBase64) {
-                      <img [src]="group.imagemBase64" alt="" class="w-10 h-10 rounded-xl object-cover shrink-0" />
+                    @if (group.photo_url) {
+                      <img [src]="group.photo_url" alt="" class="w-10 h-10 rounded-xl object-cover shrink-0" />
                     } @else {
                       <div class="w-10 h-10 rounded-xl badge-purple flex items-center justify-center shrink-0">
                         <svg lucideHome class="w-5 h-5"></svg>
@@ -182,7 +182,7 @@ export class GroupsPage {
     this.currentPage.set(1);
   }
 
-  onGroupCreated(data: { name: string; description: string; currency: string; imagemBase64: string }): void {
+  onGroupCreated(data: { name: string; description: string; currency: string; photo_url?: string }): void {
     this.groupsApi.create(data).subscribe({
       next: (group) => {
         this.notif.add('info', 'Grupo criado',
