@@ -207,7 +207,7 @@ export class GroupStoreService {
           ? {
               ...e,
               splits: Array.isArray(e.splits)
-                ? e.splits.map(s => s.id === splitId ? { ...s, is_paid: true } : s)
+                ? e.splits.map((s: any) => s.id === splitId ? { ...s, is_paid: true } : s)
                 : e.splits,
             }
           : e,
