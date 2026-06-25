@@ -1,7 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, DestroyRef, Injector } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../environments/environment';
 
 const TOKEN_KEY = 'doheem_token';
@@ -55,9 +55,24 @@ export class AuthService {
   readonly token$ = toObservable(this.tokenSignal);
 
   constructor(
-    private http: HttpClient,
     private router: Router,
-  ) {}
+    private destroyRef: DestroyRef,
+    private injector: Injector,
+  ) {
+    const user = this.userSignal();
+    if (this.tokenSignal() && user && !user.name) {
+      const http = this.injector.get(HttpClient);
+      http.get<any>(`${environment.apiUrl}/users/me`).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: profile => {
+          const merged = { ...user, ...profile };
+          localStorage.setItem(USER_KEY, JSON.stringify(merged));
+          this.userSignal.set(merged);
+        },
+      });
+    }
+  }
 
   login(data: LoginRequest) {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, data);
